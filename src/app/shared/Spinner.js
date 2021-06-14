@@ -5,7 +5,7 @@ export class Spinner extends Component {
     return (
       <div>
         <div className="spinner-wrapper">
-          <div className="donut"></div>
+          <div className="donut"/>
         </div>
       </div>
     )

@@ -3,7 +3,7 @@ import { Form } from 'react-bootstrap';
 import DatePicker from "react-datepicker";
 import bsCustomFileInput from 'bs-custom-file-input';
 
-export class BasicElements extends Component {
+export class InputSell extends Component {
   state = {
     startDate: new Date()
   };
@@ -22,11 +22,11 @@ export class BasicElements extends Component {
     return (
       <div>
         <div className="page-header">
-          <h3 className="page-title"> Form elements </h3>
+          <h3 className="page-title">Input Money</h3>
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="!#" onClick={event => event.preventDefault()}>Forms</a></li>
-              <li className="breadcrumb-item active" aria-current="page">Form elements</li>
+              <li className="breadcrumb-item"><a href="!#" onClick={event => event.preventDefault()}>Input Pages</a></li>
+              <li className="breadcrumb-item active" aria-current="page">Input Money</li>
             </ol>
           </nav>
         </div>
@@ -621,4 +621,4 @@ export class BasicElements extends Component {
   }
 }
 
-export default BasicElements
+export default InputSell
