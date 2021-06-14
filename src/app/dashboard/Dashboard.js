@@ -371,8 +371,8 @@ export class Dashboard extends Component {
                       <tr>
                         <th>
                           <div className="form-check form-check-muted m-0">
-                            <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" />
+                            <label htmlFor="1" className="form-check-label">
+                              <input id="1" type="checkbox" className="form-check-input" />
                               <i className="input-helper"></i>
                             </label>
                           </div>
@@ -390,8 +390,8 @@ export class Dashboard extends Component {
                       <tr>
                         <td>
                           <div className="form-check form-check-muted m-0">
-                            <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" />
+                            <label for="2" className="form-check-label">
+                              <input id="2" type="checkbox" className="form-check-input" />
                               <i className="input-helper"></i>
                             </label>
                           </div>

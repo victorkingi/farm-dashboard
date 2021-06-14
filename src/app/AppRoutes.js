@@ -9,7 +9,12 @@ const Buttons = lazy(() => import('./basic-ui/Buttons'));
 const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
 const Typography = lazy(() => import('./basic-ui/Typography'));
 
-const BasicElements = lazy(() => import('./form-elements/BasicElements'));
+const InputSell = lazy(() => import('./form-elements/InputSell'));
+const InputPurchase = lazy(() => import('./form-elements/InputPurchase'));
+const InputMoney = lazy(() => import('./form-elements/InputMoney'));
+const InputDeadSick = lazy(() => import('./form-elements/InputDeadSick'));
+const InputBorrowed = lazy(() => import('./form-elements/InputBorrowed'));
+const InputEggs = lazy(() => import('./form-elements/InputEggs'));
 
 const BasicTable = lazy(() => import('./tables/BasicTable'));
 
@@ -35,7 +40,12 @@ class AppRoutes extends Component {
           <Route path="/basic-ui/dropdowns" component={ Dropdowns } />
           <Route path="/basic-ui/typography" component={ Typography } />
 
-          <Route path="/form-Elements/basic-elements" component={ BasicElements } />
+          <Route path="/inputs/sale" component={ InputSell } />
+          <Route path="/inputs/ds" component={ InputDeadSick } />
+          <Route path="/inputs/purchase" component={ InputPurchase } />
+          <Route path="/inputs/borrow" component={ InputBorrowed } />
+          <Route path="/inputs/eggs" component={ InputEggs } />
+          <Route path="/inputs/money" component={ InputMoney } />
 
           <Route path="/tables/basic-table" component={ BasicTable } />
 

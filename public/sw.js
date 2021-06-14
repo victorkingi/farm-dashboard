@@ -1,4 +1,4 @@
-const staticCacheName = 'site-static-v1.1';
+const staticCacheName = 'site-static-v1.3';
 const dynamicCacheName = 'site-dynamic-v1.0';
 const assets = [
     '/',
@@ -61,11 +61,12 @@ self.addEventListener('fetch', evt => {
                     .then(fetchRes => {
                         return caches.open(dynamicCacheName).then(cache => {
                             cache.put(evt.request.url, fetchRes.clone());
-                            limitCacheSize(dynamicCacheName, 10);
+                            limitCacheSize(dynamicCacheName, 5);
                             return fetchRes;
                         })
                     });
             }).catch(() => {
+                console.log("NOT IN CACHE", evt.request.url);
             if (evt.request.url.indexOf('.html') > -1) {
                 return caches.match('/fallback.html');
             }

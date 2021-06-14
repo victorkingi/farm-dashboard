@@ -24,9 +24,9 @@ export class Login extends Component {
                   <div className="my-2 d-flex justify-content-between align-items-center">
                     <div className="form-check">
                       <label className="form-check-label text-muted">
+                        I want to receive notifications
                         <input type="checkbox" className="form-check-input"/>
                         <i className="input-helper"/>
-                        I want to receive notifications
                       </label>
                     </div>
                     <a href="!#" onClick={event => event.preventDefault()} className="auth-link text-muted">Forgot password?</a>
