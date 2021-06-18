@@ -1,31 +1,81 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
+import {toast, ToastContainer} from "react-toastify";
 import './App.scss';
 import AppRoutes from './AppRoutes';
 import Navbar from './shared/Navbar';
 import Sidebar from './shared/Sidebar';
-import { withTranslation } from "react-i18next";
+import {messaging} from "../services/api/firebase configurations/fbConfig";
 
 class App extends Component {
   state = {}
   componentDidMount() {
     this.onRouteChanged();
+    if (messaging !== null) {
+      navigator.serviceWorker.addEventListener("message", (message) => {
+        const customId = "myToast";
+        if (message?.data) {
+          const _data = `${message.data['firebase-messaging-msg-data'].data?.title}`;
+          const _notification = `${message.data['firebase-messaging-msg-data']
+              .notification?.title}: ${message.data['firebase-messaging-msg-data']
+              .notification?.body}`;
+
+          if (_data === 'undefined') {
+            toast.info(_notification, {
+              toastId: customId,
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+          } else {
+            toast.info(_data, {
+              toastId: customId,
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+          }
+        }
+
+      });
+    }
   }
   render () {
     let navbarComponent = !this.state.isFullPageLayout ? <Navbar/> : '';
     let sidebarComponent = !this.state.isFullPageLayout ? <Sidebar/> : '';
     return (
-      <div className="container-scroller">
-        { sidebarComponent }
-        <div className="container-fluid page-body-wrapper">
-          { navbarComponent }
-          <div className="main-panel">
-            <div className="content-wrapper">
-              <AppRoutes/>
+        <div>
+          <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+          />
+          <div className="container-scroller">
+            { sidebarComponent }
+            <div className="container-fluid page-body-wrapper">
+              { navbarComponent }
+              <div className="main-panel">
+                <div className="content-wrapper">
+                  <AppRoutes/>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     );
   }
 
@@ -64,4 +114,4 @@ class App extends Component {
 
 }
 
-export default withTranslation()(withRouter(App));
+export default withRouter(App);
