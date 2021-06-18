@@ -187,7 +187,8 @@ export class BasicTable extends Component {
                         <td> $ 123.21 </td>
                         <td> April 05, 2015 </td>
                       </tr>
-                      <tr>                        <td> Henry Tom </td>
+                      <tr>
+                        <td> Henry Tom </td>
                         <td>
                           <ProgressBar variant="warning" now={20} />
                         </td>
