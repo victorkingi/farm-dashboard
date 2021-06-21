@@ -1,4 +1,3 @@
-import {clearForm} from "../../scenes/Input Pages/scenes/Sales/components/Inputsell";
 import {checkDate} from "./utilAction";
 
 function isLastDay(dt) {
@@ -8,25 +7,17 @@ function isLastDay(dt) {
 }
 
 //when user inputs eggs
-export const inputTray = (eggs, date, count) => {
+export const inputTray = (eggs) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
         let values = {
-            ...eggs,
-            date,
-            replaced: "false"
+            ...eggs
         }
-        delete values.error_doc;
-        const valid = checkDate(date);
+        console.log(values);
+        //TODO Cloud function queries previous doc to add all values together
+        //TODO If sunday, get percentage store in same doc
 
-        if (count % 2 !== 0) {
-            const err = new Error("Functionality not yet implemented!");
-            console.error(err.message);
-            window.alert(err);
-            throw  err;
-        }
-
-        if (valid) {
+      /*  if (valid) {
             if (count % 2 !== 0) {
                 firestore.collection('eggs_collected').where("date", "==", date)
                     .get().then((query) => {
@@ -288,7 +279,6 @@ export const inputTray = (eggs, date, count) => {
                                 dispatch({type: 'INPUT_EGGS', eggs});
                                 window.alert("Data submitted");
                                 load.style.display = 'none';
-                                clearForm('eggs-form');
                                 submit.style.display = 'block';
                             }).catch((err) => {
                                 const error = err.message || err;
@@ -300,6 +290,6 @@ export const inputTray = (eggs, date, count) => {
 
                             })
                         });
-                    });
+                    });  */
     }
 };

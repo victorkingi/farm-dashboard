@@ -17,11 +17,7 @@ function errorMessage(message) {
     throw  err;
 }
 
-function parameterChecks(firestore, count, values) {
-    if (values.buyerName && (values.section === "THIKA_FARMERS" || values.section === "DUKA"
-        || values.section === "CAKES")) {
-        errorMessage("Thika Farmers, Duka and Cakes don't require buyer name");
-    }
+function parameterChecks(firestore, values) {
     if ((values.section === "THIKA_FARMERS" || values.section === "DUKA")
         &&  !JSON.parse(values.status)) {
         errorMessage("Thika Farmers and duka are always paid");
@@ -29,14 +25,10 @@ function parameterChecks(firestore, count, values) {
     if (!values.section) {
         errorMessage("Section is empty!");
     }
-    if (count % 2 !== 0) {
-        errorMessage("Functionality not yet implemented!");
-    }
     if (values.trayNo < 1 || values.trayPrice < 1) {
         errorMessage("Tray price and number cannot be negative / 0");
     }
     if (!values.name) errorMessage("User undefined!");
-    delete values.error_doc;
     checkDate(values.date);
     if (values.buyerName) {
         values.buyerName = values.buyerName.charAt(0).toUpperCase().concat(values
@@ -44,38 +36,47 @@ function parameterChecks(firestore, count, values) {
     }
 }
 
+export const getSectionAddr = (section) => {
+    let newSection = section.toUpperCase();
+    const index = newSection.indexOf(' ');
+    if (section === 'Other') return newSection.concat('_SALE');
+    if (index < 0) return newSection;
+    return newSection.substring(0, index).concat('_', newSection.substring(index+1))
+}
+
 /**
  * if other sales exists in pending_transactions, query and get total
  * trays sold, - from current trays and use the result as value
  * @param sales
- * @param date
- * @param renderCount
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  */
-export const inputSell = (sales, date, renderCount) => {
+export const inputSell = (sales) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firebase = getFirebase();
         const disName = firebase.auth().currentUser.displayName;
         const name =  disName.substring(0, disName.lastIndexOf(" ")).toUpperCase();
         const firestore = getFirestore();
+        let status = true;
+        if (sales.not_paid) {
+            status = false;
+        }
         const values = {
             ...sales,
-            date,
             name,
-            replaced: "false"
+            status,
+            replaced: !!sales.replaced
         }
-        parameterChecks(firestore, renderCount, values);
+        delete values.not_paid;
+        delete values.paid;
+        values.category = 'sales';
+        values.section = getSectionAddr(values.section);
+        parameterChecks(firestore, values);
         if (JSON.parse(values.status)) {
             firestore.collection("pending_transactions").add({
                 values: values,
                 submittedOn: new Date()
             });
             dispatch({type: 'INPUT_SALES', sales});
-            window.alert("Data Submitted");
-            const load = document.getElementById("loading-sales");
-            const submit = document.getElementById("submit-btn-sales");
-            load.style.display = 'none';
-            submit.style.display = 'block';
 
         } else if (!JSON.parse(values.status)) {
             firestore.collection("late_payment").add({
@@ -83,12 +84,7 @@ export const inputSell = (sales, date, renderCount) => {
                 values,
                 submittedOn: new Date()
             });
-            dispatch({type: 'INPUT_SALES', sales});
-            window.alert("Data Submitted");
-            const load = document.getElementById("loading-sales");
-            const submit = document.getElementById("submit-btn-sales");
-            load.style.display = 'none';
-            submit.style.display = 'block';
+            dispatch({type: 'INPUT_SALES', values});
         } else {
             window.alert(new Error("UNKNOWN_ERROR"));
             throw new Error("UNKNOWN_ERROR");

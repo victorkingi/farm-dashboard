@@ -1,9 +1,21 @@
-const functions = require("firebase-functions");
+const admin = require('firebase-admin');
+const serviceAccount = require("./poultry101-6b1ed-783df27e617b.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: "poultry101-6b1ed.appspot.com"
+});
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+const handleFCM = require('./src/handleFCM');
+const firestoreTrigger = require('./src/firestoreTrigger');
+const utils = require('./src/utils');
+const scheduled = require('./src/scheduled');
+
+exports.FCMT = firestoreTrigger;
+exports.hFCM = handleFCM;
+exports.util = utils;
+exports.sch = scheduled;
+

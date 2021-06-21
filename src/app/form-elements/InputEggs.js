@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Form} from 'react-bootstrap';
+import {connect} from 'react-redux';
+import {inputTray} from '../../services/actions/eggsAction';
 import DatePicker from "react-datepicker";
 import bsCustomFileInput from 'bs-custom-file-input';
 import {Redirect} from "react-router-dom";
@@ -28,7 +30,7 @@ function getFinalLevelArray(state) {
 }
 
 //
-function InputEggs() {
+function InputEggs(props) {
     const [state, setState] = useState({
         date: new Date(),
         category: 'eggs'
@@ -76,6 +78,7 @@ function InputEggs() {
                 return;
             }
         }
+        props.inputTray(state);
         setOpenError(false);
         setOpen(true);
     };
@@ -199,4 +202,10 @@ function InputEggs() {
     )
 }
 
-export default InputEggs
+const mapDispatchToProps = (dispatch) => {
+    return {
+        inputTray: (egg) => dispatch(inputTray(egg))
+    }
+}
+
+export default connect(null, mapDispatchToProps)(InputEggs);

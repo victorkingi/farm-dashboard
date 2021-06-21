@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
+import {connect} from 'react-redux';
 import bsCustomFileInput from 'bs-custom-file-input';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown'
 import {Redirect} from "react-router-dom";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
+import {sendMoney} from "../../services/actions/moneyAction";
 
 //df
-function InputMoney() {
+function InputMoney(props) {
     const [state, setState] = useState({
         from: 'From',
         to: 'To',
@@ -24,7 +26,7 @@ function InputMoney() {
         const priceAmountRegex = /^([\d]+)$/;
         const noZeroRegex = /^(0*)$/;
         const arr = Object.entries(state);
-        console.log(arr.length);
+
         if (arr.length < 4) {
             setError('All Inputs should be filled');
             setOpenError(true);
@@ -44,7 +46,15 @@ function InputMoney() {
                 }
                 break;
             }
+            if (arr[i][0] === "to" || arr[i][0] === "from") {
+                if (arr[i][1] === "To" || arr[i][1] === "From") {
+                    setError('Sender & Reciever inputs should be filled');
+                    setOpenError(true);
+                    return;
+                }
+            }
         }
+        props.sendMoney(state);
         setOpenError(false);
         setOpen(true);
     };
@@ -86,8 +96,6 @@ function InputMoney() {
         componentDidMount();
     }, []);
 
-
-        console.log(state);
         if (redirect) {
             return (
                 <Redirect to='/dashboard'/>
@@ -160,4 +168,10 @@ function InputMoney() {
         )
 }
 
-export default InputMoney
+const mapDispatchToProps = (dispatch) => {
+    return {
+        sendMoney: (money) => dispatch(sendMoney(money))
+    }
+}
+
+export default connect(null, mapDispatchToProps)(InputMoney);

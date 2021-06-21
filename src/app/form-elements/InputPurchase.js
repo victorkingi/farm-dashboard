@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
+import {connect} from 'react-redux';
 import DatePicker from "react-datepicker";
 import bsCustomFileInput from 'bs-custom-file-input';
 import DropdownButton from 'react-bootstrap/DropdownButton';
@@ -8,9 +9,10 @@ import {Redirect} from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
+import {inputPurchase} from "../../services/actions/buyAction";
 
 //df
-function InputPurchase() {
+function InputPurchase(props) {
     const [state, setState] = useState({
         date: new Date(),
         section: 'Choose Section',
@@ -25,7 +27,7 @@ function InputPurchase() {
         e.preventDefault();
         const priceAmountRegex = /^([\d]+)$/;
         const arr = Object.entries(state);
-        console.log(arr.length);
+
         if (arr.length < 6) {
             setError('All Inputs should be filled');
             setOpenError(true);
@@ -45,6 +47,7 @@ function InputPurchase() {
                 return;
             }
         }
+        props.inputPurchase(state);
         setOpenError(false);
         setOpen(true);
     };
@@ -102,7 +105,6 @@ function InputPurchase() {
         componentDidMount();
     }, []);
 
-        console.log(state)
         if (redirect) {
             return (
                 <Redirect to='/dashboard'/>
@@ -188,4 +190,10 @@ function InputPurchase() {
         )
 }
 
-export default InputPurchase
+const mapDispatchToProps = (dispatch) => {
+    return {
+        inputPurchase: (buy) => dispatch(inputPurchase(buy))
+    }
+}
+
+export default connect(null, mapDispatchToProps)(InputPurchase);
