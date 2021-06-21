@@ -1,9 +1,8 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { ProgressBar } from 'react-bootstrap';
 
-export class BasicTable extends Component {
-  render() {
-    return (
+function BasicTable() {
+  return (
       <div>
         <div className="page-header">
           <h3 className="page-title"> Basic Tables </h3>
@@ -415,7 +414,6 @@ export class BasicTable extends Component {
         </div>
       </div>
     )
-  }
 }
 
 export default BasicTable

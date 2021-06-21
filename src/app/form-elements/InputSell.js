@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import {connect} from 'react-redux';
 import { Form } from 'react-bootstrap';
 import bsCustomFileInput from 'bs-custom-file-input';
 import DropdownButton from 'react-bootstrap/DropdownButton';
@@ -8,13 +9,13 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
+import {inputSell} from "../../services/actions/salesAction";
 
 //df
-function InputSell() {
+function InputSell(props) {
   const [state, setState] = useState({
     date: new Date(),
     section: 'Choose Section',
-    category: 'sales',
     buyerName: ''
   });
   const [open, setOpen] = useState(false);
@@ -27,13 +28,14 @@ function InputSell() {
     const arr = Object.entries(state);
     const trayRegex = /^([\d]+)$/;
     const noZeroRegex = /^(0*)$/;
-    if (arr.length < 6) {
+
+    if (arr.length < 5) {
       setError('All Inputs should be filled');
       setOpenError(true);
       return;
     }
     for (let i = 0; i < arr.length; i++) {
-      if (arr[i][1] === "" || !arr[i][1]) {
+      if (arr[i][1] === "") {
         setError('All Inputs should be filled');
         setOpenError(true);
         return;
@@ -71,12 +73,12 @@ function InputSell() {
       }
       }
     }
+    props.inputSell(state);
     setOpenError(false);
     setOpen(true);
   };
 
   const handleDate = (date) => {
-    console.log(date);
     setState({
       date: date
     });
@@ -92,7 +94,6 @@ function InputSell() {
 
   const handleSelect = (e) => {
     if (e.target) {
-      console.log(e.target.value)
       if (e.target?.value === '0') {
         if (e.target.id === 'paid' || e.target.id === 'not_paid') {
           const paid = document.getElementById('paid').checked;
@@ -130,7 +131,6 @@ function InputSell() {
     componentDidMount();
   }, []);
 
-    console.log(state);
     if (redirect) {
       return (
           <Redirect to='/dashboard'/>
@@ -170,7 +170,7 @@ function InputSell() {
                     <label htmlFor="section">Section</label>
                     <DropdownButton
                         alignRight
-                        title={state.section}
+                        title={state.section || 'Choose Section'}
                         id="dropdown-menu-align-right"
                         onSelect={handleSelect}
                     >
@@ -185,7 +185,7 @@ function InputSell() {
                     <label htmlFor="buyerName">Buyer Name</label>
                     <Form.Control type="text"
                                   onChange={handleSelect}
-                                  className="form-control" id="buyerName" placeholder="Name of Buyer" value={state.section} />
+                                  className="form-control" id="buyerName" placeholder="Name of Buyer" />
                   </Form.Group>
                   <Form.Group>
                     <label htmlFor="trayNo">Number of Trays</label>
@@ -237,4 +237,10 @@ function InputSell() {
     )
 }
 
-export default InputSell
+const mapDispatchToProps = (dispatch) => {
+  return {
+    inputSell: (sale) => dispatch(inputSell(sale))
+  }
+}
+
+export default connect(null, mapDispatchToProps)(InputSell)

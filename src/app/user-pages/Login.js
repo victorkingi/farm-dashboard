@@ -1,42 +1,81 @@
-import React, { useState, useMemo }  from 'react';
+import React, {useState, useMemo} from 'react';
 import {Link, Redirect} from 'react-router-dom';
-import {Button, Form} from 'react-bootstrap';
+import {Button, Form, Spinner } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import {firebase} from '../../services/api/firebase configurations/fbConfig';
 import {signIn} from "../../services/actions/authActions";
 import {sendTokenToServer} from "../../services/actions/chickenAction";
 import {handleToken} from "../../services/actions/utilAction";
-
-function validateEmail(mail) {
-  return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(mail);
-
-}
+import Snackbar from "@material-ui/core/Snackbar";
+import {Alert} from "../form-elements/InputEggs";
 
 function Login(props) {
   const [state, setState] = useState({});
+  const [open, setOpen] = useState(false);
+  const [openError, setOpenError] = useState(false);
+  const [error, setError] = useState('');
+  const [openMess, setOpenMess] = useState('Logged in');
   const load = document.getElementById("loading");
   const submit = document.getElementById("login");
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+    setOpenError(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(state)
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
+    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
+
+    if (!emailRegex.test(state.email)) {
+      setError('Invalid email format');
+      setOpenError(true);
+      return;
+    }
+    if (!passRegex.test(state.password)) {
+      setError('Password requires at least 1 uppercase, lowercase, numeric and special character and at least 8 characters long');
+      setOpenError(true);
+      return;
+    }
     if (state.email && state.password) {
       submit.style.display = 'none';
       load.style.display = 'block';
-      firebase.auth().signInWithEmailAndPassword(
-          state.email,
-          state.password
-      ).then((user) => {
-        props.signIn(user);
-        handleToken(props.sendTokenToServer);
-      }).catch((err) => {
-        props.signIn(null, err);
-        submit.style.display = 'block';
-        load.style.display = 'none';
+
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+          .then(() => {
+            return firebase.auth().signInWithEmailAndPassword(
+                state.email,
+                state.password
+            ).then((prof) => {
+              props.signIn(prof);
+              setOpenError(false);
+              setOpenMess('Logged in');
+              setOpen(true);
+              if (state.notify) {
+                handleToken(props.sendTokenToServer);
+              } else {
+                window.location.reload();
+              }
+            });
+          })
+          .catch((err) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            props.signIn(null, err);
+            submit.style.display = 'block';
+            load.style.display = 'none';
+            setError(`${errorCode}: ${errorMessage}`);
+            setOpenError(true);
       });
     }
 
   }
-  const {authError} = props;
 
   const user = useMemo(() => {
     const __user = localStorage.getItem('user') || false;
@@ -45,6 +84,7 @@ function Login(props) {
   }, []);
 
   if (user.__user) {
+    console.log(user);
     return (
         <Redirect to="/"/>
     )
@@ -76,22 +116,29 @@ function Login(props) {
 
   const handleForgotPass = (e) => {
     e.preventDefault();
+    submit.style.display = 'none';
+    load.style.display = 'block';
     const auth = firebase.auth();
-    if (validateEmail(state.email)) {
-      submit.style.display = 'none';
-      load.style.display = 'block';
+    if (emailRegex.test(state.email)) {
       auth.sendPasswordResetEmail(state.email).then(function () {
-        alert("Reset email Sent, check your email.");
+        setOpenError(false);
+        setOpenMess('Reset email Sent, check your email.');
+        setOpen(true);
         submit.style.display = 'block';
         load.style.display = 'none';
-      }).catch(function (error) {
+      }).catch((error) => {
+        setError(error.message);
+        setOpenError(true);
         submit.style.display = 'block';
         load.style.display = 'none';
-        alert(`ERROR: ${error}`);
       });
+    } else {
+      setError('Invalid email format');
+      setOpenError(true);
+      submit.style.display = 'block';
+      load.style.display = 'none';
     }
   }
-  console.log(state)
 
     return (
       <div>
@@ -102,18 +149,39 @@ function Login(props) {
                 <h3 className="font-weight-light">Sign in to continue.</h3>
                 <Form className="pt-3">
                   <Form.Group className="d-flex search-field">
-                    <Form.Control type="email" placeholder="Email" size="lg" onChange={handleChange} className="h-auto" />
+                    <Form.Control
+                        type="email"
+                        placeholder="Email"
+                        id="email"
+                        size="lg"
+                        onChange={handleChange}
+                        className="h-auto"
+                    />
                   </Form.Group>
                   <Form.Group className="d-flex search-field">
-                    <Form.Control type="password" placeholder="Password" onChange={handleChange} size="lg" className="h-auto" />
+                    <Form.Control id="password" type="password" placeholder="Password" onChange={handleChange} size="lg" className="h-auto" />
                   </Form.Group>
                   <div className="mt-3">
-                    <Button className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" on="true" onClick={handleSubmit}>SIGN IN</Button>
+                    <Button
+                        className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn"
+                        on="true" onClick={handleSubmit} id="login">SIGN IN</Button>
+                  </div>
+                  <div className="mt-3">
+                    <Button style={{display: 'none'}} id="loading" variant="primary" className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" disabled>
+                      <Spinner
+                          as="span"
+                          animation="grow"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                      />
+                      <span className="sr-only">Loading...</span>
+                    </Button>
                   </div>
                   <div className="my-2 d-flex justify-content-between align-items-center">
                     <div className="form-check">
-                      <label htmlFor="replaced" className="form-check-label text-muted">
-                        <input type="checkbox" onChange={handleChange} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
+                      <label htmlFor="notify" className="form-check-label text-muted">
+                        <input type="checkbox" onChange={handleChange} className="form-check-input" id="notify" name="notify" defaultValue={0} />
                         <i className="input-helper"></i>
                         I want to receive notifications
                       </label>
@@ -121,13 +189,22 @@ function Login(props) {
                     <a href="!#" onClick={handleForgotPass} className="auth-link text-muted">Forgot password?</a>
                   </div>
                   <div className="text-center mt-4 font-weight-light">
-                    Don't have an account? <Link to="/user-pages/register-1" className="text-primary">Create</Link>
+                    Don't have an account?
+                    <Link to="/user-pages/register-1" className="text-primary"> Create</Link>
                   </div>
                 </Form>
               </div>
             </div>
           </div>
-        </div>  
+        </div>
+        <Snackbar open={open} autoHideDuration={4000} onClose={handleClose}>
+          <Alert onClose={handleClose} severity="success">
+            {openMess}
+          </Alert>
+        </Snackbar>
+        <Snackbar open={openError} autoHideDuration={4000} onClose={handleClose}>
+          <Alert severity="error">{error}!</Alert>
+        </Snackbar>
       </div>
     )
 }

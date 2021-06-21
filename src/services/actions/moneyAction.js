@@ -73,13 +73,20 @@ export const moneyBorrowed = (borrow, date, renderCount) => {
     }
 }
 
+const cleanSendReceive = (str, name) => {
+    let str1 = str.toUpperCase();
+    if (str.includes('From')) return str1.slice(4);
+    else if (str.includes('To')) return str1.slice(2);
+    else if (str.includes('Me')) return name;
+    return str1;
+}
+
 /**
  * will be affected only if amount > balance
  * @param money
- * @param anne
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  */
-export const sendMoney = (money, anne) => {
+export const sendMoney = (money) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firebase = getFirebase();
         const user = firebase.auth().currentUser.displayName;
@@ -87,9 +94,16 @@ export const sendMoney = (money, anne) => {
         const firestore = getFirestore();
         let values = {
             ...money,
-            name: anne === "yes" ? "ANNE" : name,
+            name: money.from,
+            receiver: money.to,
             initiator: name
         }
+        delete values.from;
+        delete values.to;
+        values.receiver = cleanSendReceive(values.receiver, name);
+        values.name = cleanSendReceive(values.name, name);
+        values.initiator = cleanSendReceive(values.initiator, name);
+        console.log(values);
 
         if (values.receiver === values.name) {
             const err = new Error("Cannot send money to yourself!");
@@ -118,12 +132,7 @@ export const sendMoney = (money, anne) => {
                                 values,
                                 submittedOn: new Date()
                             });
-                            dispatch({type: 'MONEY_SENT', money});
-                            window.alert("Data submitted");
-                            const load = document.getElementById("loading-send-money");
-                            const submit = document.getElementById("submit-btn-send-money");
-                            load.style.display = 'none';
-                            submit.style.display = 'block';
+                            dispatch({type: 'MONEY_SENT', values});
                         }
                     }).catch((err) => {
                         console.error(err);
@@ -139,11 +148,6 @@ export const sendMoney = (money, anne) => {
                 submittedOn: new Date()
             });
             dispatch({type: 'MONEY_SENT', money});
-            window.alert("Data submitted");
-            const load = document.getElementById("loading-send-money");
-            const submit = document.getElementById("submit-btn-send-money");
-            load.style.display = 'none';
-            submit.style.display = 'block';
         }
     }
 }

@@ -1,4 +1,5 @@
 import {checkDate} from "./utilAction";
+import {getSectionAddr} from "./salesAction";
 
 function errorMessage(message) {
     const err = new Error(message);
@@ -8,7 +9,7 @@ function errorMessage(message) {
     throw  err;
 }
 
-function parameterChecks(firestore, count, values) {
+function parameterChecks(firestore, values) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     if (values.itemName) {
         values.itemName = values.itemName.charAt(0).toUpperCase().concat(values
@@ -38,44 +39,32 @@ function parameterChecks(firestore, count, values) {
     } else if (!values.section) {
         errorMessage("Section cannot be empty!");
     }
-    if (count % 2 !== 0) {
-        errorMessage("Functionality not yet implemented!");
-    }
     if (!values.name) errorMessage("User undefined!");
-    delete values.error_doc;
     checkDate(values.date);
 }
 
 /**
  *
  * @param buys
- * @param date
- * @param count
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  */
-export const inputPurchase = (buys, date, count) => {
+export const inputPurchase = (buys) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
         const user = getFirebase().auth().currentUser.displayName;
         const name = user.substring(0, user.lastIndexOf(" ")).toUpperCase();
         let values = {
             ...buys,
-            date,
             name,
-            replaced: "false"
+            replaced: !!buys.replaced
         };
-
-        parameterChecks(firestore, count, values);
-        firestore.collection("pending_transactions").add({
+        values.section = getSectionAddr(values.section);
+        parameterChecks(firestore, values);
+        console.log(values)
+        /*firestore.collection("pending_transactions").add({
             values,
             submittedOn: new Date()
-        });
-        dispatch({type: 'INPUT_BUYING', buys});
-        window.alert("Data Submitted");
-        const load = document.getElementById("loading-buys");
-        const submit = document.getElementById("submit-btn-buys");
-
-        submit.style.display = 'block';
-        load.style.display = 'none';
+        }); */
+        dispatch({type: 'INPUT_BUYING', values});
     }
 }

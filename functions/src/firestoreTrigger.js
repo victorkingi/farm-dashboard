@@ -1,0 +1,454 @@
+const admin = require('firebase-admin');
+const functions = require('firebase-functions');
+const { SHA512 } = require('./constants');
+const nacl = require('tweetnacl');
+nacl.util = require('tweetnacl-util');
+
+const {makeANotification, makeANotificationToOneUser, createNotification} = require('./helper');
+const numeral = require('numeral');
+const {borrowInput} = require("./helper");
+const {buyInput} = require("./helper");
+const {saleInput} = require("./helper");
+
+const runtimeOpt = {
+    timeoutSeconds: 180
+}
+
+//TODO Add check if dates on eggs are same
+//TODO Add notification for send & borrow
+
+exports.salesStats = functions.firestore.document('sales/{saleId}')
+    .onCreate((snapshot, context) => {
+        const data = snapshot.data();
+        const total = parseInt(data.trayNo) * parseFloat(data.trayPrice);
+        return admin.firestore().collection('stats')
+            .doc('data_sales').update({
+                totalSales: admin.firestore.FieldValue.increment(parseInt(data.trayNo)),
+                totalAmountEarned: admin.firestore.FieldValue.increment(total),
+                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+            })
+    });
+
+exports.buysStats = functions.firestore.document('purchases/{buyId}')
+    .onCreate((snapshot, context) => {
+        const data = snapshot.data();
+        const total = parseInt(data.objectNo) * parseFloat(data.objectPrice);
+        return admin.firestore().collection('stats')
+            .doc('data_buys').update({
+                totalPurchase: admin.firestore.FieldValue.increment(parseInt(data.objectNo)),
+                totalAmountSpent: admin.firestore.FieldValue.increment(total),
+                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+            });
+    });
+
+exports.safeBlock = functions.runWith(runtimeOpt).firestore.document('blockchain/{blockId}')
+    .onWrite(((change, context) => {
+        const data = change.before.exists ? change.before.data() : null;
+        const newData = change.after.exists ? change.after.data() : null;
+        const timeout = 60 * 1000;
+
+        setTimeout(() => {
+            if (data === null && newData) {
+                //if doc is created confirm that cloud function created it
+                admin.firestore().doc('pending_transactions/cleared').get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const pendData = doc.data();
+                            const david = {
+                                publicKey: new Uint8Array ([
+                                    26,
+                                    115,
+                                    198,
+                                    234,
+                                    228,
+                                    153,
+                                    102,
+                                    241,
+                                    221,
+                                    143,
+                                    36,
+                                    114,
+                                    233,
+                                    165,
+                                    221,
+                                    138,
+                                    157,
+                                    203,
+                                    60,
+                                    254,
+                                    227,
+                                    215,
+                                    147,
+                                    75,
+                                    205,
+                                    197,
+                                    239,
+                                    158,
+                                    181,
+                                    5,
+                                    20,
+                                    74 ])
+                            };
+                            const viktoria = {
+                                secretKey: new Uint8Array ([
+                                    67,
+                                    8,
+                                    242,
+                                    213,
+                                    16,
+                                    14,
+                                    221,
+                                    181,
+                                    189,
+                                    97,
+                                    68,
+                                    98,
+                                    171,
+                                    132,
+                                    33,
+                                    101,
+                                    227,
+                                    49,
+                                    38,
+                                    122,
+                                    175,
+                                    94,
+                                    102,
+                                    87,
+                                    59,
+                                    80,
+                                    122,
+                                    86,
+                                    134,
+                                    74,
+                                    242,
+                                    49 ])
+                            };
+
+                            function viktoriaDecrypting(message){
+                                if (!message) {
+                                    return 0;
+                                }
+                                const cipher = new Uint8Array(message.cipher_text.split`,`.map(x=>+x));
+                                const OTP = new Uint8Array(message.one_time_code.split`,`.map(x=>+x));
+                                if (cipher.length === 1 || OTP.length === 1) {
+                                    return 0;
+                                }
+                                //Get the decoded message
+                                let decoded_message = nacl.box
+                                    .open(cipher, OTP,
+                                        david.publicKey, viktoria.secretKey);
+
+                                if (decoded_message === null) return 0;
+
+                                //Get the human readable message
+                                //return the plaintext
+                                return nacl.util.encodeUTF8(decoded_message);
+                            }
+                            const hash = viktoriaDecrypting(pendData.message);
+                            if (SHA512("isDoneFam").toString() !== hash) {
+                                admin.firestore().doc(`blockchain/${context.params.blockId}`).get()
+                                    .then((docx) => {
+                                        admin.firestore().doc('temp/temp').get()
+                                            .then((doc) => {
+                                                return doc.ref.set({
+                                                    on: admin.firestore.FieldValue.serverTimestamp(),
+                                                    count: 1
+                                                });
+                                            }).then(() => {
+                                            docx.ref.delete().then(() => {  return console.log('ACCESS_DENIED'); });
+                                        })
+                                    });
+                            } else {
+                                doc.ref.update({
+                                    message: {
+                                        cipher_text: "",
+                                        one_time_code: ""
+                                    },
+                                }).then(() => { return console.log("cleared doc updated!")});
+                            }
+                        }
+                    })
+            }
+            else {
+                admin.firestore().doc('temp/temp').get()
+                    .then((doc) => {
+                        const data = doc.data();
+                        if (parseInt(data.count) !== 0) {
+                            //doc was updated
+                            return doc.ref.set({
+                                on: admin.firestore.FieldValue.serverTimestamp(),
+                                count: 0
+                            });
+                        } else {
+                            return admin.firestore().doc('temp/temp').set({
+                                on: admin.firestore.FieldValue.serverTimestamp(),
+                                count: admin.firestore.FieldValue.increment(1)
+                            }).then(() => { return change.after.ref.set(change.before.data()); });
+                        }
+                    })
+            }
+        }, timeout);
+        return 0;
+    }));
+
+exports.layingPercentage = functions.firestore.document('chicken_details/current')
+    .onWrite(((change) => {
+        const prevData = change.before.data();
+        const newData = change.after.data();
+
+        if (newData.spam === true) {
+            return null;
+        }
+
+        const prevCage = parseInt(prevData.weekCagePercent) || 0;
+        const prevHouse = parseInt(prevData.weekHousePercent) || 0;
+        const newCage = parseInt(newData.weekCagePercent) || 0;
+        const newHouse = parseInt(newData.weekHousePercent) || 0;
+        let cageDif = newCage - prevCage;
+        let houseDif = newHouse - prevHouse;
+
+        if (cageDif < 0) {
+            cageDif = cageDif * -1;
+            const rounded = Math.round((cageDif + Number.EPSILON) * 100) / 100;
+            const details = {
+                title: `Laying Percentage decreased!`,
+                body: `Cage Laying Percentage decreased by ${rounded}% this week`,
+                admin: true
+            };
+            makeANotification(details);
+
+
+        } else if (cageDif > 0) {
+            const rounded = Math.round((cageDif + Number.EPSILON) * 100) / 100;
+            const details = {
+                title: `Laying Percentage increased!`,
+                body: `Cage Laying Percentage increased by ${rounded}% this week`,
+                admin: true
+            };
+            makeANotification(details);
+
+        }
+
+        if (houseDif < 0) {
+            houseDif = houseDif * -1;
+            const rounded = Math.round((houseDif + Number.EPSILON) * 100) / 100;
+            const details = {
+                title: `Laying Percentage decreased!`,
+                body: `House Laying Percentage decreased by ${rounded}% this week`,
+                admin: true
+            };
+            makeANotification(details);
+
+
+        } else if (houseDif > 0) {
+            const rounded = Math.round((houseDif + Number.EPSILON) * 100) / 100;
+            const details = {
+                title: `Laying Percentage increased!`,
+                body: `House Laying Percentage increased by ${rounded}% this week`,
+                admin: true
+            };
+           makeANotification(details);
+
+        }
+
+        return null;
+    }));
+
+exports.clearPending = functions.firestore.document('pending_transactions/cleared').onUpdate(
+    ((change, context) => {
+
+        return admin.firestore().collection('pending_transactions')
+            .orderBy('submittedOn', 'desc').get()
+            .then((snapshot) => {
+                return snapshot.docs.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.values.category === "sales") {
+                        return saleInput(data.values);
+                    } else if (data.values.category === "buys") {
+                        return buyInput(data.values);
+                    } else if (data.values.category === "borrow") {
+                        borrowInput(data.values);
+                        const sender = data.values.borrower.toLowerCase().charAt(0)
+                            .toUpperCase().concat(data.values.borrower.toLowerCase().slice(1));
+
+                        let details = {
+                            title: `${sender} borrowed some money`,
+                            body: `You were assigned by ${sender} to pay Ksh.${numeral(parseInt(data.values.amount)).format("0,0")}`,
+                            name: data.values.get_from
+                        }
+                        return makeANotificationToOneUser(details);
+                    } else if (data.values.category === "send") {
+                        const sender = data.values.name.toLowerCase().charAt(0)
+                            .toUpperCase().concat(data.values.name.toLowerCase().slice(1));
+                        let details = {
+                            title: `${sender} sent you Money!`,
+                            body: `You Have Received Ksh.${numeral(parseInt(data.values.amount)).format("0,0")} from ${sender}`,
+                            name: data.values.receiver
+                        }
+                        return makeANotificationToOneUser(details);
+                    }
+                });
+            }).then(() => {
+                return admin.firestore().collection('pending_transactions')
+                    .orderBy('submittedOn', 'desc').get()
+                    .then(async (snapshot) => {
+                        if (snapshot.size === 0) {
+                            return console.log("Complete");
+                        }
+                        const batch = admin.firestore().batch();
+                        snapshot.docs.forEach((doc) => {
+                            batch.delete(doc.ref);
+                        });
+                        await batch.commit();
+                        return console.log("Complete deleted");
+                    });
+            });
+    }))
+
+exports.deadSick = functions.firestore.document('dead_sick/{deadsickId}').onCreate(
+    ((snap, context) => {
+        const ds = snap.data();
+        const name = ds.submittedBy || '';
+        const section = ds.section || '';
+        const image = ds.photoURL || null;
+        const num = parseInt(ds.chickenNo);
+        const docRef = `dead_sick/${context.params.deadsickId}`;
+        let notification;
+        let details;
+
+        if (section === "Dead") {
+            if (num === 1) {
+                notification = {
+                    content: '1 Chicken Died',
+                    extraContent: `${name.charAt(0)+name.slice(1).toLowerCase()} submitted dead chicken data`,
+                    identifier: 'dead',
+                    user: `${name}`,
+                    time: admin.firestore.FieldValue.serverTimestamp(),
+                    docRef
+                }
+                details = {
+                    title: `A chicken died`,
+                    body: `Click to find out more!`,
+                    admin: true,
+                    image
+                };
+            } else {
+                notification = {
+                    content: 'Some Chickens Died',
+                    extraContent: `${name.charAt(0)+name.slice(1).toLowerCase()} submitted dead chicken data`,
+                    identifier: 'dead',
+                    user: `${name}`,
+                    time: admin.firestore.FieldValue.serverTimestamp(),
+                    docRef
+                }
+                details = {
+                    title: `Some chickens died`,
+                    body: `Click to find out more!`,
+                    admin: true,
+                    image
+                };
+            }
+        } else if (section === "Sick") {
+            if (num === 1) {
+                notification = {
+                    content: '1 Chicken is sick',
+                    extraContent: `${name.charAt(0)+name.slice(1).toLowerCase()} submitted sick chicken data`,
+                    identifier: 'sick',
+                    user: `${name}`,
+                    time: admin.firestore.FieldValue.serverTimestamp(),
+                    docRef
+                }
+                details = {
+                    title: `A chicken is sick!`,
+                    body: `Click to find out more!`,
+                    admin: true,
+                    image
+                }
+            } else {
+                notification = {
+                    content: 'Some Chickens are sick',
+                    extraContent: `${name.charAt(0)+name.slice(1).toLowerCase()} submitted sick chicken data`,
+                    identifier: 'sick',
+                    user: `${name}`,
+                    time: admin.firestore.FieldValue.serverTimestamp(),
+                    docRef
+                }
+                details = {
+                    title: `Some chickens are sick!`,
+                    body: `Click to find out more!`,
+                    admin: true,
+                    image
+            };
+            }
+        }
+        createNotification(notification);
+
+        return makeANotification(details);
+    })
+)
+
+exports.buysMade = functions.firestore.document('purchases/{buyId}')
+    .onCreate((snap, context) => {
+        const buy = snap.data();
+        const firstName = buy.submittedBy.toLowerCase().charAt(0)
+            .toUpperCase().concat(buy.submittedBy.toLowerCase().slice(1));
+        const feeds = buy.section === "Feeds" ? " Bags of Feeds" : ""
+        const item = buy.itemName || buy.section;
+        const docRef = `purchases/${context.params.buyId}`;
+
+        const notification = {
+            content: 'Purchase was made',
+            extraContent: `${buy.submittedBy.charAt(0)+buy.submittedBy.slice(1).toLowerCase()} bought ${buy.objectNo} objects, category ${buy.section}`,
+            identifier: 'buy',
+            user: `${buy.submittedBy}`,
+            time: admin.firestore.FieldValue.serverTimestamp(),
+            docRef
+        }
+       createNotification(notification);
+
+        const details = {
+            title: `Purchase made by ${firstName}`,
+            body: `${firstName} bought ${buy.objectNo}${feeds}: ${item}!`,
+            admin: false
+        };
+
+       return makeANotification(details);
+
+    });
+
+exports.salesMade = functions.firestore.document('sales/{saleId}')
+    .onCreate((snap, context) => {
+        const sale = snap.data();
+        const firstName =  sale.submittedBy.toLowerCase().charAt(0)
+            .toUpperCase().concat(sale.submittedBy.toLowerCase().slice(1));
+        const docRef = `sales/${context.params.saleId}`;
+
+        let details;
+        const notification = {
+            content: 'A sale was made',
+            extraContent: `${sale.submittedBy.charAt(0)+sale.submittedBy.slice(1).toLowerCase()} sold ${sale.trayNo} trays to ${sale.buyerName}`,
+            identifier: 'sell',
+            big: parseInt(sale.trayNo) > 4,
+            user: `${sale.submittedBy}`,
+            time: admin.firestore.FieldValue.serverTimestamp(),
+            docRef
+        }
+        createNotification(notification);
+
+        if (parseInt(sale.trayNo) === 1) {
+            details = {
+                title: `${firstName} sold ${sale.trayNo} tray!`,
+                body: `Click to find out more!`,
+                admin: false
+            }
+        } else {
+            details = {
+                title: `${firstName} sold ${sale.trayNo} trays!`,
+                body: `Click to find out more!`,
+                admin: false
+            }
+        }
+        return makeANotification(details);
+
+    });

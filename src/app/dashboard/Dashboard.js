@@ -1,29 +1,63 @@
-import React, { Component } from 'react';
+import React, {useState} from 'react';
+import {connect} from 'react-redux';
+import {compose} from 'redux';
+import {firestoreConnect} from 'react-redux-firebase';
 import { Doughnut } from 'react-chartjs-2';
+import numeral from 'numeral';
+import moment from 'moment';
+import Spinner from "../shared/Spinner";
+import Snackbar from "@material-ui/core/Snackbar";
+import {Alert} from '../form-elements/InputEggs';
+import {rollBack} from "../../services/actions/utilAction";
 
-export class Dashboard extends Component {
+function getLastSunday(d) {
+  const t = new Date(d);
+  t.setDate(t.getDate() - t.getDay());
+  return t;
+}
 
-  transactionHistoryData =  {
+function removeA(arr) {
+  let what, a = arguments, L = a.length, ax;
+  while (L > 1 && arr.length) {
+    what = a[--L];
+    while ((ax= arr.indexOf(what)) !== -1) {
+      arr.splice(ax, 1);
+    }
+  }
+  return arr;
+}
+
+function Dashboard(props) {
+  const { auth, admin, balance,
+    notifications, pend, forProfit,
+      profit, bags, eggs, chick, trays
+  } = props;
+  const all = balance && notifications
+      && pend && forProfit && profit
+      && bags && eggs && chick && trays;
+  const [state, setState] = useState([]);
+  const [open, setOpen] = useState(false);
+
+  const transactionHistoryData =  {
     labels: ["Bank", "Victor","Jeff"],
     datasets: [{
-        data: [55, 25, 20],
-        backgroundColor: [
-          "#111111","#00d25b","#ffab00"
-        ]
-      }
+      data: [55, 25, 20],
+      backgroundColor: [
+        "#111111","#00d25b","#ffab00"
+      ]
+    }
     ]
   };
-
-  transactionHistoryOptions = {
+  const transactionHistoryOptions = {
     responsive: true,
     maintainAspectRatio: true,
     segmentShowStroke: false,
     cutoutPercentage: 70,
     elements: {
       arc: {
-          borderWidth: 0
+        borderWidth: 0
       }
-    },      
+    },
     legend: {
       display: false
     },
@@ -32,267 +66,365 @@ export class Dashboard extends Component {
     }
   }
 
-  sliderSettings = {
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1
-  }
-  toggleProBanner() {
-    document.querySelector('.proBanner').classList.toggle("hide");
-  }
-  render () {
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
+
+ if (admin && auth.uid && all) {
+   const getEggs = (tray, eggs) => {
+     return (parseInt(tray) * 30) + parseInt(eggs);
+   }
+   const decodeTrayEgg = (obj) => {
+     return obj.split(',');
+   }
+
+   const sanitize_string = (str) => {
+     if (!str) return;
+     let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
+     str_1 = str_1.includes('_')
+         ? str_1.replace('_', ' ') : str_1;
+     let str_2 = str_1.includes(' ')
+         ? str_1.substring(str_1.lastIndexOf(' ')+1) : null;
+     str_2 = str_2 !== null ? str_2.toUpperCase().charAt(0)
+         .concat(str_2.toLowerCase().slice(1)) : null;
+     if (str_2 !== null) {
+       str_1 = str_1.substring(0, str_1.lastIndexOf(" "))
+           .concat(" ").concat(str_2);
+     }
+     return str_1
+   }
+
+   const getLastEggs = () => {
+     const curDate = eggs[0].date.toDate();
+     curDate.setHours(0, 0, 0, 0);
+     let sun = getLastSunday(curDate);
+     sun.setDate(sun.getDate() - 1);
+     sun = getLastSunday(sun);
+     for (let i = 0; i < eggs.length; i++) {
+       const date = eggs[i].date.toDate();
+       if (date.getTime() === sun.getTime()) {
+         return eggs[i];
+       }
+     }
+     return null;
+   }
+
+   const getAmount = (item) => {
+     if (item?.values?.trayNo)
+       return parseInt(item?.values?.trayNo)
+           * parseFloat(item?.values?.trayPrice);
+     else if (item?.values?.objectNo)
+       return  parseInt(item?.values?.objectNo)
+           * parseFloat(item?.values?.objectPrice);
+     else if (item?.values?.amount) return item?.values?.amount;
+   }
+
+   const handleSelect = (e, id) => {
+     e.preventDefault();
+     let arr = [];
+     if (e.target.id === "pending" && e.target.checked) {
+       for (let i = 0; i < pend.length; i++) {
+         if (pend[i].id === "cleared") continue;
+         const me  = document.getElementById(pend[i].id);
+         me.checked = true;
+         arr.push(pend[i].id);
+       }
+     } else if (e.target.id === "pending" && !e.target.checked) {
+       for (let i = 0; i < pend.length; i++) {
+         if (pend[i].id === "cleared") continue;
+         const me  = document.getElementById(pend[i].id);
+         me.checked = false;
+         arr = removeA(arr, pend[i].id);
+       }
+     } else {
+       arr.push(e.target.id);
+     }
+     setState(arr);
+   }
+   const display = (e) => {
+     e.preventDefault();
+     const submit = document.getElementById(`rewind`);
+     submit.disabled = true;
+     props.rollBack(state);
+     setOpen(true);
+   }
+
+   const getLatestWeekProfit = () => {
+     const curDate = profit[0].submittedOn.toDate();
+     curDate.setHours(0, 0, 0, 0);
+     let sun = getLastSunday(curDate);
+     sun.setDate(sun.getDate() - 1);
+     sun = getLastSunday(sun);
+     for (let i = 0; i < profit.length; i++) {
+       const dateClean = profit[i].submittedOn.toDate();
+       dateClean.setHours(0, 0, 0, 0);
+       if (dateClean.getTime() === sun.getTime()) {
+         if (profit[i].time === "Weekly") {
+           return profit[i].profit;
+         }
+       }
+     }
+   }
+
+   const getIcon = (identifier, big) => {
+     if (identifier === "sell") {
+       if (big === true) return "cash-multiple";
+       else return "cash";
+     } else if (identifier === "mine") return "server-network";
+     else if (identifier === "buy") return "basket";
+   }
+
+   const riseDrop = (current, prev) => {
+     const change = parseFloat(current) - parseFloat(prev);
+     const divideByZero = change / parseFloat(prev);
+     if (!isFinite(divideByZero) && change !== 0) return 100.0;
+     if (current < 0 && prev < 0) return (change / parseFloat(prev)) * 100.0 * -1;
+     return (change / parseFloat(prev)) * 100.0;
+   }
     return (
-      <div>
-        <div className="row">
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">79.82%</h3>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-success ">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal">Last Week Laying Percentage</h6>
-              </div>
-            </div>
-          </div>
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">2</h3>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-success ">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal">Bags of Feeds in Store</h6>
-              </div>
-            </div>
-          </div>
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">KSh 1,200.34</h3>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-success ">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal">Forecasted Next Week Profit</h6>
-              </div>
-            </div>
-          </div>
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">KSh 1,700.34</h3>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">+11%</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-success">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal">Forecasted 2 Weeks After Profit</h6>
-              </div>
-            </div>
-          </div>
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">85, 18</h3>
-                      <p className="text-danger ml-2 mb-0 font-weight-medium">-2.4%</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-danger">
-                      <span className="mdi mdi-arrow-bottom-left icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal">Trays and Eggs in Store</h6>
-              </div>
-            </div>
-          </div>
-          <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-9">
-                    <div className="d-flex align-items-center align-self-start">
-                      <h3 className="mb-0">KSh 3,100.53</h3>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
-                    </div>
-                  </div>
-                  <div className="col-3">
-                    <div className="icon icon-box-success ">
-                      <span className="mdi mdi-arrow-top-right icon-item"></span>
-                    </div>
-                  </div>
-                </div>
-                <h6 className="text-muted font-weight-normal">Last Week Profit</h6>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <h4 className="card-title">Transaction History</h4>
-                <div className="aligner-wrapper">
-                  <Doughnut data={this.transactionHistoryData} options={this.transactionHistoryOptions} />
-                  <div className="absolute center-content">
-                    <h5 className="font-weight-normal text-white text-center mb-2 text-white">9,500</h5>
-                    <p className="text-small text-muted text-center mb-0">Total</p>
-                  </div>
-                </div>  
-                <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
-                  <div className="text-md-center text-xl-left">
-                    <h6 className="mb-1">Transfer to Bank</h6>
-                    <p className="text-muted mb-0">07 Jan 2019, 09:12AM</p>
-                  </div>
-                  <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
-                    <h6 className="font-weight-bold mb-0">KSh 9,450</h6>
-                  </div>
-                </div>
-                <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
-                  <div className="text-md-center text-xl-left">
-                    <h6 className="mb-1">Transfer to Victor</h6>
-                    <p className="text-muted mb-0">07 Jan 2019, 09:12AM</p>
-                  </div>
-                  <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
-                    <h6 className="font-weight-bold mb-0">KSh 50</h6>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-8 grid-margin stretch-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="d-flex flex-row justify-content-between">
-                  <h4 className="card-title mb-1">Notifications</h4>
-                  <p className="text-muted mb-1">Time</p>
-                </div>
-                <div className="row">
-                  <div className="col-12">
-                    <div className="preview-list">
-                      <div className="preview-item border-bottom">
-                        <div className="preview-thumbnail">
-                          <div className="preview-icon bg-primary">
-                            <i className="mdi mdi-cash-multiple"></i>
-                          </div>
-                        </div>
-                        <div className="preview-item-content d-sm-flex flex-grow">
-                          <div className="flex-grow">
-                            <h6 className="preview-subject">Purity made a sale</h6>
-                            <p className="text-muted mb-0">5 Trays to Duka</p>
-                          </div>
-                          <div className="mr-auto text-sm-right pt-2 pt-sm-0">
-                            <p className="text-muted"></p>
-                            <p className="text-muted mb-0">On 3rd May 2021</p>
-                          </div>
-                        </div>
+        <div>
+          <div className="row">
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">{numeral(chick[0].weekPercent).format("0.00")}%</h3>
+                        <p className={`text-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0
+                              ? numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0"))}%
+                        </p>
                       </div>
-                      <div className="preview-item border-bottom">
-                        <div className="preview-thumbnail">
-                          <div className="preview-icon bg-primary">
-                            <i className="mdi mdi-basket"></i>
-                          </div>
-                        </div>
-                        <div className="preview-item-content d-sm-flex flex-grow">
-                          <div className="flex-grow">
-                            <h6 className="preview-subject">Jeff made a purchase</h6>
-                            <p className="text-muted mb-0">5 Trays to Duka</p>
-                          </div>
-                          <div className="mr-auto text-sm-right pt-2 pt-sm-0">
-                            <p className="text-muted"></p>
-                            <p className="text-muted mb-0">On 3rd May 2021</p>
-                          </div>
-                        </div>
+                    </div>
+                    <div className="col-3">
+                      <div className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
+                        <span className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
                       </div>
-                      <div className="preview-item border-bottom">
-                        <div className="preview-thumbnail">
-                          <div className="preview-icon bg-primary">
-                            <i className="mdi mdi-cash-multiple"></i>
-                          </div>
-                        </div>
-                        <div className="preview-item-content d-sm-flex flex-grow">
-                          <div className="flex-grow">
-                            <h6 className="preview-subject">Victor made a sale</h6>
-                            <p className="text-muted mb-0">5 Trays to Duka</p>
-                          </div>
-                          <div className="mr-auto text-sm-right pt-2 pt-sm-0">
-                            <p className="text-muted"></p>
-                            <p className="text-muted mb-0">On 3rd May 2021</p>
-                          </div>
-                        </div>
+                    </div>
+                  </div>
+                  <h6 className="text-muted font-weight-normal">Last Week Laying Percentage</h6>
+                </div>
+              </div>
+            </div>
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">{bags[1].number}</h3>
+                        <p className={`text-${riseDrop(bags[0].total, bags[1].number)
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(bags[0].total, bags[1].number) < 0
+                              ? numeral(riseDrop(bags[0].total, bags[1].number)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(bags[0].total, bags[1].number)).format("0.0"))}%
+                        </p>  </div>
+                    </div>
+                    <div className="col-3">
+                      <div className={`icon icon-box-${riseDrop(bags[0].total, bags[1].number) < 0 ? 'danger' : 'success'}`}>
+                        <span className={`mdi mdi-arrow-${riseDrop(bags[0].total, bags[1].number) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
                       </div>
-                      <div className="preview-item border-bottom">
-                        <div className="preview-thumbnail">
-                          <div className="preview-icon bg-primary">
-                            <i className="mdi mdi-cash-multiple"></i>
-                          </div>
-                        </div>
-                        <div className="preview-item-content d-sm-flex flex-grow">
-                          <div className="flex-grow">
-                            <h6 className="preview-subject">Babra made a sale</h6>
-                            <p className="text-muted mb-0">5 Trays to Duka</p>
-                          </div>
-                          <div className="mr-auto text-sm-right pt-2 pt-sm-0">
-                            <p className="text-muted"></p>
-                            <p className="text-muted mb-0">On 3rd May 2021</p>
-                          </div>
-                        </div>
+                    </div>
+                  </div>
+                  <h6 className="text-muted font-weight-normal">Next Day Feeds in Store</h6>
+                </div>
+              </div>
+            </div>
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">KSh {numeral(parseFloat(forProfit[1].profit))
+                            .format("0,0.00")}</h3>
+                          <p className={`text-${riseDrop(forProfit[1].profit, profit[0].profit)
+                          < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(forProfit[1].profit, profit[0].profit) < 0
+                              ? numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0.0")
+                            : '+'.concat(numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0.0"))}%
+                          </p>
                       </div>
-                      <div className="preview-item">
-                        <div className="preview-thumbnail">
-                          <div className="preview-icon bg-warning">
-                            <i className="mdi mdi-chart-pie"></i>
-                          </div>
-                        </div>
-                        <div className="preview-item-content d-sm-flex flex-grow">
-                          <div className="flex-grow">
-                            <h6 className="preview-subject">Block was mined</h6>
-                            <p className="text-muted mb-0">Hash of 000be8dea6...</p>
-                          </div>
-                          <div className="mr-auto text-sm-right pt-2 pt-sm-0">
-                            <p className="text-muted">3 days ago</p>
-                            <p className="text-muted mb-0">verified</p>
-                          </div>
-                        </div>
+                    </div>
+                    <div className="col-3">
+                      <div className={`icon icon-box-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'danger' : 'success'}`}>
+                        <span className={`mdi mdi-arrow-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      </div>
+                    </div>
+                  </div>
+                  <h6 className="text-muted font-weight-normal">Forecasted Next Week Profit</h6>
+                </div>
+              </div>
+            </div>
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">KSh {numeral(parseFloat(forProfit[0].profit))
+                            .format("0,0.00")}</h3>
+                        <p className={`text-${riseDrop(forProfit[0].profit, forProfit[1].profit)
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(forProfit[0].profit, forProfit[1].profit) < 0
+                              ? numeral(riseDrop(forProfit[0].profit, forProfit[1].profit)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(forProfit[0].profit, forProfit[1].profit)).format("0.0"))}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="col-3">
+                      <div className={`icon icon-box-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'danger' : 'success'}`}>
+                        <span className={`mdi mdi-arrow-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      </div>
+                    </div>
+                  </div>
+                  <h6 className="text-muted font-weight-normal">Forecasted 2 Weeks After Profit</h6>
+                </div>
+              </div>
+            </div>
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">{decodeTrayEgg(trays[0].current)[0]},
+                          {decodeTrayEgg(trays[0].current)[1]}
+                        </h3>
+                        <p className={`text-${riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
+                            decodeTrayEgg(trays[0].current)[1]),
+                            getEggs(decodeTrayEgg(trays[0].prev)[0],
+                                decodeTrayEgg(trays[0].prev)[1]))
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
+                              decodeTrayEgg(trays[0].current)[1]),
+                              getEggs(decodeTrayEgg(trays[0].prev)[0],
+                                  decodeTrayEgg(trays[0].prev)[1])) < 0
+                              ? numeral(riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
+                                  decodeTrayEgg(trays[0].current)[1]),
+                                  getEggs(decodeTrayEgg(trays[0].prev)[0],
+                                      decodeTrayEgg(trays[0].prev)[1]))).format("0.0")
+                              : '+'.concat(numeral(riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
+                                  decodeTrayEgg(trays[0].current)[1]),
+                                  getEggs(decodeTrayEgg(trays[0].prev)[0],
+                                      decodeTrayEgg(trays[0].prev)[1]))).format("0.0"))}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="col-3">
+                      <div className={`icon icon-box-${riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
+                          decodeTrayEgg(trays[0].current)[1]),
+                          getEggs(decodeTrayEgg(trays[0].prev)[0],
+                              decodeTrayEgg(trays[0].prev)[1])) < 0 ? 'danger' : 'success'}`}>
+                        <span className={`mdi mdi-arrow-${riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
+                            decodeTrayEgg(trays[0].current)[1]),
+                            getEggs(decodeTrayEgg(trays[0].prev)[0],
+                                decodeTrayEgg(trays[0].prev)[1])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      </div>
+                    </div>
+                  </div>
+                  <h6 className="text-muted font-weight-normal">Trays and Eggs in Store</h6>
+                </div>
+              </div>
+            </div>
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">KSh {numeral(chick[0].weekProfit).format("0,0.00")}</h3>
+                        <p className={`text-${riseDrop(chick[0].weekProfit, getLatestWeekProfit())
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0
+                              ? numeral(riseDrop(chick[0].weekProfit, getLatestWeekProfit())).format("0.0")
+                              : '+'.concat(numeral(riseDrop(chick[0].weekProfit, getLatestWeekProfit())).format("0.0"))}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="col-3">
+                      <div className={`icon icon-box-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'danger' : 'success'}`}>
+                        <span className={`mdi mdi-arrow-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      </div>
+                    </div>
+                  </div>
+                  <h6 className="text-muted font-weight-normal">Last Week Profit</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-md-4 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  <h4 className="card-title">Transaction History</h4>
+                  <div className="aligner-wrapper">
+                    <Doughnut data={transactionHistoryData} options={transactionHistoryOptions} />
+                    <div className="absolute center-content">
+                      <h5 className="font-weight-normal text-white text-center mb-2 text-white">9,500</h5>
+                      <p className="text-small text-muted text-center mb-0">Total</p>
+                    </div>
+                  </div>
+                  <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
+                    <div className="text-md-center text-xl-left">
+                      <h6 className="mb-1">Transfer to Bank</h6>
+                      <p className="text-muted mb-0">07 Jan 2019, 09:12AM</p>
+                    </div>
+                    <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
+                      <h6 className="font-weight-bold mb-0">KSh 9,450</h6>
+                    </div>
+                  </div>
+                  <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
+                    <div className="text-md-center text-xl-left">
+                      <h6 className="mb-1">Transfer to Victor</h6>
+                      <p className="text-muted mb-0">07 Jan 2019, 09:12AM</p>
+                    </div>
+                    <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
+                      <h6 className="font-weight-bold mb-0">KSh 50</h6>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-8 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  <div className="d-flex flex-row justify-content-between">
+                    <h4 className="card-title mb-1">Notifications</h4>
+                    <p className="text-muted mb-1">Time</p>
+                  </div>
+                  <div className="row">
+                    <div className="col-12">
+                      <div className="preview-list">
+                        {notifications.map(item => {
+                          const icon = getIcon(item.identifier);
+
+                          return (
+                              <div key={item.id} className="preview-item border-bottom">
+                                <div className="preview-thumbnail">
+                                  <div className="preview-icon bg-primary">
+                                    <i className={`mdi mdi-${icon}`}></i>
+                                  </div>
+                                </div>
+                                <div className="preview-item-content d-sm-flex flex-grow">
+                                  <div className="flex-grow">
+                                    <h6 className="preview-subject">{item.content}</h6>
+                                    <p className="text-muted mb-0">{`${item.extraContent}`}</p>
+                                  </div>
+                                  <div className="mr-auto text-sm-right pt-2 pt-sm-0">
+                                    <p className="text-muted"></p>
+                                    <p className="text-muted mb-0">On {moment(item.time.toDate()).format("MMM Do YY")}</p>
+                                  </div>
+                                </div>
+                              </div>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
@@ -300,79 +432,78 @@ export class Dashboard extends Component {
               </div>
             </div>
           </div>
-        </div>
-        <div className="row">
-          <div className="col-sm-4 grid-margin">
-            <div className="card">
-              <div className="card-body">
-                <h5>Revenue</h5>
-                <div className="row">
-                  <div className="col-8 col-sm-12 col-xl-8 my-auto">
-                    <div className="d-flex d-sm-block d-md-flex align-items-center">
-                      <h2 className="mb-0">KSh 32,123</h2>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
+          <div className="row">
+            <div className="col-sm-4 grid-margin">
+              <div className="card">
+                <div className="card-body">
+                  <h5>Revenue</h5>
+                  <div className="row">
+                    <div className="col-8 col-sm-12 col-xl-8 my-auto">
+                      <div className="d-flex d-sm-block d-md-flex align-items-center">
+                        <h2 className="mb-0">KSh 32,123</h2>
+                        <p className="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
+                      </div>
+                      <h6 className="text-muted font-weight-normal">11.38% Since last month</h6>
                     </div>
-                    <h6 className="text-muted font-weight-normal">11.38% Since last month</h6>
+                    <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                      <i className="icon-lg mdi mdi-codepen text-primary ml-auto"></i>
+                    </div>
                   </div>
-                  <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                    <i className="icon-lg mdi mdi-codepen text-primary ml-auto"></i>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-4 grid-margin">
+              <div className="card">
+                <div className="card-body">
+                  <h5>Sales</h5>
+                  <div className="row">
+                    <div className="col-8 col-sm-12 col-xl-8 my-auto">
+                      <div className="d-flex d-sm-block d-md-flex align-items-center">
+                        <h2 className="mb-0">KSh 45,850</h2>
+                        <p className="text-success ml-2 mb-0 font-weight-medium">+8.3%</p>
+                      </div>
+                      <h6 className="text-muted font-weight-normal"> 9.61% Since last month</h6>
+                    </div>
+                    <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                      <i className="icon-lg mdi mdi-wallet-travel text-danger ml-auto"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-4 grid-margin">
+              <div className="card">
+                <div className="card-body">
+                  <h5>Purchase</h5>
+                  <div className="row">
+                    <div className="col-8 col-sm-12 col-xl-8 my-auto">
+                      <div className="d-flex d-sm-block d-md-flex align-items-center">
+                        <h2 className="mb-0">KSh 2,039</h2>
+                        <p className="text-danger ml-2 mb-0 font-weight-medium">-2.1%</p>
+                      </div>
+                      <h6 className="text-muted font-weight-normal">2.27% Since last month</h6>
+                    </div>
+                    <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
+                      <i className="icon-lg mdi mdi-monitor text-success ml-auto"></i>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col-sm-4 grid-margin">
-            <div className="card">
-              <div className="card-body">
-                <h5>Sales</h5>
-                <div className="row">
-                  <div className="col-8 col-sm-12 col-xl-8 my-auto">
-                    <div className="d-flex d-sm-block d-md-flex align-items-center">
-                      <h2 className="mb-0">KSh 45,850</h2>
-                      <p className="text-success ml-2 mb-0 font-weight-medium">+8.3%</p>
-                    </div>
-                    <h6 className="text-muted font-weight-normal"> 9.61% Since last month</h6>
-                  </div>
-                  <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                    <i className="icon-lg mdi mdi-wallet-travel text-danger ml-auto"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-sm-4 grid-margin">
-            <div className="card">
-              <div className="card-body">
-                <h5>Purchase</h5>
-                <div className="row">
-                  <div className="col-8 col-sm-12 col-xl-8 my-auto">
-                    <div className="d-flex d-sm-block d-md-flex align-items-center">
-                      <h2 className="mb-0">KSh 2,039</h2>
-                      <p className="text-danger ml-2 mb-0 font-weight-medium">-2.1%</p>
-                    </div>
-                    <h6 className="text-muted font-weight-normal">2.27% Since last month</h6>
-                  </div>
-                  <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                    <i className="icon-lg mdi mdi-monitor text-success ml-auto"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row ">
-          <div className="col-12 grid-margin">
-            <div className="card">
-              <div className="card-body">
-                <h4 className="card-title">Pending Transactions</h4>
-                <div className="table-responsive">
-                  <table className="table">
-                    <thead>
+          <div className="row ">
+            <div className="col-12 grid-margin">
+              <div className="card">
+                <div className="card-body">
+                  <h4 className="card-title">Pending Transactions</h4>
+                  <div className="table-responsive">
+                    <table className="table">
+                      <thead>
                       <tr>
                         <th>
                           <div className="form-check form-check-muted m-0">
                             <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" />
+                              <input type="checkbox" className="form-check-input" defaultValue={0} onChange={handleSelect} id="pending" name="pending" />
                               <i className="input-helper"></i>
                             </label>
                           </div>
@@ -385,133 +516,96 @@ export class Dashboard extends Component {
                         <th> Date </th>
                         <th> Mining Status </th>
                       </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <div className="form-check form-check-muted m-0">
-                            <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" />
-                              <i className="input-helper"></i>
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="d-flex">
-                            <span className="pl-2">Jeff</span>
-                          </div>
-                        </td>
-                        <td> Anne </td>
-                        <td> 1,500 </td>
-                        <td> Sales </td>
-                        <td> Cakes </td>
-                        <td> 04 May 2021 </td>
-                        <td>
-                          <div className="badge badge-outline-success">Approved</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div className="form-check form-check-muted m-0">
-                            <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" />
-                              <i className="input-helper"></i>
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="d-flex">
-                           <span className="pl-2">Victor</span>
-                          </div>
-                        </td>
-                        <td> Anne </td>
-                        <td> 1,500 </td>
-                        <td> Sales </td>
-                        <td> Cakes </td>
-                        <td> 04 May 2021 </td>
-                        <td>
-                          <div className="badge badge-outline-warning">Pending</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div className="form-check form-check-muted m-0">
-                            <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" />
-                              <i className="input-helper"></i>
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="d-flex">
-                            <span className="pl-2">Anne</span>
-                          </div>
-                        </td>
-                        <td> Anne </td>
-                        <td> 1,500 </td>
-                        <td> Sales </td>
-                        <td> Cakes </td>
-                        <td> 04 May 2021 </td>
-                        <td>
-                          <div className="badge badge-outline-danger">Rejected</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div className="form-check form-check-muted m-0">
-                            <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" />
-                              <i className="input-helper"></i>
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="d-flex">
-                            <span className="pl-2">Purity</span>
-                          </div>
-                        </td>
-                        <td> Anne </td>
-                        <td> 1,500 </td>
-                        <td> Sales </td>
-                        <td> Cakes </td>
-                        <td> 04 May 2021 </td>
-                        <td>
-                          <div className="badge badge-outline-success">Approved</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div className="form-check form-check-muted m-0">
-                            <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" />
-                              <i className="input-helper"></i>
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="d-flex">
-                            <span className="pl-2">Victor</span>
-                          </div>
-                        </td>
-                        <td> Anne </td>
-                        <td> 1,500 </td>
-                        <td> Sales </td>
-                        <td> Cakes </td>
-                        <td> 04 May 2021 </td>
-                        <td>
-                          <div className="badge badge-outline-success">Approved</div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                      {pend.map((item) => {
+                        if (item.id === "cleared") return null;
+                        return (
+                              <tr key={item.id}>
+                                <td>
+                                  <div className="form-check form-check-muted m-0">
+                                    <label className="form-check-label">
+                                      <input type="checkbox" className="form-check-input" defaultValue={0} onChange={(e) => handleSelect(e, item?.id)} id={item.id} name={item.id}  />
+                                      <i className="input-helper"></i>
+                                    </label>
+                                  </div>
+                                </td>
+                                <td>
+                                  <div className="d-flex">
+                                    <span className="pl-2">{sanitize_string(item.values?.initiator || item.values?.name)}</span>
+                                  </div>
+                                </td>
+                                <td> {sanitize_string(item?.values?.get_from || item?.values?.receiver || item?.values?.name)} </td>
+                                <td> {getAmount(item)} </td>
+                                <td> {sanitize_string(item.values?.category)} </td>
+                                <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
+                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
+                                <td>
+                                  <div className="badge badge-outline-warning">Pending</div>
+                                </td>
+                              </tr>
+                            )
+                      })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
+            <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='rewind'>
+              Rewind
+            </button>
+            <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
+              <Alert onClose={handleClose} severity="success">
+                Pending Transactions will be rewinded
+              </Alert>
+            </Snackbar>
           </div>
         </div>
-      </div> 
     );
+  } else {
+    return (
+        <div>
+          <Spinner animation="grow" variant="primary" />
+        </div>
+    )
   }
 }
 
-export default Dashboard;
+const mapStateToProps = function(state) {
+  return {
+    balance: state.firestore.ordered.current,
+    auth: state.firebase.auth,
+    admin: state.auth.admin,
+    notifications: state.firestore.ordered.notifications,
+    pend: state.firestore.ordered.pending_transactions,
+    forProfit: state.firestore.ordered.predict_week,
+    profit: state.firestore.ordered.profit,
+    bags: state.firestore.ordered.bags,
+    eggs: state.firestore.ordered.eggs_collected,
+    chick: state.firestore.ordered.chicken_details,
+    trays: state.firestore.ordered.trays
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+
+  return {
+    rollBack: (details) => dispatch(rollBack(details))
+  }
+}
+
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    firestoreConnect([
+      {collection: 'notifications', limit: 5, orderBy: ['time', 'desc']},
+      {collection: 'current', orderBy: ['balance', 'desc']},
+      {collection: 'pending_transactions' },
+      {collection: 'predict_week', orderBy: ['date', 'desc']},
+      {collection: 'profit', limit: 2, orderBy: ['submittedOn', 'desc']},
+      {collection: 'bags', orderBy: ['submittedOn', 'desc']},
+      {collection: 'eggs_collected', limit: 14, orderBy: ['date', 'desc']},
+      {collection: 'chicken_details'},
+      {collection: 'trays'}
+    ])
+)(Dashboard)
