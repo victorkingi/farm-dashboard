@@ -117,7 +117,7 @@ function InputEggs(props) {
 
     if (redirect) {
         return (
-            <Redirect to='/dashboard'/>
+            <Redirect to='/'/>
         )
     }
     return (

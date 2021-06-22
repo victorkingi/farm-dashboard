@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
+import {connect} from 'react-redux';
+import {inputDeadSick} from "../../services/actions/DeadSickAction";
 import DatePicker from "react-datepicker";
 import bsCustomFileInput from 'bs-custom-file-input';
 import DropdownButton from 'react-bootstrap/DropdownButton';
@@ -9,11 +11,9 @@ import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 
 //df
-function InputSell() {
+function InputDeadSick(props) {
     const [state, setState] = useState({
         date: new Date(),
-        section: 'Choose Section',
-        place: 'Choose Location',
         category: 'deadSick'
     });
     const [open, setOpen] = useState(false);
@@ -47,6 +47,7 @@ function InputSell() {
                 break;
             }
         }
+        props.inputDeadSick(state, image);
         setOpenError(false);
         setOpen(true);
     };
@@ -107,10 +108,9 @@ function InputSell() {
         componentDidMount();
     }, []);
 
-        console.log(state, image);
         if (redirect) {
             return (
-                <Redirect to='/dashboard'/>
+                <Redirect to='/'/>
             )
         }
         return (
@@ -142,10 +142,11 @@ function InputSell() {
                                         id='date'
                                     />
                                 </Form.Group>
+                                <label htmlFor="section">Section</label>
                                 <DropdownButton
                                     alignRight
-                                    title={state.section}
-                                    id="dropdown-menu-align-right"
+                                    title={state.section || ''}
+                                    id="location"
                                     onSelect={handleSelect}
                                 >
                                     <Dropdown.Item eventKey="Dead">Dead</Dropdown.Item>
@@ -153,10 +154,11 @@ function InputSell() {
                                     <Dropdown.Item eventKey="Sick">Sick</Dropdown.Item>
                                 </DropdownButton>
                                 <br />
+                                <label htmlFor="location">Location</label>
                                 <DropdownButton
                                     alignRight
-                                    title={state.place}
-                                    id="dropdown-menu-align-right"
+                                    title={state.place || ''}
+                                    id="location"
                                     onSelect={handleSelect}
                                 >
                                     <Dropdown.Item eventKey="Cage">Cage</Dropdown.Item>
@@ -179,21 +181,14 @@ function InputSell() {
                                         <label className="custom-file-label" htmlFor="photo">Upload image</label>
                                     </div>
                                 </Form.Group>
-                                <div className="form-check">
-                                    <label htmlFor="replaced" className="form-check-label text-muted">
-                                        <input type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
-                                        <i className="input-helper"></i>
-                                        Replace wrong entry
-                                    </label>
-                                </div>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>
                         </div>
                     </div>
                 </div>
                 <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="success">
-                        Data Submitted
+                    <Alert onClose={handleClose} severity="warning">
+                        This page is still in development, Sorry.
                     </Alert>
                 </Snackbar>
                 <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
@@ -203,4 +198,10 @@ function InputSell() {
         )
 }
 
-export default InputSell
+const mapDispatchToProps = (dispatch) => {
+    return {
+        inputDeadSick: (deadSick, image) => dispatch(inputDeadSick(deadSick, image))
+    }
+}
+
+export default connect(null, mapDispatchToProps)(InputDeadSick);

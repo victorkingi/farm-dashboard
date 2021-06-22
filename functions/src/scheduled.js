@@ -12,8 +12,6 @@ const {makeANotificationToOneUser,
 } = require("./helper");
 
 const date = new Date();
-const current = date.getDate();
-const currentMonth = date.getMonth() + 1;
 const chickenDocRef = admin.firestore().collection("chicken_details")
     .doc("current");
 
@@ -37,147 +35,6 @@ function initializeMap() {
         users.set(arr[i], myWalletAddress);
         users.set(arr[i].concat("_pr"), keys[i][arr[i]].prKey);
     }
-}
-
-function batchSalesWrite(amount, saleDocRef, buyDocRef, batch, time) {
-    const profitDocRef = admin.firestore().collection("profit").doc();
-    const docId = time === 'Monthly'
-        ? `Monthly Month ${currentMonth} Date ${current}`
-        : `Weekly Month ${currentMonth} Date ${current}`;
-
-    batch.set(profitDocRef, {
-        profit: amount,
-        docId,
-        time,
-        submittedOn: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    if (time === 'Monthly') {
-        batch.update(chickenDocRef, {
-            monthProfit: amount,
-            submittedOn: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        batch.update(saleDocRef, {
-            monthlyTotal: 0
-        });
-
-        if (buyDocRef) {
-            batch.update(buyDocRef, {
-                usedMonth: true,
-                monthlySpend: 0
-            });
-        }
-    } else if (time === 'Weekly') {
-        batch.update(chickenDocRef, {
-            weekProfit: amount,
-            submittedOn: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        batch.update(saleDocRef, {
-            weeklyTotal: 0
-        });
-
-        if (buyDocRef) {
-            batch.update(buyDocRef, {
-                usedWeek: true,
-                weeklySpend: 0
-            });
-        }
-    }
-    return 0;
-}
-
-//queries the most recent sales doc so as to calculate profit
-async function getLatestSales(buyDoc, time) {
-    const query = await admin.firestore().collection("sales")
-        .orderBy("submittedOn", "desc").limit(1).get();
-
-    query.forEach((saleDoc) => {
-        const saleDocRef = admin.firestore().collection("sales").doc(saleDoc.id);
-        const buyDocRef = admin.firestore().collection("purchases").doc(buyDoc.id);
-        const batch = admin.firestore().batch();
-        const sales = saleDoc.data();
-        const buys = buyDoc.data();
-
-        if (time === 'Monthly') {
-            const used = JSON.parse(buyDoc.data().usedMonth);
-            const monthlySales = parseFloat(sales.monthlyTotal);
-
-            if (used && monthlySales !== 0) {
-                const details = {
-                    title: `Ksh.${numeral(monthlySales).format("0,0")} month profit!`,
-                    body: `We made Ksh.${numeral(monthlySales).format("0,0")} last month!`,
-                    admin: true
-                };
-
-                batchSalesWrite(monthlySales, saleDocRef, false, batch, time);
-                makeANotification(details);
-            } else {
-                const monthlySpend = parseFloat(buys.monthlySpend);
-                const final = monthlySales - monthlySpend;
-
-                if (final < 0) {
-                        const newFinal = final * -1;
-                        const details = {
-                            title: `Ksh.${numeral(newFinal).format("0,0")} month loss!`,
-                            body: `We made a loss last month of Ksh.${numeral(newFinal).format("0,0")}!`,
-                            admin: true
-                        };
-
-                        batchSalesWrite(final, saleDocRef, buyDocRef, batch, time);
-                        makeANotification(details);
-                    } else if (final > 0) {
-                        const details = {
-                            title: `Ksh.${numeral(final).format("0,0")} month profit!`,
-                            body: `We made Ksh.${numeral(final).format("0,0")} last month!`,
-                            admin: true
-                        };
-                        batchSalesWrite(final, saleDocRef, buyDocRef, batch, time);
-                        makeANotification(details);
-                    }
-                }
-            } else if (time === 'Weekly') {
-                const used = JSON.parse(buyDoc.data().usedWeek);
-                const weeklySales = parseFloat(sales.weeklyTotal);
-                if (used) {
-                    const details = {
-                        title: `Ksh.${numeral(weeklySales).format("0,0")} week profit!`,
-                        body: `We made Ksh.${numeral(weeklySales).format("0,0")} this week!`,
-                        admin: true
-                    };
-                    batchSalesWrite(weeklySales, saleDocRef, false, batch, time)
-                    makeANotification(details);
-                } else {
-                    const weeklySpend = parseFloat(buys.weeklySpend);
-                    const final = weeklySales - weeklySpend;
-                    if (final < 0) {
-                        const newFinal = final * -1;
-                        const details = {
-                            title: `Ksh.${numeral(newFinal).format("0,0")} week loss!`,
-                            body: `We made a loss this week of Ksh.${numeral(newFinal).format("0,0")}!`,
-                            admin: true
-                        };
-                        batchSalesWrite(final, saleDocRef, buyDocRef, batch, time);
-                        makeANotification(details);
-                    } else if (final > 0) {
-                        const details = {
-                            title: `Ksh.${numeral(final).format("0,0")} week profit!`,
-                            body: `We made Ksh.${numeral(final).format("0,0")} this week`,
-                            admin: true
-                        };
-                        batchSalesWrite(final, saleDocRef, buyDocRef, batch, time);
-                        makeANotification(details);
-                    }
-                }
-            }
-            return batch.commit().then(() => {
-                return console.log("monthly update profit made");
-            }).catch((err) => {
-                return console.error(err);
-            });
-    });
-    return 0;
 }
 
 async function dailyUpdateBags() {
@@ -297,24 +154,6 @@ async function weeklyChickenAgeUpdate() {
 
     });
 }
-async function weeklyProfit() {
-    const query = await admin.firestore().collection("purchases").orderBy("submittedOn", "desc")
-        .limit(10).get();
-    let found = false;
-
-    query.forEach((buyDoc) => {
-        if (found) {
-            return 0;
-        }
-
-        if (JSON.parse(buyDoc.data().replaced) === false) {
-            found = true;
-            return getLatestSales(buyDoc, 'Weekly');
-        }
-        return 0;
-    });
-    return 0;
-}
 
 async function monthlyJeffDebt() {
     const jeffDocRef = admin.firestore().collection('current').doc('JEFF');
@@ -374,25 +213,6 @@ async function weeklyExportFirestore() {
         throw new Error(`Export operation failed: ${err.message}`);
     });
 }
-async function monthlyProfit() {
-    const query = await admin.firestore().collection("purchases")
-        .orderBy("submittedOn", "desc")
-        .limit(1).get();
-
-    query.forEach((buyDoc) => {
-        if (buyDoc.exists) {
-            return getLatestSales(buyDoc, 'Monthly');
-        }
-        return 0;
-    });
-    return 0;
-}
-//TODO Lower the ram and time usage
-//TODO Confirm eggs before execution of dailyChanges
-//TODO Add name of device when user signs in, keep record of all sign ins
-//TODO Predict, eggs to be collected, number of sales from each section,number of buys from each section
-//TODO tray price for each section, total trays to be sold next week.
-//TODO replace prophet with neuralprophet
 
 async function calculateBalance() {
     const query = await admin.firestore().collection("blockchain")
@@ -652,6 +472,41 @@ function checkTrays(trayDoc, values) {
     }
 }
 
+async function verifyEggs(values) {
+    const trayNo = parseInt(values.values.trayNo);
+    const date = values.values.date;
+    const traysDoc = await admin.firestore()
+        .collection("trays").doc("current_trays").get();
+
+    const data = traysDoc.data();
+    let timeStamp = date.toDate();
+    timeStamp.setDate(timeStamp.getDate() - 1);
+    const prevDate = timeStamp;
+    timeStamp = timeStamp.getTime();
+    let list = JSON.parse(data.linkedList);
+    if (list[timeStamp]) {
+        const collected = list[timeStamp].split(',');
+        const trays = collected[0];
+        if (trays < trayNo) {
+            const err = `Trays in store on date ${prevDate.toDateString()} are ${trays} but required was ${trayNo}`;
+            errorMessage(err, values.values.name);
+        } else {
+            const collected = list[timeStamp].split(',');
+            const newTrays = parseInt(collected[0]) - trayNo;
+            list[timeStamp] = newTrays.toString().concat(',', collected[1]);
+            list  = JSON.stringify(list);
+            admin.firestore().collection('trays').doc('current_trays').update({
+                prevSubmittedBy: data.submittedBy,
+                submittedBy: values.values.name,
+                submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+                prevSubmittedOn: data.submittedOn.toDate(),
+                prev: data.current,
+                linkedList: list
+            })
+        }
+    }
+}
+
 async function saleParamCheck(values) {
     const pending = await admin.firestore().collection('pending_transactions')
         .orderBy("submittedOn", "desc").get();
@@ -692,6 +547,7 @@ async function saleParamCheck(values) {
         errorMessage("Duplicate data!", values.values.name);
     }
     checkTrays(trayDoc, values);
+    await verifyEggs(values);
 }
 async function buyParamCheck(values, submittedOn) {
     const pending = await admin.firestore().collection('pending_transactions')
@@ -879,6 +735,21 @@ async function assertInputsAreCorrect(query) {
 
 exports.dailyChanges = functions.runWith(runtimeOpts)
     .pubsub.schedule('every 1 hours from 17:00 to 18:00').onRun(async () => {
+        const date  = new Date();
+        if (date.getDay() === 0) {
+            admin.firestore().collection('profit')
+                .add({
+                    docId: date.toDateString(),
+                    profit: 0,
+                    split: {
+                        BABRA: 0,
+                        JEFF: 0,
+                        VICTOR: 0
+                    },
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+        }
+
     await dailyUpdateBags();
     await dailyCurrentTraysCheck();
     //TODO When querying blockchain add function that loads up all replaced != null,
@@ -1219,7 +1090,6 @@ const runtimeOptWeekly = {
 }
 
 exports.weeklyChanges = functions.runWith(runtimeOptWeekly).pubsub.schedule('every sunday 01:00').onRun((async () => {
-    await weeklyProfit();
     await weeklyChickenAgeUpdate();
     await weeklyExportFirestore();
     predictProfit();
@@ -1228,7 +1098,6 @@ exports.weeklyChanges = functions.runWith(runtimeOptWeekly).pubsub.schedule('eve
 
 exports.monthlyChanges = functions.pubsub.schedule('1 of month 01:00').onRun(( async () => {
     await monthlyJeffDebt();
-    await monthlyProfit();
     return 0;
 }));
 

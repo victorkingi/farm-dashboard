@@ -1,19 +1,24 @@
-import {checkDate} from "./utilAction";
-
-function isLastDay(dt) {
-    const test = new Date(dt.getTime());
-    test.setDate(test.getDate() + 1);
-    return test.getDate() === 1;
+function getNextDayOfWeek(date, dayOfWeek) {
+    const resultDate = new Date(date.getTime());
+    resultDate.setDate(date.getDate() + (7 + dayOfWeek - date.getDay()) % 7);
+    return resultDate;
 }
 
 //when user inputs eggs
 export const inputTray = (eggs) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
+        const firebase = getFirebase();
+        const disName = firebase.auth().currentUser.displayName;
+        const name =  disName.substring(0, disName.lastIndexOf(" ")).toUpperCase();
         let values = {
-            ...eggs
+            ...eggs,
+            submittedBy: name,
+            submittedOn: new Date()
         }
+        values.profitDay = getNextDayOfWeek(values.date, 0);
         console.log(values);
+
         //TODO Cloud function queries previous doc to add all values together
         //TODO If sunday, get percentage store in same doc
 

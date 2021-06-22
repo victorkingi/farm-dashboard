@@ -9,7 +9,7 @@ function errorMessage(message) {
     throw  err;
 }
 
-async function parameterChecks(firestore, count, values, image, submit, load) {
+async function parameterChecks(firestore, values, image) {
     const deadSick = await firestore.collection('dead_sick')
         .orderBy("submittedOn", "desc").get();
     const chicken = await firestore.collection("chicken_details")
@@ -24,8 +24,6 @@ async function parameterChecks(firestore, count, values, image, submit, load) {
     if (!image) {
         const error = new Error("No Image given!");
         window.alert(error);
-        submit.style.display = 'block';
-        load.style.display = 'none';
         throw error;
     }
 
@@ -48,14 +46,10 @@ async function parameterChecks(firestore, count, values, image, submit, load) {
     if (found) {
         errorMessage("Duplicate data!");
     }
-    if (count % 2 !== 0) {
-        errorMessage("Functionality not yet implemented!");
-    }
-    delete values.error_doc;
     checkDate(values.date);
 }
 
-export const inputDeadSick = (deadSick, image, date, count) => {
+export const inputDeadSick = (deadSick, image) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         //make async call to database
         const firestore = getFirestore();
@@ -65,14 +59,13 @@ export const inputDeadSick = (deadSick, image, date, count) => {
         const section = deadSick.section;
         const deadSickDocRef = firestore.collection("dead_sick").doc();
         const chickenDocRef = firestore.collection("chicken_details").doc("current");
-        const load = document.getElementById("loading-dead-sick");
-        const submit = document.getElementById("submit-btn-dead-sick");
 
         let values = {
             ...deadSick,
-            date
+            submittedBy: name,
+            submittedOn: new Date()
         }
-        parameterChecks(firestore, count, values, image, submit, load)
+        parameterChecks(firestore, values, image)
             .then(() => {
                 const storageRef = storage.ref();
                 const uploadImagesRef = storageRef.child(`dead_sick/${image?.name}`);
@@ -85,9 +78,6 @@ export const inputDeadSick = (deadSick, image, date, count) => {
                     function (snapshot) {
                         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                         console.log("Upload is " + progress + " % done");
-                        const me = document.getElementById('percent');
-                        const pr = Math.round(progress * 100) / 100;
-                        me.innerHTML = `Uploading ${pr} % done`;
                     }, function (error) {
                         switch (error.code) {
                             case 'storage/unauthorized':
@@ -104,51 +94,35 @@ export const inputDeadSick = (deadSick, image, date, count) => {
                         }
                     },
                     function () {
-                        const me = document.getElementById('percent');
-                        me.innerHTML = `Upload complete! updating database values...`;
-
                         uploadTask.snapshot.ref.getDownloadURL().then(function (url) {
-                            return firestore.runTransaction(function (transaction) {
-                                return transaction.get(chickenDocRef).then(function (chickenDoc) {
-                                    if (section === "Dead" && chickenDoc.exists) {
-                                        const num = parseInt(chickenDoc.data().house);
-                                        const newNum = num - parseInt(deadSick.chickenNo);
-                                        transaction.update(chickenDocRef, {
-                                            house: newNum
-                                        });
+                            console.log('done')
+                            const batch = firestore().batch();
 
-                                        const data = parseInt(chickenDoc.data().total);
-                                        const final = data - parseInt(deadSick.chickenNo);
+                            if (section === "Dead" ) {
+                                batch.update(chickenDocRef, {
+                                    house: firestore.FieldValue.increment(parseInt(deadSick.chickenNo * -1))
+                                });
 
-                                        transaction.update(chickenDocRef, {
-                                            total: final,
-                                            submittedOn: new Date()
-                                        })
-                                        transaction.set(deadSickDocRef, {
-                                            ...deadSick,
-                                            imageId: `dead_sick/${image?.name}`,
-                                            photoURL: url,
-                                            date,
-                                            submittedBy: name,
-                                            submittedOn: new Date()
-                                        });
-                                    }
+                                batch.update(chickenDocRef, {
+                                    total: firestore.FieldValue.increment(parseInt(deadSick.chickenNo * -1)),
+                                    submittedOn: new Date()
                                 })
-                            }).then(() => {
-                                dispatch({type: 'UPLOAD_DONE'});
-                                window.alert("Data submitted");
-                                load.style.display = 'none';
-                                window.location.reload();
-
+                                batch.set(deadSickDocRef, {
+                                    ...deadSick,
+                                    imageId: `dead_sick/${image?.name}`,
+                                    photoURL: url,
+                                    submittedBy: name,
+                                    submittedOn: new Date()
+                                });
+                            }
+                            batch.commit();
                             }).catch((err) => {
                                 const error = err.message || err;
                                 dispatch({type: 'UPLOAD_ERROR', error});
                                 window.alert(error);
-                                load.style.display = 'none';
                                 window.location = '/';
                             });
                         })
                     });
-            });
     }
 }

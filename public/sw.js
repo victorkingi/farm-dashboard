@@ -3,7 +3,6 @@ const staticCacheName = `site-static-v${version}`;
 const dynamicCacheName = `site-dynamic-v${version}`;
 const assets = [
     '/',
-    '/dashboard',
     '/fallback.html',
     '/favicon.ico',
     '/static/js/0.chunk.js',

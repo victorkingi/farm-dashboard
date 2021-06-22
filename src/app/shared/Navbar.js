@@ -21,6 +21,7 @@ function Navbar(props) {
 
     return {__user};
   }, []);
+
   if (!user.__user) {
     return (
         <Redirect to="/user-pages/login-1"/>

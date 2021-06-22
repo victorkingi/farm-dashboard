@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -9,6 +9,7 @@ import Spinner from "../shared/Spinner";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from '../form-elements/InputEggs';
 import {rollBack} from "../../services/actions/utilAction";
+import {Redirect} from "react-router-dom";
 
 function getLastSunday(d) {
   const t = new Date(d);
@@ -64,6 +65,18 @@ function Dashboard(props) {
     tooltips: {
       enabled: true
     }
+  }
+
+  const user = useMemo(() => {
+    const __user = localStorage.getItem('user') || false;
+
+    return {__user};
+  }, []);
+
+  if (!user.__user) {
+    return (
+        <Redirect to="/user-pages/login-1"/>
+    )
   }
 
   const handleClose = (event, reason) => {
@@ -184,6 +197,7 @@ function Dashboard(props) {
      if (current < 0 && prev < 0) return (change / parseFloat(prev)) * 100.0 * -1;
      return (change / parseFloat(prev)) * 100.0;
    }
+
     return (
         <div>
           <div className="row">
