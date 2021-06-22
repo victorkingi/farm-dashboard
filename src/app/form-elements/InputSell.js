@@ -133,7 +133,7 @@ function InputSell(props) {
 
     if (redirect) {
       return (
-          <Redirect to='/dashboard'/>
+          <Redirect to='/'/>
       )
     }
     //cds
@@ -212,13 +212,6 @@ function InputSell(props) {
                         </label>
                       </div>
                     </Form.Group>
-                  </div>
-                  <div className="form-check">
-                    <label htmlFor="replaced" className="form-check-label text-muted">
-                      <input type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
-                      <i className="input-helper"></i>
-                      Replace wrong entry
-                    </label>
                   </div>
                   <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                 </form>

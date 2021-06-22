@@ -32,7 +32,7 @@ function AppRoutes() {
     return (
       <Suspense fallback={<Spinner/>}>
         <Switch>
-          <Route exact path="/dashboard" component={ Dashboard } />
+          <Route exact path="/" component={ Dashboard } />
 
           <Route path="/basic-ui/buttons" component={ Buttons } />
           <Route path="/basic-ui/dropdowns" component={ Dropdowns } />
@@ -57,9 +57,7 @@ function AppRoutes() {
 
           <Route path="/error-pages/error-404" component={ Error404 } />
           <Route path="/error-pages/error-500" component={ Error500 } />
-
-
-          <Redirect to="/dashboard" />
+          <Route path="*" component={Error404} status={404}/>
         </Switch>
       </Suspense>
     );

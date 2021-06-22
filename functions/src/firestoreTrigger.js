@@ -304,7 +304,79 @@ exports.clearPending = functions.firestore.document('pending_transactions/cleare
                         return console.log("Complete deleted");
                     });
             });
-    }))
+    }));
+
+exports.eggsChange = functions.firestore.document('eggs_collected/{eggId}')
+    .onCreate( (snapshot, context) => {
+        const data = snapshot.data();
+        const prevDate = data.date.toDate();
+        prevDate.setDate(data.date.toDate().getDate() - 1);
+        admin.firestore().collection('eggs_collected').orderBy('date', 'desc')
+            .limit(2).get()
+            .then((query) => {
+                let count = 0;
+                query.forEach((doc) => {
+                    count++;
+                    if (doc.id !== snapshot.id) {
+                        const prevData = doc.data();
+                        const myDate = prevData.date.toDate();
+
+                        if (prevDate.getTime() !== myDate.getTime() && query.size === count) {
+                            snapshot.ref.delete().then(() => {
+                                const err = new Error("Wrong eggs date submitted");
+                                console.log(err.message);
+                                let details = {
+                                    title: 'Your Input was rejected!',
+                                    body: `${err.message}: ${err.stack}`,
+
+                                }
+                                makeANotificationToOneUser(details);
+                                throw  err;
+                            });
+                        } else if (prevDate.getTime() === myDate.getTime() && query.size !== count) {
+                            admin.firestore().doc('chicken_details/current').get()
+                                .then((doc_) => {
+                                    const chickData = doc_.data();
+                                    const all = parseInt(chickData.total);
+                                    const collected = data.trays_store.split(',');
+                                    const trayEggs = parseInt(collected[0]) * 30;
+                                    const totalEggs = trayEggs + parseInt(collected[1]);
+                                    let layingPercent = (totalEggs / all) * 100.0;
+                                    const getDay = new Date().getDay();
+                                    if (getDay === 0) {
+                                        const prev = new Date();
+                                        prev.setDate(new Date().getDate() - 1);
+                                        const lastSunday = prev;
+                                        lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
+                                        admin.firestore().collection('eggs_collected')
+                                            .where('date', '>', lastSunday)
+                                            .get().then((query) => {
+                                                let count = 0;
+                                                let total = 0;
+                                                query.forEach((doc__) => {
+                                                    count++;
+                                                    const data__ = doc__.data();
+                                                    total += parseFloat(data__.layingPercent);
+                                                    if (query.size === count) {
+                                                        total = total / 7;
+                                                        snapshot.ref.set({
+                                                            weeklyAllPercent: total
+                                                        });
+                                                    }
+                                                })
+                                        })
+                                    } else {
+                                        snapshot.ref.set({
+                                            ...data,
+                                            layingPercent
+                                        });
+                                    }
+                                })
+                        }
+                    }
+                })
+            })
+    })
 
 exports.deadSick = functions.firestore.document('dead_sick/{deadsickId}').onCreate(
     ((snap, context) => {
@@ -396,6 +468,32 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
         const feeds = buy.section === "Feeds" ? " Bags of Feeds" : ""
         const item = buy.itemName || buy.section;
         const docRef = `purchases/${context.params.buyId}`;
+        const loss = parseInt(buy.objectNo) * parseFloat(buy.objectPrice);
+
+        const lastSunday = buy.date.toDate();
+        lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
+        admin.firestore().collection('profit')
+            .where('docId', '==', lastSunday.toDateString())
+            .get().then((query) => {
+            query.forEach((doc_) => {
+                let split = 0.05 * (parseFloat(doc_.data().profit) - loss);
+                let remain = 0.85 * (parseFloat(doc_.data().profit) - loss);
+                if ((parseFloat(doc_.data().profit) - loss) < 0) {
+                    split = 0;
+                    remain = 0;
+                }
+                doc_.ref.update({
+                    profit: admin.firestore.FieldValue.increment(loss * -1),
+                    split: {
+                        BABRA: split,
+                        JEFF: split,
+                        VICTOR: split,
+                        remain
+                    },
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+            })
+        })
 
         const notification = {
             content: 'Purchase was made',
@@ -417,12 +515,54 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
 
     });
 
+exports.updateTrays = functions.firestore.document('trays/current_trays')
+    .onUpdate(((change, context) => {
+        const data = change.after.data();
+        const before = change.before.data();
+        const list = JSON.parse(data.linkedList);
+        let allEggs = 0;
+        if (data.current === before.current) return 0;
+
+        for (const [key, value] of Object.entries(list)) {
+            const collected = value.split(',');
+            const trayEggs = parseInt(collected[0]) * 30;
+            const total = trayEggs + parseInt(collected[1]);
+            allEggs += total;
+        }
+        const trays = allEggs / 30;
+        let ans = parseInt(trays).toString().concat(',', (allEggs % 30).toString());
+        admin.firestore().doc('trays/current_trays').update({
+            current: ans
+        });
+    }));
+
 exports.salesMade = functions.firestore.document('sales/{saleId}')
     .onCreate((snap, context) => {
         const sale = snap.data();
+        const profit = parseFloat(parseInt(sale.trayNo) * parseFloat(sale.trayPrice));
         const firstName =  sale.submittedBy.toLowerCase().charAt(0)
             .toUpperCase().concat(sale.submittedBy.toLowerCase().slice(1));
         const docRef = `sales/${context.params.saleId}`;
+        const lastSunday = sale.date.toDate();
+        lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
+        admin.firestore().collection('profit')
+            .where('docId', '==', lastSunday.toDateString())
+            .get().then((query) => {
+                query.forEach((doc_) => {
+                    const split = 0.05 * (parseFloat(doc_.data().profit) + profit);
+                    const remain = 0.85 * (parseFloat(doc_.data().profit) + profit);
+                    doc_.ref.update({
+                        profit: admin.firestore.FieldValue.increment(profit),
+                        split: {
+                            BABRA: split,
+                            JEFF: split,
+                            VICTOR: split,
+                            remain
+                        },
+                        submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                    })
+                })
+        })
 
         let details;
         const notification = {

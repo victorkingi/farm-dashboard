@@ -35,52 +35,52 @@ module.exports = {
             .orderBy("submittedOn", "desc")
             .limit(10).get().then( (snapshot) => {
                 let found = false;
-            snapshot.docs.forEach((doc) => {
-                if (found) {
-                    return 0;
-                }
-                if (JSON.parse(doc.data().replaced) === false) {
-                    const prevWeeklyTotal = parseInt(doc.data().weeklyTotal);
-                    const prevMonthlyTotal = parseInt(doc.data().monthlyTotal);
-                    const weeklyTotal = total + prevWeeklyTotal;
-                    const monthlyTotal = total + prevMonthlyTotal;
+                snapshot.docs.forEach((doc) => {
+                    if (found) {
+                        return 0;
+                    }
+                    if (JSON.parse(doc.data().replaced) === false) {
+                        const prevWeeklyTotal = parseInt(doc.data().weeklyTotal);
+                        const prevMonthlyTotal = parseInt(doc.data().monthlyTotal);
+                        const weeklyTotal = total + prevWeeklyTotal;
+                        const monthlyTotal = total + prevMonthlyTotal;
 
-                    found = true;
-                    return admin.firestore()
-                        .runTransaction((transaction) => {
-                        return transaction.get(salesDocRef).then((_saleDoc) => {
-                            return transaction.get(traysDocRef).then((traysDoc) => {
-                                function commonTransaction() {
-                                    if (traysDoc.exists) {
-                                        const trayData = traysDoc.data().number;
-                                        const final = parseInt(trayData) - parseInt(val.trayNo);
-                                            transaction.update(traysDocRef, {
-                                                cloud: false,
-                                                number: final,
-                                                submittedBy: val.name,
-                                                submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                                            });
-                                    }
-                                }
+                        found = true;
+                        return admin.firestore()
+                            .runTransaction((transaction) => {
+                                return transaction.get(salesDocRef).then((_saleDoc) => {
+                                    return transaction.get(traysDocRef).then((traysDoc) => {
+                                        function commonTransaction() {
+                                            if (traysDoc.exists) {
+                                                const trayData = traysDoc.data().number;
+                                                const final = parseInt(trayData) - parseInt(val.trayNo);
+                                                transaction.update(traysDocRef, {
+                                                    cloud: false,
+                                                    number: final,
+                                                    submittedBy: val.name,
+                                                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                                                });
+                                            }
+                                        }
 
-                                commonTransaction();
+                                        commonTransaction();
 
-                                transaction.set(salesDocRef, {
-                                    ...val,
-                                    buyerName: buyer,
-                                    weeklyTotal,
-                                    monthlyTotal,
-                                    date: val.date,
-                                    submittedBy: val.name,
-                                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                                });
-                            })
-                        })
-                    });
-                }
+                                        transaction.set(salesDocRef, {
+                                            ...val,
+                                            buyerName: buyer,
+                                            weeklyTotal,
+                                            monthlyTotal,
+                                            date: val.date,
+                                            submittedBy: val.name,
+                                            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                                        });
+                                    })
+                                })
+                            });
+                    }
 
-            });
-        })
+                });
+            })
             .then(() => { return console.log("SALES_ENTERED") });
     },
     buyInput: function buyInput(buys) {

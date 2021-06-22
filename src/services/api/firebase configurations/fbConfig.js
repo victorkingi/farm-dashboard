@@ -3,6 +3,7 @@ import 'firebase/firestore';
 import 'firebase/auth';
 import 'firebase/messaging';
 import 'firebase/functions';
+import 'firebase/storage';
 
 const firebaseConfig = {
     apiKey: "AIzaSyD3tzp-dWkeucSmG8dME_J7Zlxj9vm1hvw",
@@ -19,6 +20,7 @@ firebase.initializeApp(firebaseConfig);
 
 let messaging = null;
 const functions = firebase.functions();
+const storage = firebase.storage();
 
 if (firebase.messaging.isSupported()) {
   messaging = firebase.messaging();
@@ -42,5 +44,5 @@ firebase.firestore().enablePersistence()
       }
     });
 
-export {firebase, messaging, functions};
+export {firebase, messaging, functions, storage};
 

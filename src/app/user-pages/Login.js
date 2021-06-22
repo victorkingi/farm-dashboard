@@ -84,7 +84,6 @@ function Login(props) {
   }, []);
 
   if (user.__user) {
-    console.log(user);
     return (
         <Redirect to="/"/>
     )

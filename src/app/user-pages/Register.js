@@ -22,7 +22,7 @@ export class Register extends Component {
                     <input type="password" className="form-control form-control-lg" id="exampleInputPassword1" placeholder="Password" />
                   </div>
                   <div className="mt-3">
-                    <Link className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" to="/dashboard">SIGN UP</Link>
+                    <Link className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" to="/">SIGN UP</Link>
                   </div>
                   <div className="text-center mt-4 font-weight-light">
                     Already have an account? <Link to="/user-pages/login-1" className="text-primary">Login</Link>
