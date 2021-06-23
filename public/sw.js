@@ -1,4 +1,4 @@
-const version = 0.2;
+const version = 0.3;
 const staticCacheName = `site-static-v${version}`;
 const dynamicCacheName = `site-dynamic-v${version}`;
 const assets = [
@@ -61,7 +61,7 @@ self.addEventListener('fetch', evt => {
                     .then(fetchRes => {
                         return caches.open(dynamicCacheName).then(cache => {
                             cache.put(evt.request.url, fetchRes.clone());
-                            limitCacheSize(dynamicCacheName, 10);
+                            limitCacheSize(dynamicCacheName, 40);
                             return fetchRes;
                         })
                     });
