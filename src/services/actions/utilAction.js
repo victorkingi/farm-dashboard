@@ -61,7 +61,7 @@ export const handleToken = (sendTokenToServer_) => {
             })
             .catch(function (err) {
                 console.log("Unable to get permission to notify.", err);
-                window.alert("ERROR: It seems that your browser has blocked notifications. Try changing your option in settings for this site or rather, uncheck the checkbox to continue");
+                window.alert(`ERROR: ${err}`);
                 load.style.display = 'none';
                 submit.style.display = 'block';
             });

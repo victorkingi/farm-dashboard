@@ -309,69 +309,115 @@ exports.clearPending = functions.firestore.document('pending_transactions/cleare
 exports.eggsChange = functions.firestore.document('eggs_collected/{eggId}')
     .onCreate( (snapshot, context) => {
         const data = snapshot.data();
-        const prevDate = data.date.toDate();
-        prevDate.setDate(data.date.toDate().getDate() - 1);
-        admin.firestore().collection('eggs_collected').orderBy('date', 'desc')
-            .limit(2).get()
+        const currentDate = new Date(parseInt(data.date_));
+        console.log("CURRENT:", currentDate.toDateString());
+        const prevDate = currentDate;
+        prevDate.setDate(currentDate.getDate() - 1);
+        console.log("PREV DATE", prevDate.toDateString());
+        admin.firestore().collection('eggs_collected').orderBy("date_", "desc")
+            .limit(2)
+            .get()
             .then((query) => {
+                console.log("SIZE: ", query.size);
                 let count = 0;
+                let found = false;
                 query.forEach((doc) => {
                     count++;
+                    console.log("QUERIED DOC:", doc.id);
+                    console.log("JUST ENTERED", snapshot.id);
                     if (doc.id !== snapshot.id) {
                         const prevData = doc.data();
-                        const myDate = prevData.date.toDate();
+                        const myDate = new Date(parseInt(prevData.date_));
+                        console.log("FOUND:", myDate.toDateString());
 
-                        if (prevDate.getTime() !== myDate.getTime() && query.size === count) {
+                        if (prevDate.getTime() === myDate.getTime()) {
+                            found = true;
+                        }
+
+                        if (query.size === count && found) {
+                        admin.firestore().doc('chicken_details/current').get()
+                            .then((doc_) => {
+                                const chickData = doc_.data();
+                                const all = parseInt(chickData.total);
+                                const collected = data.trays_store.split(',');
+                                const trayEggs = parseInt(collected[0]) * 30;
+                                const totalEggs = trayEggs + parseInt(collected[1]);
+                                let layingPercent = (totalEggs / all) * 100.0;
+                                const getDay = new Date().getDay();
+                                if (getDay === 0) {
+                                    const prev = new Date();
+                                    prev.setDate(new Date().getDate() - 1);
+                                    prev.setHours(0, 0, 0, 0);
+                                    const lastSunday = prev;
+                                    lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
+                                    console.log("LAST SUNDAY DATE:", lastSunday.toDateString());
+                                    admin.firestore().collection('eggs_collected')
+                                        .where('date', '>', lastSunday)
+                                        .get().then((query) => {
+                                        let count = 0;
+                                        let total = 0;
+                                        query.forEach((doc__) => {
+                                            count++;
+                                            const data__ = doc__.data();
+                                            total += parseFloat(data__.layingPercent);
+                                            if (query.size === count) {
+                                                total = total / 7;
+                                                snapshot.ref.set({
+                                                    weeklyAllPercent: total
+                                                });
+                                                doc_.ref.update({
+                                                    weekPercent: total,
+                                                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                                                })
+                                            }
+                                        })
+                                    })
+                                } else {
+                                    snapshot.ref.set({
+                                        ...data,
+                                        layingPercent
+                                    });
+                                    admin.firestore().doc('trays/current_trays')
+                                        .get().then((doc__) => {
+                                            console.log("DOC EXISTS:", doc__.exists);
+                                            if (doc__.exists) {
+                                                const data__ = doc__.data();
+                                                const linkedList = JSON.parse(data__.linkedList);
+                                                linkedList[data.date_] = data.trays_store;
+                                                const newList = JSON.stringify(linkedList);
+                                                let prev = data__.current;
+                                                doc__.ref.update({
+                                                    prev,
+                                                    linkedList: newList,
+                                                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                                                }).then(() => {
+                                                    console.log("LINKED LIST UPDATED");
+                                                })
+                                            }
+                                    })
+                                }
+                            })
+                        return console.log("DONE");
+
+                        } else if (query.size === count && !found) {
                             snapshot.ref.delete().then(() => {
                                 const err = new Error("Wrong eggs date submitted");
+                                console.log("Expected", prevDate.toDateString());
                                 console.log(err.message);
                                 let details = {
                                     title: 'Your Input was rejected!',
                                     body: `${err.message}: ${err.stack}`,
-
+                                    name: data.submittedBy
+                                }
+                                makeANotificationToOneUser(details);
+                                details = {
+                                    title: `Input was rejected!: ${data.submittedBy}`,
+                                    body: `${err.message}: ${err.stack}`,
+                                    name: 'VICTOR'
                                 }
                                 makeANotificationToOneUser(details);
                                 throw  err;
                             });
-                        } else if (prevDate.getTime() === myDate.getTime() && query.size !== count) {
-                            admin.firestore().doc('chicken_details/current').get()
-                                .then((doc_) => {
-                                    const chickData = doc_.data();
-                                    const all = parseInt(chickData.total);
-                                    const collected = data.trays_store.split(',');
-                                    const trayEggs = parseInt(collected[0]) * 30;
-                                    const totalEggs = trayEggs + parseInt(collected[1]);
-                                    let layingPercent = (totalEggs / all) * 100.0;
-                                    const getDay = new Date().getDay();
-                                    if (getDay === 0) {
-                                        const prev = new Date();
-                                        prev.setDate(new Date().getDate() - 1);
-                                        const lastSunday = prev;
-                                        lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
-                                        admin.firestore().collection('eggs_collected')
-                                            .where('date', '>', lastSunday)
-                                            .get().then((query) => {
-                                                let count = 0;
-                                                let total = 0;
-                                                query.forEach((doc__) => {
-                                                    count++;
-                                                    const data__ = doc__.data();
-                                                    total += parseFloat(data__.layingPercent);
-                                                    if (query.size === count) {
-                                                        total = total / 7;
-                                                        snapshot.ref.set({
-                                                            weeklyAllPercent: total
-                                                        });
-                                                    }
-                                                })
-                                        })
-                                    } else {
-                                        snapshot.ref.set({
-                                            ...data,
-                                            layingPercent
-                                        });
-                                    }
-                                })
                         }
                     }
                 })
@@ -518,10 +564,8 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
 exports.updateTrays = functions.firestore.document('trays/current_trays')
     .onUpdate(((change, context) => {
         const data = change.after.data();
-        const before = change.before.data();
         const list = JSON.parse(data.linkedList);
         let allEggs = 0;
-        if (data.current === before.current) return 0;
 
         for (const [key, value] of Object.entries(list)) {
             const collected = value.split(',');
@@ -531,8 +575,10 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
         }
         const trays = allEggs / 30;
         let ans = parseInt(trays).toString().concat(',', (allEggs % 30).toString());
+        if (ans === data.current) return 0;
         admin.firestore().doc('trays/current_trays').update({
-            current: ans
+            current: ans,
+            submittedOn: admin.firestore.FieldValue.serverTimestamp()
         });
     }));
 

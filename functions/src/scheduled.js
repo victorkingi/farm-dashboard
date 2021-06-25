@@ -38,41 +38,17 @@ function initializeMap() {
 }
 
 async function dailyUpdateBags() {
-    const bagRef = admin.firestore().collection("bags").doc("current_bags");
-    return admin.firestore().runTransaction((transaction => {
-        return transaction.get(bagRef).then((bagDoc) => {
-            if (bagDoc.exists) {
-                let bagNum = parseFloat(bagDoc.data().number);
-                if (bagNum === 0) {
-                    const details = {
-                        title: `No feeds in store!`,
-                        body: `Click to find out more`,
-                        admin: false
-                    }
-                    return makeANotification(details);
-                } else {
-                    function countDays() {
-                        const day = 24 * 60 * 60 * 1000;
-                        const errorMargin = 2 * 60 * 60 * 1000;
-                        let date_start = bagDoc.data().submittedOn.toDate();
-                        let date_end = new Date();
-
-                        let diff = date_end.getTime() - date_start.getTime();
-                        diff = Math.floor(diff / day);
-                        if (diff === 0) {
-                            diff = (date_end.getTime() + errorMargin) - date_start.getTime();
-                            diff = Math.floor(diff / day);
-                        }
-                        return diff;
-                    }
-                    const diff = countDays();
-                    bagNum -= diff;
-
-                    if (bagNum < 0) {
-                        bagNum = 0;
-                    }
-
-                    transaction.update(bagRef, {
+    predictBags();
+    setTimeout(() => {
+        admin.firestore().doc("bags/current_bags")
+            .get().then((bagDoc) => {
+            admin.firestore().doc('bags/predicted_bags')
+                .get().then((predDoc) => {
+                    const predData = predDoc.data();
+                    const next = parseInt(predData.nextDay);
+                if (bagDoc.exists) {
+                    let bagNum = next;
+                    bagDoc.ref.update({
                         number: bagNum,
                         submittedOn: admin.firestore.FieldValue.serverTimestamp()
                     });
@@ -93,12 +69,12 @@ async function dailyUpdateBags() {
                         return makeANotification(details);
                     }
                 }
-            }
+            })
             return 0;
-        })
-    })).catch((err) => {
-        return console.error("Error at bags, ", err);
-    });
+        }).catch((err) => {
+            return console.error("Error at bags, ", err);
+        });
+    }, 13000);
 }
 async function dailyCurrentTraysCheck() {
     const trayRef = admin.firestore().collection("trays").doc("current_trays");
@@ -486,10 +462,68 @@ async function verifyEggs(values) {
     let list = JSON.parse(data.linkedList);
     if (list[timeStamp]) {
         const collected = list[timeStamp].split(',');
-        const trays = collected[0];
+        let trays = collected[0];
         if (trays < trayNo) {
-            const err = `Trays in store on date ${prevDate.toDateString()} are ${trays} but required was ${trayNo}`;
-            errorMessage(err, values.values.name);
+            let key;
+            let size = 0;
+            let total = 0;
+            for (key in list) {
+                if (list.hasOwnProperty(key)) size++;
+            }
+            for (let property in list) {
+                if (!list.hasOwnProperty(property) || parseInt(property) > timeStamp) continue;
+                const collected = list[property].split(',');
+                const trays = collected[0];
+                const eggs = collected[1];
+                const eggTotal = (parseInt(trays) * 30) + parseInt(eggs);
+                total += eggTotal;
+            }
+            trays = parseInt(total/30);
+            if (trays < trayNo) {
+                const err = `Trays in store on date ${prevDate.toDateString()} are ${trays} but required was ${trayNo}`;
+                errorMessage(err, values.values.name);
+            } else {
+                let toBeUpdated = [];
+                let toRemove = total;
+                for (let property in list) {
+                    if (list.hasOwnProperty(property) && parseInt(property) > timeStamp) {
+                        while (toRemove > 1) {
+                            toBeUpdated.push(property);
+                            const collected = list[property].split(',');
+                            const trays = collected[0];
+                            const eggs = collected[1];
+                            const eggTotal = (parseInt(trays) * 30) + parseInt(eggs);
+                            toRemove -= eggTotal;
+                        }
+                    }
+                }
+                let newTotal = total;
+                for (let k = 0; k < toBeUpdated.length; k++) {
+                    const collected = list[toBeUpdated[k].toString()].split(',');
+                    const trays = collected[0];
+                    const eggs = collected[1];
+                    const eggTotal = (parseInt(trays) * 30) + parseInt(eggs);
+                    newTotal = newTotal - eggTotal;
+                    if (newTotal < 0) {
+                        const test = eggTotal - newTotal;
+                        const remTrays = parseInt(test / 30);
+                        let remain = test % 30;
+                        list[toBeUpdated[k].toString()] = `${remTrays},${remain}`;
+                    } else {
+                        list[toBeUpdated[k].toString()] = '0,0';
+                    }
+                }
+                list  = JSON.stringify(list);
+                admin.firestore().collection('trays').doc('current_trays').update({
+                    prevSubmittedBy: data.submittedBy,
+                    submittedBy: values.values.name,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+                    prevSubmittedOn: data.submittedOn.toDate(),
+                    prev: data.current,
+                    linkedList: list
+                })
+
+            }
         } else {
             const collected = list[timeStamp].split(',');
             const newTrays = parseInt(collected[0]) - trayNo;
@@ -737,17 +771,16 @@ exports.dailyChanges = functions.runWith(runtimeOpts)
     .pubsub.schedule('every 1 hours from 17:00 to 18:00').onRun(async () => {
         const date  = new Date();
         if (date.getDay() === 0) {
-            admin.firestore().collection('profit')
-                .add({
-                    docId: date.toDateString(),
-                    profit: 0,
-                    split: {
-                        BABRA: 0,
-                        JEFF: 0,
-                        VICTOR: 0
-                    },
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
+            await admin.firestore().collection('profit').add({
+                docId: date.toDateString(),
+                profit: 0,
+                split: {
+                    BABRA: 0,
+                    JEFF: 0,
+                    VICTOR: 0
+                },
+                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+            });
         }
 
     await dailyUpdateBags();
@@ -1028,6 +1061,65 @@ exports.dailyChanges = functions.runWith(runtimeOpts)
             return console.log("mining done!");
     });
 });
+
+function predictBags() {
+    const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-bags";
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            console.log(xhr.status);
+            console.log("RESPONSE", xhr.responseText);
+            const resJson = JSON.parse(xhr.responseText);
+            let date1 = new Date(resJson['0'].ds);
+            date1.setHours(0, 0, 0, 0);
+            let date2 = new Date(resJson['1'].ds);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let selected = date1.getTime();
+            let i = 0;
+            while(selected < today.getTime()) {
+                if (resJson[`${i}`]) {
+                    selected = new Date(resJson[`${i}`].ds).getTime();
+                    i++;
+                } else {
+                    break;
+                }
+            }
+            const val1 = parseFloat(resJson[`${i}`].yhat);
+            date1 = new Date(resJson[`${i}`].ds);
+            date2 = date1;
+            let val2 = val1;
+            if (resJson[`${i+1}`]) {
+                val2 = parseFloat(resJson[`${i+1}`].yhat);
+                date2 = new Date(resJson[`${i+1}`].ds);
+            }
+            async function update() {
+                const predictDoc1 = admin.firestore().doc('bags/predicted_bags');
+                const batch = admin.firestore().batch();
+                batch.update(predictDoc1, {
+                    nextDay: val1,
+                    next2Day: val2,
+                    day1Date: date1,
+                    day2Date: date2
+                });
+                await batch.commit();
+            }
+            update();
+        }};
+
+    admin.firestore().doc('bags/predicted_bags')
+        .get().then((doc) => {
+        const data = doc.data();
+        const toSend = `{"message":"${data.trend}"}`
+        console.log("DATA:", toSend);
+        xhr.send(toSend);
+    });
+}
 
 function predictProfit() {
     const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-profit";

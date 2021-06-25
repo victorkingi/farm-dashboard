@@ -27,6 +27,7 @@ function InputPurchase(props) {
         e.preventDefault();
         const priceAmountRegex = /^([\d]+)$/;
         const arr = Object.entries(state);
+        console.log(arr.length);
 
         if (arr.length < 6) {
             setError('All Inputs should be filled');
@@ -41,7 +42,7 @@ function InputPurchase(props) {
                     return;
                 }
             }
-            if (arr[i][1] === "" || !arr[i][1]) {
+            if (arr[i][1] === "") {
                 setError('All Inputs should be filled');
                 setOpenError(true);
                 return;
@@ -104,7 +105,6 @@ function InputPurchase(props) {
     useEffect(() => {
         componentDidMount();
     }, []);
-
         if (redirect) {
             return (
                 <Redirect to='/'/>

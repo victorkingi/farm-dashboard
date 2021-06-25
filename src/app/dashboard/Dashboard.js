@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -8,13 +8,35 @@ import moment from 'moment';
 import Spinner from "../shared/Spinner";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from '../form-elements/InputEggs';
-import {rollBack} from "../../services/actions/utilAction";
+import {rollBack, sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 
 function getLastSunday(d) {
   const t = new Date(d);
   t.setDate(t.getDate() - t.getDay());
   return t;
+}
+
+function truncate(str, length) {
+  if (str.substring(0, 6) === 'VICTOR') {
+    let name = str.substring(0, 6);
+    name = sanitize_string(name);
+    str = name+str.slice(6);
+  } else if (str.substring(0, 6) === 'PURITY') {
+    let name = str.substring(0, 6);
+    name = sanitize_string(name);
+    str = name+str.slice(6);
+  } else if (str.substring(0, 4) === 'JEFF') {
+    let name = str.substring(0, 4);
+    name = sanitize_string(name);
+    str = name+str.slice(6);
+  } else if (str.substring(0, 5) === 'BABRA') {
+    let name = str.substring(0, 5);
+    name = sanitize_string(name);
+    str = name+str.slice(6);
+  }
+  if (str?.length > length) return str?.substring(0, length)+'...';
+  else return str;
 }
 
 function removeA(arr) {
@@ -28,27 +50,73 @@ function removeA(arr) {
   return arr;
 }
 
+function getRanColor() {
+  const randomColor = Math.floor(Math.random()*16777215).toString(16);
+  return "#"+randomColor;
+}
+
 function Dashboard(props) {
-  const { auth, admin, balance,
+  const { auth, admin,
     notifications, pend, forProfit,
-      profit, bags, eggs, chick, trays
+      profit, bags, eggs, chick, trays,
+      block
   } = props;
-  const all = balance && notifications
-      && pend && forProfit && profit
-      && bags && eggs && chick && trays;
+
   const [state, setState] = useState([]);
   const [open, setOpen] = useState(false);
+  const [trans, setTrans] = useState({});
 
   const transactionHistoryData =  {
-    labels: ["Bank", "Victor","Jeff"],
+    labels: JSON.stringify(trans) !== '{}'
+        ? trans.labels : ["Bank", "Victor","Jeff"],
     datasets: [{
-      data: [55, 25, 20],
-      backgroundColor: [
+      data: JSON.stringify(trans) !== '{}' ? trans.data : [55, 25, 20],
+      backgroundColor: JSON.stringify(trans) !== '{}' ? trans.color : [
         "#111111","#00d25b","#ffab00"
       ]
     }
     ]
   };
+
+  useEffect(() => {
+    if (block) {
+      const labels = [];
+      let data = [];
+      let sent  = [];
+      let time = [];
+      for (let i = 0; i < block.length; i++) {
+        for (let p = 0; p < block[i].chain.length; p++) {
+          for (let k = 0; k < block[i].chain[p].transactions.length; k++) {
+            const reason = block[i].chain[p].transactions[k].reason;
+            const amount = block[i].chain[p].transactions[k].amount;
+            const timeStamp = block[i].chain[p].transactions[k].timestamp;
+            if (reason.substring(0, 5) === 'TRADE') {
+              let to = reason.split(':');
+              to = to[to.length - 1].substring(1);
+              to = sanitize_string(to);
+              labels.push(to);
+              data.push(parseFloat(amount));
+              time.push(new Date(timeStamp));
+            }
+          }
+        }
+      }
+      sent = data;
+      let total = data.reduce((a, b) => a + b, 0);
+      data = data.map(x => Math.floor((x/total) * 100));
+      let color = new Array(data.length).fill('');
+      color = color.map(_ => getRanColor());
+      setTrans({
+        labels,
+        data,
+        color,
+        total,
+        sent,
+        time
+      });
+    }
+  }, [block]);
+
   const transactionHistoryOptions = {
     responsive: true,
     maintainAspectRatio: true,
@@ -86,12 +154,12 @@ function Dashboard(props) {
     setOpen(false);
   };
 
- if (admin && auth.uid && all) {
+ if (admin && auth.uid) {
    const getEggs = (tray, eggs) => {
      return (parseInt(tray) * 30) + parseInt(eggs);
    }
    const decodeTrayEgg = (obj) => {
-     return obj.split(',');
+     return obj?.split(',');
    }
 
    const sanitize_string = (str) => {
@@ -111,18 +179,24 @@ function Dashboard(props) {
    }
 
    const getLastEggs = () => {
-     const curDate = eggs[0].date.toDate();
-     curDate.setHours(0, 0, 0, 0);
-     let sun = getLastSunday(curDate);
-     sun.setDate(sun.getDate() - 1);
-     sun = getLastSunday(sun);
-     for (let i = 0; i < eggs.length; i++) {
-       const date = eggs[i].date.toDate();
-       if (date.getTime() === sun.getTime()) {
-         return eggs[i];
+     if(eggs) {
+       if (eggs.length > 0) {
+         const curDate = new Date(eggs[0].date_);
+         curDate.setHours(0, 0, 0, 0);
+         let sun = getLastSunday(curDate);
+         sun.setDate(sun.getDate() - 1);
+         sun = getLastSunday(sun);
+         for (let i = 0; i < eggs.length; i++) {
+           const date = new Date(eggs[i].date_);
+           date.setHours(0, 0, 0, 0);
+           if (date.getTime() === sun.getTime()) {
+             return eggs[i];
+           }
+         }
        }
+       return {weeklyAllPercent: 0};
      }
-     return null;
+     return {weeklyAllPercent: 0};
    }
 
    const getAmount = (item) => {
@@ -188,6 +262,7 @@ function Dashboard(props) {
        else return "cash";
      } else if (identifier === "mine") return "server-network";
      else if (identifier === "buy") return "basket";
+     else if (identifier === "egg") return "basket-fill";
    }
 
    const riseDrop = (current, prev) => {
@@ -204,6 +279,7 @@ function Dashboard(props) {
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
+                  {chick &&
                   <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
@@ -215,13 +291,16 @@ function Dashboard(props) {
                               : '+'.concat(numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0"))}%
                         </p>
                       </div>
+
                     </div>
                     <div className="col-3">
-                      <div className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
-                        <span className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      <div
+                          className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
                       </div>
                     </div>
-                  </div>
+                  </div>}
                   <h6 className="text-muted font-weight-normal">Last Week Laying Percentage</h6>
                 </div>
               </div>
@@ -229,23 +308,25 @@ function Dashboard(props) {
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
-                  <div className="row">
+                  {bags && <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">{bags[1].number}</h3>
-                        <p className={`text-${riseDrop(bags[0].total, bags[1].number)
+                        <h3 className="mb-0">{bags[1].number || bags[0].number}</h3>
+                        <p className={`text-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(bags[0].total, bags[1].number) < 0
-                              ? numeral(riseDrop(bags[0].total, bags[1].number)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(bags[0].total, bags[1].number)).format("0.0"))}%
-                        </p>  </div>
+                          {riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0
+                              ? numeral(riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)).format("0.0"))}%
+                        </p></div>
                     </div>
                     <div className="col-3">
-                      <div className={`icon icon-box-${riseDrop(bags[0].total, bags[1].number) < 0 ? 'danger' : 'success'}`}>
-                        <span className={`mdi mdi-arrow-${riseDrop(bags[0].total, bags[1].number) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      <div
+                          className={`icon icon-box-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
                       </div>
                     </div>
-                  </div>
+                  </div>}
                   <h6 className="text-muted font-weight-normal">Next Day Feeds in Store</h6>
                 </div>
               </div>
@@ -253,25 +334,27 @@ function Dashboard(props) {
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
-                  <div className="row">
+                  {(forProfit && profit) && <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">KSh {numeral(parseFloat(forProfit[1].profit))
                             .format("0,0.00")}</h3>
-                          <p className={`text-${riseDrop(forProfit[1].profit, profit[0].profit)
-                          < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                        <p className={`text-${riseDrop(forProfit[1].profit, profit[0].profit)
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(forProfit[1].profit, profit[0].profit) < 0
                               ? numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0.0")
-                            : '+'.concat(numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0.0"))}%
-                          </p>
+                              : '+'.concat(numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0.0"))}%
+                        </p>
                       </div>
                     </div>
                     <div className="col-3">
-                      <div className={`icon icon-box-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'danger' : 'success'}`}>
-                        <span className={`mdi mdi-arrow-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      <div
+                          className={`icon icon-box-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
                       </div>
                     </div>
-                  </div>
+                  </div>}
                   <h6 className="text-muted font-weight-normal">Forecasted Next Week Profit</h6>
                 </div>
               </div>
@@ -279,7 +362,7 @@ function Dashboard(props) {
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
-                  <div className="row">
+                  {forProfit && <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">KSh {numeral(parseFloat(forProfit[0].profit))
@@ -293,11 +376,13 @@ function Dashboard(props) {
                       </div>
                     </div>
                     <div className="col-3">
-                      <div className={`icon icon-box-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'danger' : 'success'}`}>
-                        <span className={`mdi mdi-arrow-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      <div
+                          className={`icon icon-box-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
                       </div>
                     </div>
-                  </div>
+                  </div>}
                   <h6 className="text-muted font-weight-normal">Forecasted 2 Weeks After Profit</h6>
                 </div>
               </div>
@@ -305,7 +390,7 @@ function Dashboard(props) {
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
-                  <div className="row">
+                  {trays && <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">{decodeTrayEgg(trays[0].current)[0]},
@@ -342,7 +427,7 @@ function Dashboard(props) {
                                 decodeTrayEgg(trays[0].prev)[1])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
                       </div>
                     </div>
-                  </div>
+                  </div>}
                   <h6 className="text-muted font-weight-normal">Trays and Eggs in Store</h6>
                 </div>
               </div>
@@ -350,7 +435,7 @@ function Dashboard(props) {
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
-                  <div className="row">
+                  {chick && <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">KSh {numeral(chick[0].weekProfit).format("0,0.00")}</h3>
@@ -363,11 +448,13 @@ function Dashboard(props) {
                       </div>
                     </div>
                     <div className="col-3">
-                      <div className={`icon icon-box-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'danger' : 'success'}`}>
-                        <span className={`mdi mdi-arrow-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      <div
+                          className={`icon icon-box-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
                       </div>
                     </div>
-                  </div>
+                  </div>}
                   <h6 className="text-muted font-weight-normal">Last Week Profit</h6>
                 </div>
               </div>
@@ -381,28 +468,43 @@ function Dashboard(props) {
                   <div className="aligner-wrapper">
                     <Doughnut data={transactionHistoryData} options={transactionHistoryOptions} />
                     <div className="absolute center-content">
-                      <h5 className="font-weight-normal text-white text-center mb-2 text-white">9,500</h5>
+                      <h5 className="font-weight-normal text-white text-center mb-2 text-white">{trans.total}</h5>
                       <p className="text-small text-muted text-center mb-0">Total</p>
                     </div>
                   </div>
-                  <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
+                  {JSON.stringify(trans) !== '{}' &&
+                  <div>
+                    <div
+                      className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
                     <div className="text-md-center text-xl-left">
-                      <h6 className="mb-1">Transfer to Bank</h6>
-                      <p className="text-muted mb-0">07 Jan 2019, 09:12AM</p>
+                      <h6 className="mb-1">Transfer to {trans.labels[0]}</h6>
+                      <p className="text-muted mb-0">{moment(trans.time[0]).fromNow()}</p>
                     </div>
-                    <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
-                      <h6 className="font-weight-bold mb-0">KSh 9,450</h6>
+                    <div
+                        className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
+                      <h6 className="font-weight-bold mb-0">KSh {numeral(trans.sent[0]).format("0,0")}</h6>
                     </div>
                   </div>
                   <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
                     <div className="text-md-center text-xl-left">
-                      <h6 className="mb-1">Transfer to Victor</h6>
-                      <p className="text-muted mb-0">07 Jan 2019, 09:12AM</p>
+                      <h6 className="mb-1">Transfer to {trans.labels[1]}</h6>
+                      <p className="text-muted mb-0">{moment(trans.time[1]).fromNow()}</p>
                     </div>
                     <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
-                      <h6 className="font-weight-bold mb-0">KSh 50</h6>
+                      <h6 className="font-weight-bold mb-0">KSh {numeral(trans.sent[1]).format("0,0")}</h6>
                     </div>
                   </div>
+                    <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
+                    <div className="text-md-center text-xl-left">
+                    <h6 className="mb-1">Transfer to {trans.labels[2]}</h6>
+                    <p className="text-muted mb-0">{moment(trans.time[2]).fromNow()}</p>
+                    </div>
+                    <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
+                    <h6 className="font-weight-bold mb-0">KSh {numeral(trans.sent[2]).format("0,0")}</h6>
+                    </div>
+                    </div>
+                  </div>
+                  }
                 </div>
               </div>
             </div>
@@ -416,8 +518,8 @@ function Dashboard(props) {
                   <div className="row">
                     <div className="col-12">
                       <div className="preview-list">
-                        {notifications.map(item => {
-                          const icon = getIcon(item.identifier);
+                        {notifications && notifications.map(item => {
+                          const icon = getIcon(item.identifier, item.big);
 
                           return (
                               <div key={item.id} className="preview-item border-bottom">
@@ -429,7 +531,7 @@ function Dashboard(props) {
                                 <div className="preview-item-content d-sm-flex flex-grow">
                                   <div className="flex-grow">
                                     <h6 className="preview-subject">{item.content}</h6>
-                                    <p className="text-muted mb-0">{`${item.extraContent}`}</p>
+                                    <p className="text-muted mb-0">{`${truncate(item?.extraContent, 33)}`}</p>
                                   </div>
                                   <div className="mr-auto text-sm-right pt-2 pt-sm-0">
                                     <p className="text-muted"></p>
@@ -532,7 +634,7 @@ function Dashboard(props) {
                       </tr>
                       </thead>
                       <tbody>
-                      {pend.map((item) => {
+                      {pend && pend.map((item) => {
                         if (item.id === "cleared") return null;
                         return (
                               <tr key={item.id}>
@@ -588,7 +690,6 @@ function Dashboard(props) {
 
 const mapStateToProps = function(state) {
   return {
-    balance: state.firestore.ordered.current,
     auth: state.firebase.auth,
     admin: state.auth.admin,
     notifications: state.firestore.ordered.notifications,
@@ -598,7 +699,8 @@ const mapStateToProps = function(state) {
     bags: state.firestore.ordered.bags,
     eggs: state.firestore.ordered.eggs_collected,
     chick: state.firestore.ordered.chicken_details,
-    trays: state.firestore.ordered.trays
+    trays: state.firestore.ordered.trays,
+    block: state.firestore.ordered.blockchain
   }
 }
 
@@ -613,13 +715,13 @@ export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
       {collection: 'notifications', limit: 5, orderBy: ['time', 'desc']},
-      {collection: 'current', orderBy: ['balance', 'desc']},
       {collection: 'pending_transactions' },
       {collection: 'predict_week', orderBy: ['date', 'desc']},
       {collection: 'profit', limit: 2, orderBy: ['submittedOn', 'desc']},
       {collection: 'bags', orderBy: ['submittedOn', 'desc']},
-      {collection: 'eggs_collected', limit: 14, orderBy: ['date', 'desc']},
+      {collection: 'eggs_collected', limit: 14, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
-      {collection: 'trays'}
+      {collection: 'trays'},
+      {collection: 'blockchain', limit: 2, orderBy: ['minedOn', 'desc']},
     ])
 )(Dashboard)

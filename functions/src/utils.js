@@ -6,9 +6,14 @@ exports.eggsCollected = functions.firestore.document('eggs_collected/{eggId}')
     .onCreate((doc, context) => {
         const egg = doc.data()
         const docRef = `eggs/${context.params.eggId}`;
+        const collect = egg.trays_store.split(',');
+        const trays = collect[0];
+        const eggs = collect[1];
 
         const notification = {
-            content: 'Collected Eggs!',
+            content: 'Eggs were collected',
+            extraContent: `${egg.submittedBy} collected ${trays} trays and ${eggs} eggs`,
+            identifier: 'egg',
             user: `${egg.submittedBy}`,
             time: admin.firestore.FieldValue.serverTimestamp(),
             docRef

@@ -61,10 +61,10 @@ export const inputPurchase = (buys) => {
         values.section = getSectionAddr(values.section);
         parameterChecks(firestore, values);
         console.log(values)
-        /*firestore.collection("pending_transactions").add({
+        firestore.collection("pending_transactions").add({
             values,
             submittedOn: new Date()
-        }); */
+        });
         dispatch({type: 'INPUT_BUYING', values});
     }
 }

@@ -24,7 +24,7 @@ const storage = firebase.storage();
 
 if (firebase.messaging.isSupported()) {
   messaging = firebase.messaging();
-  messaging.usePublicVapidKey("BAKZFaJ-BRXiOD_-PIzqLcqwXOjqx0j5vEqW8CWYWfB9T7v7YK_o5fzR_LPi6LNx8U31YXxxPWHx_VBUQ6nmpJM");
+  messaging.usePublicVapidKey('BAKZFaJ-BRXiOD_-PIzqLcqwXOjqx0j5vEqW8CWYWfB9T7v7YK_o5fzR_LPi6LNx8U31YXxxPWHx_VBUQ6nmpJM');
 }
 
 firebase.firestore().enablePersistence()
