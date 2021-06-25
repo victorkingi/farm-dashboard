@@ -1,4 +1,4 @@
-const version = 0.2;
+const version = 0.8;
 const staticCacheName = `site-static-v${version}`;
 const dynamicCacheName = `site-dynamic-v${version}`;
 const assets = [
@@ -7,6 +7,12 @@ const assets = [
     '/favicon.ico',
     '/static/js/0.chunk.js',
     '/static/js/1.chunk.js',
+    '/static/js/2.chunk.js',
+    '/static/js/3.chunk.js',
+    '/static/js/2.chunk.js.map',
+    '/static/js/3.chunk.js.map',
+    '/static/js/9.chunk.js',
+    '/static/js/20.chunk.js',
     '/static/js/8.chunk.js',
     '/static/js/bundle.js',
     '/static/js/main.chunk.js',
@@ -15,8 +21,7 @@ const assets = [
     '/static/media/logo.8d2895f5.svg',
     '/static/media/materialdesignicons-webfont.d0066537.woff2',
     '/manifest.json',
-    '/logo192.png',
-    '/logo512.png'
+    '/logo192.png'
 ];
 const controller = new AbortController();
 const { signal } = controller;
@@ -36,8 +41,8 @@ const limitCacheSize = (name, size) => {
 self.addEventListener('message', (event) => {
     if (event.data === 'SKIP_WAITING') {
         console.log('message was posted', event);
-        controller.abort();
         self.skipWaiting();
+        controller.abort();
     }
 });
 
