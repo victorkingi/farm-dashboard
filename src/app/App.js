@@ -91,7 +91,6 @@ function App(props) {
   }, []);
 
   const onRouteChanged = () => {
-    console.log("ROUTE CHANGED");
     const body = document.querySelector('body');
     if(props.location.pathname === '/layout/RtlLayout') {
       body.classList.add('rtl');

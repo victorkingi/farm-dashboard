@@ -1,4 +1,4 @@
-const version = 0.3;
+const version = 0.2;
 const staticCacheName = `site-static-v${version}`;
 const dynamicCacheName = `site-dynamic-v${version}`;
 const assets = [
@@ -18,6 +18,8 @@ const assets = [
     '/logo192.png',
     '/logo512.png'
 ];
+const controller = new AbortController();
+const { signal } = controller;
 
 //cache size limit
 const limitCacheSize = (name, size) => {
@@ -30,6 +32,14 @@ const limitCacheSize = (name, size) => {
         })
     })
 }
+
+self.addEventListener('message', (event) => {
+    if (event.data === 'SKIP_WAITING') {
+        console.log('message was posted', event);
+        controller.abort();
+        self.skipWaiting();
+    }
+});
 
 self.addEventListener('install', evt => {
     console.log("installed");
@@ -57,7 +67,7 @@ self.addEventListener('fetch', evt => {
     evt.respondWith(
         caches.match(evt.request)
             .then(cacheRes => {
-                return cacheRes || fetch(evt.request)
+                return cacheRes || fetch(evt.request, { signal })
                     .then(fetchRes => {
                         return caches.open(dynamicCacheName).then(cache => {
                             cache.put(evt.request.url, fetchRes.clone());
@@ -65,7 +75,12 @@ self.addEventListener('fetch', evt => {
                             return fetchRes;
                         })
                     });
-            }).catch(() => {
+            }).catch((e) => {
+            console.warn(`Failed fetch: ${e.message}`);
+            console.log(e);
+            if (e.name === "AbortError") {
+                console.log('Fetch cancelled');
+            }
             if (evt.request.url.indexOf('.html') > -1) {
                 return caches.match('/fallback.html');
             }

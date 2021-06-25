@@ -50,21 +50,6 @@ module.exports = {
                             .runTransaction((transaction) => {
                                 return transaction.get(salesDocRef).then((_saleDoc) => {
                                     return transaction.get(traysDocRef).then((traysDoc) => {
-                                        function commonTransaction() {
-                                            if (traysDoc.exists) {
-                                                const trayData = traysDoc.data().number;
-                                                const final = parseInt(trayData) - parseInt(val.trayNo);
-                                                transaction.update(traysDocRef, {
-                                                    cloud: false,
-                                                    number: final,
-                                                    submittedBy: val.name,
-                                                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                                                });
-                                            }
-                                        }
-
-                                        commonTransaction();
-
                                         transaction.set(salesDocRef, {
                                             ...val,
                                             buyerName: buyer,

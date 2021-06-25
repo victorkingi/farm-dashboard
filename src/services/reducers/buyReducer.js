@@ -3,7 +3,7 @@ const initState = {}
 const buyReducer = (state = initState, action) => {
     switch (action.type) {
         case 'INPUT_BUYING':
-            console.log('buying data added', action.buys);
+            console.log('buying data added', action);
             return state;
         case 'BAGS_CHANGE':
             console.log('bags reduced');

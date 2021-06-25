@@ -7,6 +7,8 @@ import { Trans } from 'react-i18next';
 import {signOut} from "../../services/actions/authActions";
 
 function Navbar(props) {
+  const { auth } = props;
+
   const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
   }
@@ -88,7 +90,7 @@ function Navbar(props) {
               <Dropdown.Toggle as="a" className="nav-link cursor-pointer no-caret">
                 <div className="navbar-profile">
                   <img className="img-xs rounded-circle" src={require('../../assets/images/faces/user.png')} alt="profile" />
-                  <p className="mb-0 d-none d-sm-block navbar-profile-name"><Trans>Victor</Trans></p>
+                  <p className="mb-0 d-none d-sm-block navbar-profile-name"><Trans>{auth?.displayName ? auth.displayName.substring(0, auth.displayName.lastIndexOf(' ')) : ''}</Trans></p>
                   <i className="mdi mdi-menu-down d-none d-sm-block"></i>
                 </div>
               </Dropdown.Toggle>
@@ -117,6 +119,12 @@ function Navbar(props) {
     );
 }
 
+const mapStateToProps = function(state) {
+  return {
+    auth: state.firebase.auth
+  }
+}
+
 const mapDispatchToProps = (dispatch) => {
   return {
     signOut: () => dispatch(signOut())
@@ -124,4 +132,4 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 
-export default compose(connect(null, mapDispatchToProps))(Navbar);
+export default compose(connect(mapStateToProps, mapDispatchToProps))(Navbar);

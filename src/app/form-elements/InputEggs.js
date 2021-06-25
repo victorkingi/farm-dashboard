@@ -21,7 +21,7 @@ function getFinalLevelArray(state) {
     const arr = getLevelArray(state);
     let newArr = [];
     for (let i = 0; i < arr.length; i++) {
-        if (!(arr[i][0] === "eggs" || arr[i][0] === "date"
+        if (!(arr[i][0] === "eggs" || arr[i][0] === "date_"
             || arr[i][0] === "trays_store" || arr[i][0] === "category")) {
             newArr.push(arr[i][1]);
         }
@@ -32,7 +32,7 @@ function getFinalLevelArray(state) {
 //
 function InputEggs(props) {
     const [state, setState] = useState({
-        date: new Date(),
+        date_: new Date(),
         category: 'eggs'
     });
     const [open, setOpen] = useState(false);
@@ -94,7 +94,7 @@ function InputEggs(props) {
     const handleDate = (date) => {
         setState({
             ...state,
-            date: date
+            date_: date
         });
     }
 
@@ -140,13 +140,13 @@ function InputEggs(props) {
                         <h4 className="card-title">Input Eggs</h4>
                         <p className="card-description"> Enter eggs collected </p>
                         <form className="forms-sample">
-                            <label htmlFor="date">Date</label>
+                            <label htmlFor="date_">Date</label>
                             <Form.Group>
                                 <DatePicker
-                                    selected={state.date}
+                                    selected={state.date_}
                                     onChange={handleDate}
                                     className='form-control'
-                                    id='date'
+                                    id='date_'
                                 />
                             </Form.Group>
                             <Form.Group>
@@ -154,20 +154,20 @@ function InputEggs(props) {
                                 <Form.Control type="number" onChange={handleSelect} className="form-control" id="a1" placeholder="A1 Eggs" required />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="a2">A2</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="a2" placeholder="A2 Eggs" />
-                            </Form.Group>
-                            <Form.Group>
                                 <label htmlFor="b1">B1</label>
                                 <Form.Control type="number" onChange={handleSelect} className="form-control" id="b1" placeholder="B1 Eggs" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="b2">B2</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="b2" placeholder="B2 Eggs" />
-                            </Form.Group>
-                            <Form.Group>
                                 <label htmlFor="c1">C1</label>
                                 <Form.Control type="number" onChange={handleSelect} className="form-control" id="c1" placeholder="C1 Eggs" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="a2">A2</label>
+                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="a2" placeholder="A2 Eggs" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="b2">B2</label>
+                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="b2" placeholder="B2 Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="c2">C2</label>
