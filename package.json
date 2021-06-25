@@ -1,6 +1,6 @@
 {
-  "name": "corona-react",
-  "version": "1.1.0",
+  "name": "poultry101",
+  "version": "1.2.0",
   "private": true,
   "dependencies": {
     "@lourenci/react-kanban": "^0.13.0",
