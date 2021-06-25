@@ -82,7 +82,8 @@ async function dailyCurrentTraysCheck() {
     return trayRef.get().then((doc) => {
         if (doc.exists) {
             const data = doc.data();
-            const num = parseFloat(data.number);
+            const coll = data.current.split(',');
+            const num = parseInt(coll[0]);
 
             if (num <= 10) {
                 const details = {
