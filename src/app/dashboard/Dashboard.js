@@ -82,7 +82,7 @@ function Dashboard(props) {
     if (block) {
       const labels = [];
       let data = [];
-      let sent  = [];
+      let sent;
       let time = [];
       const accepted = ["PURITY", "JEFF", "VICTOR", "BABRA", "ANNE"];
       for (let i = 0; i < block.length; i++) {
