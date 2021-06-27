@@ -772,16 +772,22 @@ exports.dailyChanges = functions.runWith(runtimeOpts)
     .pubsub.schedule('every 1 hours from 17:00 to 18:00').onRun(async () => {
         const date  = new Date();
         if (date.getDay() === 0) {
-            await admin.firestore().collection('profit').add({
-                docId: date.toDateString(),
-                profit: 0,
-                split: {
-                    BABRA: 0,
-                    JEFF: 0,
-                    VICTOR: 0
-                },
-                submittedOn: admin.firestore.FieldValue.serverTimestamp()
-            });
+            await admin.firestore().collection('profit').where("docId", "==", date.toDateString())
+                .get().then((query) => {
+                    if (query.size === 0) {
+                        admin.firestore().collection('profit')
+                            .add({
+                                docId: date.toDateString(),
+                                profit: 0,
+                                split: {
+                                    BABRA: 0,
+                                    JEFF: 0,
+                                    VICTOR: 0
+                                },
+                                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                            });
+                    }
+                })
         }
 
     await dailyUpdateBags();

@@ -1,4 +1,4 @@
-const version = 0.8;
+const version = 0.3;
 const staticCacheName = `site-static-v${version}`;
 const dynamicCacheName = `site-dynamic-v${version}`;
 const assets = [
@@ -19,6 +19,10 @@ const assets = [
     '/static/media/face15.736ec0d9.jpg',
     '/static/media/logo-mini.c949e51e.svg',
     '/static/media/logo.8d2895f5.svg',
+    '/static/media/logo192.c8c51ffe.png',
+    '/static/media/logo256.bb446e78.png',
+    'https://fonts.gstatic.com/s/rubik/v12/iJWKBXyIfDnIV7nBrXw.woff2',
+    'https://fonts.googleapis.com/css?family=Rubik:300,400,500,700&display=swap',
     '/static/media/materialdesignicons-webfont.d0066537.woff2',
     '/manifest.json',
     '/logo192.png'
@@ -72,7 +76,7 @@ self.addEventListener('fetch', evt => {
     evt.respondWith(
         caches.match(evt.request)
             .then(cacheRes => {
-                return cacheRes || fetch(evt.request, { signal })
+                return cacheRes || fetch(evt.request)
                     .then(fetchRes => {
                         return caches.open(dynamicCacheName).then(cache => {
                             cache.put(evt.request.url, fetchRes.clone());

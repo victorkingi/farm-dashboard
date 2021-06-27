@@ -518,6 +518,7 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
 
         const lastSunday = buy.date.toDate();
         lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
+        console.log("LAST SUNDAY:", lastSunday.toDateString());
         admin.firestore().collection('profit')
             .where('docId', '==', lastSunday.toDateString())
             .get().then((query) => {
@@ -591,6 +592,7 @@ exports.salesMade = functions.firestore.document('sales/{saleId}')
         const docRef = `sales/${context.params.saleId}`;
         const lastSunday = sale.date.toDate();
         lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
+        console.log("LAST SUNDAY:", lastSunday.toDateString());
         admin.firestore().collection('profit')
             .where('docId', '==', lastSunday.toDateString())
             .get().then((query) => {

@@ -84,15 +84,18 @@ function Dashboard(props) {
       let data = [];
       let sent  = [];
       let time = [];
+      const accepted = ["PURITY", "JEFF", "VICTOR", "BABRA", "ANNE"];
       for (let i = 0; i < block.length; i++) {
         for (let p = 0; p < block[i].chain.length; p++) {
           for (let k = 0; k < block[i].chain[p].transactions.length; k++) {
             const reason = block[i].chain[p].transactions[k].reason;
             const amount = block[i].chain[p].transactions[k].amount;
             const timeStamp = block[i].chain[p].transactions[k].timestamp;
-            if (reason.substring(0, 5) === 'TRADE') {
+            if (reason.substring(0, 5) === 'TRADE' || reason.substring(0, 4) === 'SELL') {
+              if (data.length > 2) break;
               let to = reason.split(':');
               to = to[to.length - 1].substring(1);
+              if (!accepted.includes(to)) continue;
               to = sanitize_string(to);
               labels.push(to);
               data.push(parseFloat(amount));
@@ -249,9 +252,7 @@ function Dashboard(props) {
        const dateClean = profit[i].submittedOn.toDate();
        dateClean.setHours(0, 0, 0, 0);
        if (dateClean.getTime() === sun.getTime()) {
-         if (profit[i].time === "Weekly") {
            return profit[i].profit;
-         }
        }
      }
    }
