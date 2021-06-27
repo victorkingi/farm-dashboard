@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback } from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {withRouter} from 'react-router-dom';
@@ -16,7 +16,35 @@ function App(props) {
   let sidebarComponent = !state?.isFullPageLayout ? <Sidebar/> : '';
   props.checkClaims();
 
-  const componentDidMount = () => {
+  const onRouteChanged = useCallback(() => {
+    const body = document.querySelector('body');
+    if(props.location.pathname === '/layout/RtlLayout') {
+      body.classList.add('rtl');
+    }
+    else {
+      body.classList.remove('rtl')
+    }
+    window.scrollTo(0, 0);
+    const fullPageLayoutRoutes = ['/user-pages/login-1', '/user-pages/login-2', '/user-pages/register-1', '/user-pages/register-2', '/user-pages/lockscreen', '/error-pages/error-404', '/error-pages/error-500', '/general-pages/landing-page'];
+    for ( let i = 0; i < fullPageLayoutRoutes.length; i++ ) {
+      if (props.location.pathname === fullPageLayoutRoutes[i]) {
+        setState({
+          isFullPageLayout: true
+        })
+        if (document.querySelector('.page-body-wrapper')) document
+            .querySelector('.page-body-wrapper')
+            .classList.add('full-page-wrapper');
+        break;
+      } else {
+        setState({
+          isFullPageLayout: false
+        })
+        document.querySelector('.page-body-wrapper').classList.remove('full-page-wrapper');
+      }
+    }
+  }, [props.location.pathname]);
+
+  const componentDidMount = useCallback(() => {
     onRouteChanged();
     if (messaging !== null) {
       navigator.serviceWorker.addEventListener("message", (message) => {
@@ -54,13 +82,13 @@ function App(props) {
 
       });
     }
-  }
+  }, [onRouteChanged]);
 
-  const componentDidUpdate = (prevProps) => {
+  const componentDidUpdate = useCallback((prevProps) => {
     if (props.location !== prevProps.location) {
       return () => onRouteChanged();
     }
-  }
+  }, [props.location, onRouteChanged]);
 
   useEffect(() => {
     const wait = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -90,41 +118,13 @@ function App(props) {
     return () => callWithRetry(checkAuthState);
   }, []);
 
-  const onRouteChanged = () => {
-    const body = document.querySelector('body');
-    if(props.location.pathname === '/layout/RtlLayout') {
-      body.classList.add('rtl');
-    }
-    else {
-      body.classList.remove('rtl')
-    }
-    window.scrollTo(0, 0);
-    const fullPageLayoutRoutes = ['/user-pages/login-1', '/user-pages/login-2', '/user-pages/register-1', '/user-pages/register-2', '/user-pages/lockscreen', '/error-pages/error-404', '/error-pages/error-500', '/general-pages/landing-page'];
-    for ( let i = 0; i < fullPageLayoutRoutes.length; i++ ) {
-      if (props.location.pathname === fullPageLayoutRoutes[i]) {
-        setState({
-          isFullPageLayout: true
-        })
-        if (document.querySelector('.page-body-wrapper')) document
-            .querySelector('.page-body-wrapper')
-            .classList.add('full-page-wrapper');
-        break;
-      } else {
-        setState({
-          isFullPageLayout: false
-        })
-        document.querySelector('.page-body-wrapper').classList.remove('full-page-wrapper');
-      }
-    }
-  }
-
   useEffect(() => {
     return () => {
       componentDidMount();
       componentDidUpdate(props);
     }
 
-  }, [props]);
+  }, [props.location, componentDidMount, componentDidUpdate, props, onRouteChanged]);
 
 
   return (
