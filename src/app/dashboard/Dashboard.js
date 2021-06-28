@@ -5,18 +5,18 @@ import {firestoreConnect} from 'react-redux-firebase';
 import { Doughnut } from 'react-chartjs-2';
 import numeral from 'numeral';
 import moment from 'moment';
-import Spinner from "../shared/Spinner";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from '../form-elements/InputEggs';
 import {rollBack, sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
+import {isMobile} from 'react-device-detect';
 
 function getLastSunday(d) {
   const t = new Date(d);
   t.setDate(t.getDate() - t.getDay());
   return t;
 }
-
+let itemCount = -1;
 function truncate(str, length) {
   if (str.substring(0, 6) === 'VICTOR') {
     let name = str.substring(0, 6);
@@ -56,8 +56,7 @@ function getRanColor() {
 }
 
 function Dashboard(props) {
-  const { auth, admin,
-    notifications, pend, forProfit,
+  const { notifications, pend, forProfit,
       profit, bags, eggs, chick, trays,
       block
   } = props;
@@ -84,6 +83,7 @@ function Dashboard(props) {
       let data = [];
       let sent;
       let time = [];
+      let all = [];
       const accepted = ["PURITY", "JEFF", "VICTOR", "BABRA", "ANNE"];
       for (let i = 0; i < block.length; i++) {
         for (let p = 0; p < block[i].chain.length; p++) {
@@ -92,30 +92,41 @@ function Dashboard(props) {
             const amount = block[i].chain[p].transactions[k].amount;
             const timeStamp = block[i].chain[p].transactions[k].timestamp;
             if (reason.substring(0, 5) === 'TRADE' || reason.substring(0, 4) === 'SELL') {
-              if (data.length > 2) break;
+              if (all.length > 3) break;
               let to = reason.split(':');
               to = to[to.length - 1].substring(1);
               if (!accepted.includes(to)) continue;
               to = sanitize_string(to);
-              labels.push(to);
-              data.push(parseFloat(amount));
-              time.push(new Date(timeStamp));
+              all.push({
+                to,
+                amount: parseFloat(amount),
+                timestamp: new Date(timeStamp)
+              });
             }
           }
         }
+      }
+      all = all.sort((a, b) => { return b.timestamp.getTime() - a.timestamp.getTime()});
+      all = isMobile ? all.slice(0, 3) : all;
+      for (let i = 0; i < all.length; i++) {
+        labels.push(all[i].to);
+        data.push(all[i].amount);
+        time.push(all[i].timestamp);
       }
       sent = data;
       let total = data.reduce((a, b) => a + b, 0);
       data = data.map(x => Math.floor((x/total) * 100));
       let color = new Array(data.length).fill('');
       color = color.map(_ => getRanColor());
+      let key = data.map(x => (Math.random()*x)-x);
       setTrans({
         labels,
         data,
         color,
         total,
         sent,
-        time
+        time,
+        key
       });
     }
   }, [block]);
@@ -157,7 +168,6 @@ function Dashboard(props) {
     setOpen(false);
   };
 
- if (admin && auth.uid) {
    const getEggs = (tray, eggs) => {
      return (parseInt(tray) * 30) + parseInt(eggs);
    }
@@ -277,7 +287,36 @@ function Dashboard(props) {
     return (
         <div>
           <div className="row">
-            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div id="safeWithdraw" className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  {chick &&
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">{numeral(chick[0].weekPercent).format("0.00")}%</h3>
+                        <p className={`text-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0
+                              ? numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0"))}%
+                        </p>
+                      </div>
+
+                    </div>
+                    <div className="col-3">
+                      <div
+                          className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      </div>
+                    </div>
+                  </div>}
+                  <h6 className="text-muted font-weight-normal">Amount Available to Withdraw</h6>
+                </div>
+              </div>
+            </div>
+            <div id="laying" className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
                   {chick &&
@@ -306,7 +345,7 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
-            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div id="feeds" className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
                   {bags && <div className="row">
@@ -332,6 +371,38 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
+            {!isMobile &&
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  {chick &&
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">{numeral(chick[0].weekPercent).format("0.00")}%</h3>
+                        <p className={`text-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0
+                              ? numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0"))}%
+                        </p>
+                      </div>
+
+                    </div>
+                    <div className="col-3">
+                      <div
+                          className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+                      </div>
+                    </div>
+                  </div>}
+                  <h6 className="text-muted font-weight-normal">Bank Balance</h6>
+                </div>
+              </div>
+            </div>
+            }
+            {!isMobile &&
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
@@ -360,6 +431,8 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
+            }
+            {!isMobile &&
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
@@ -388,6 +461,8 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
+            }
+            {!isMobile &&
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
@@ -433,6 +508,8 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
+            }
+            {!isMobile &&
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
@@ -460,6 +537,7 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
+            }
           </div>
           <div className="row">
             <div className="col-md-4 grid-margin stretch-card">
@@ -475,35 +553,22 @@ function Dashboard(props) {
                   </div>
                   {JSON.stringify(trans) !== '{}' &&
                   <div>
-                    <div
-                      className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
-                    <div className="text-md-center text-xl-left">
-                      <h6 className="mb-1">Transfer to {trans.labels[0]}</h6>
-                      <p className="text-muted mb-0">{moment(trans.time[0]).fromNow()}</p>
-                    </div>
-                    <div
-                        className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
-                      <h6 className="font-weight-bold mb-0">KSh {numeral(trans.sent[0]).format("0,0")}</h6>
-                    </div>
-                  </div>
-                  <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
-                    <div className="text-md-center text-xl-left">
-                      <h6 className="mb-1">Transfer to {trans.labels[1]}</h6>
-                      <p className="text-muted mb-0">{moment(trans.time[1]).fromNow()}</p>
-                    </div>
-                    <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
-                      <h6 className="font-weight-bold mb-0">KSh {numeral(trans.sent[1]).format("0,0")}</h6>
-                    </div>
-                  </div>
-                    <div className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
-                    <div className="text-md-center text-xl-left">
-                    <h6 className="mb-1">Transfer to {trans.labels[2]}</h6>
-                    <p className="text-muted mb-0">{moment(trans.time[2]).fromNow()}</p>
-                    </div>
-                    <div className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
-                    <h6 className="font-weight-bold mb-0">KSh {numeral(trans.sent[2]).format("0,0")}</h6>
-                    </div>
-                    </div>
+                    { trans.time.map((item) => {
+                      itemCount++;
+                      return (
+                          <div key={trans.key[itemCount]}
+                              className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
+                            <div className="text-md-center text-xl-left">
+                              <h6 className="mb-1">Transfer to {trans.labels[itemCount]}</h6>
+                              <p className="text-muted mb-0">{moment(item).fromNow()}</p>
+                            </div>
+                            <div
+                                className="align-self-center flex-grow text-right text-md-center text-xl-right py-md-2 py-xl-0">
+                              <h6 className="font-weight-bold mb-0">KSh {numeral(trans.sent[itemCount]).format("0,0")}</h6>
+                            </div>
+                          </div>
+                      )
+                    })}
                   </div>
                   }
                 </div>
@@ -514,14 +579,37 @@ function Dashboard(props) {
                 <div className="card-body">
                   <div className="d-flex flex-row justify-content-between">
                     <h4 className="card-title mb-1">Notifications</h4>
-                    <p className="text-muted mb-1">Time</p>
+                    {!isMobile && <p className="text-muted mb-1">Time</p>}
                   </div>
                   <div className="row">
                     <div className="col-12">
                       <div className="preview-list">
-                        {notifications && notifications.map(item => {
+                        {notifications
+                        && !isMobile && notifications.map(item => {
                           const icon = getIcon(item.identifier, item.big);
-
+                          return (
+                              <div key={item.id} className="preview-item border-bottom">
+                                <div className="preview-thumbnail">
+                                  <div className="preview-icon bg-primary">
+                                    <i className={`mdi mdi-${icon}`}></i>
+                                  </div>
+                                </div>
+                                <div className="preview-item-content d-sm-flex flex-grow">
+                                  <div className="flex-grow">
+                                    <h6 className="preview-subject">{item.content}</h6>
+                                    <p className="text-muted mb-0">{`${truncate(item?.extraContent, 33)}`}</p>
+                                  </div>
+                                  <div className="mr-auto text-sm-right pt-2 pt-sm-0">
+                                    <p className="text-muted"></p>
+                                    <p className="text-muted mb-0">On {moment(item.time.toDate()).format("MMM Do YY")}</p>
+                                  </div>
+                                </div>
+                              </div>
+                          )
+                        })}
+                        {notifications
+                        && isMobile && notifications.slice(0, 3).map(item => {
+                          const icon = getIcon(item.identifier, item.big);
                           return (
                               <div key={item.id} className="preview-item border-bottom">
                                 <div className="preview-thumbnail">
@@ -680,19 +768,10 @@ function Dashboard(props) {
           </div>
         </div>
     );
-  } else {
-    return (
-        <div>
-          <Spinner animation="grow" variant="primary" />
-        </div>
-    )
-  }
 }
 
 const mapStateToProps = function(state) {
   return {
-    auth: state.firebase.auth,
-    admin: state.auth.admin,
     notifications: state.firestore.ordered.notifications,
     pend: state.firestore.ordered.pending_transactions,
     forProfit: state.firestore.ordered.predict_week,
@@ -715,7 +794,7 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-      {collection: 'notifications', limit: 5, orderBy: ['time', 'desc']},
+      {collection: 'notifications', limit: 8, orderBy: ['time', 'desc']},
       {collection: 'pending_transactions' },
       {collection: 'predict_week', orderBy: ['date', 'desc']},
       {collection: 'profit', limit: 2, orderBy: ['submittedOn', 'desc']},
@@ -723,6 +802,6 @@ export default compose(
       {collection: 'eggs_collected', limit: 14, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
-      {collection: 'blockchain', limit: 2, orderBy: ['minedOn', 'desc']},
+      {collection: 'blockchain', limit: 3, orderBy: ['minedOn', 'desc']},
     ])
 )(Dashboard)
