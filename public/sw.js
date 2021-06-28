@@ -1,32 +1,30 @@
-const version = 0.3;
+const version = 0.2;
 const staticCacheName = `site-static-v${version}`;
 const dynamicCacheName = `site-dynamic-v${version}`;
 const assets = [
     '/',
-    '/fallback.html',
     '/favicon.ico',
+    '/logo192.png',
+    '/logo512.png',
+    '/manifest.json',
     '/static/js/0.chunk.js',
+    '/static/js/0.chunk.js.map',
     '/static/js/1.chunk.js',
     '/static/js/2.chunk.js',
     '/static/js/3.chunk.js',
-    '/static/js/2.chunk.js.map',
     '/static/js/3.chunk.js.map',
-    '/static/js/9.chunk.js',
-    '/static/js/20.chunk.js',
-    '/static/js/8.chunk.js',
     '/static/js/bundle.js',
+    '/static/js/20.chunk.js',
+    '/static/js/22.chunk.js',
+    '/static/js/9.chunk.js',
     '/static/js/main.chunk.js',
-    '/static/media/face15.736ec0d9.jpg',
-    '/static/media/logo-mini.c949e51e.svg',
-    '/static/media/logo.8d2895f5.svg',
     '/static/media/logo192.c8c51ffe.png',
     '/static/media/logo256.bb446e78.png',
-    'https://fonts.gstatic.com/s/rubik/v12/iJWKBXyIfDnIV7nBrXw.woff2',
-    'https://fonts.googleapis.com/css?family=Rubik:300,400,500,700&display=swap',
     '/static/media/materialdesignicons-webfont.d0066537.woff2',
-    '/manifest.json',
-    '/logo192.png'
+    '/s/rubik/v12/iJWKBXyIfDnIV7nBrXw.woff2',
+    '/css?family=Rubik:300,400,500,700&display=swap'
 ];
+
 const controller = new AbortController();
 const { signal } = controller;
 
@@ -45,8 +43,8 @@ const limitCacheSize = (name, size) => {
 self.addEventListener('message', (event) => {
     if (event.data === 'SKIP_WAITING') {
         console.log('message was posted', event);
-        self.skipWaiting();
         controller.abort();
+        self.skipWaiting();
     }
 });
 
@@ -80,7 +78,7 @@ self.addEventListener('fetch', evt => {
                     .then(fetchRes => {
                         return caches.open(dynamicCacheName).then(cache => {
                             cache.put(evt.request.url, fetchRes.clone());
-                            limitCacheSize(dynamicCacheName, 40);
+                            limitCacheSize(dynamicCacheName, 30);
                             return fetchRes;
                         })
                     });
