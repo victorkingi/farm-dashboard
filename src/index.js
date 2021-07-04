@@ -1,16 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
-import App from './app/App';
+import App from './App';
+import { SnackbarProvider } from "notistack";
 import {applyMiddleware, compose, createStore} from 'redux';
 import {Provider} from 'react-redux';
 import thunk from 'redux-thunk';
 import {createFirestoreInstance, getFirestore, reduxFirestore} from 'redux-firestore';
 import {getFirebase, ReactReduxFirebaseProvider} from 'react-redux-firebase';
 import rootReducer from "./services/reducers/rootReducer";
-import {firebase} from "./services/api/firebase configurations/fbConfig";
+import {firebase} from "./services/api/fbConfig";
+import { BrowserRouter } from 'react-router-dom';
+import reportWebVitals from "./reportWebVitals";
 
-//j
 const store = createStore(rootReducer,
     compose(
         applyMiddleware(thunk.withExtraArgument({getFirebase, getFirestore})),
@@ -31,11 +32,18 @@ const rrfProps = {
 }
 
 ReactDOM.render(
-    <Provider store={store}>
-        <ReactReduxFirebaseProvider {...rrfProps}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-        </ReactReduxFirebaseProvider>
-    </Provider>,
-    document.getElementById('root'));
+  <React.StrictMode>
+      <Provider store={store}>
+          <ReactReduxFirebaseProvider {...rrfProps}>
+              <SnackbarProvider>
+                  <BrowserRouter>
+                      <App />
+                  </BrowserRouter>
+              </SnackbarProvider>
+          </ReactReduxFirebaseProvider>
+      </Provider>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+
+reportWebVitals();

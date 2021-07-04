@@ -1,4 +1,4 @@
-import {storage} from "../api/firebase configurations/fbConfig";
+import {storage} from "../api/fbConfig";
 import {checkDate} from "./utilAction";
 
 function errorMessage(message) {

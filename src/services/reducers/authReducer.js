@@ -18,6 +18,7 @@ const authReducer = function(state = initState, action) {
             console.log('login success');
             try {
                 localStorage.setItem('user', action._user);
+                localStorage.setItem('name', action._name);
             } catch (e) {
                 console.log(e)
             }
@@ -51,7 +52,7 @@ const authReducer = function(state = initState, action) {
 
         case 'SIGN_OUT_SUCCESS':
             console.log('signed out');
-            localStorage.removeItem('user');
+            localStorage.clear();
             window.location = "/user-pages/login-1";
             return state;
 

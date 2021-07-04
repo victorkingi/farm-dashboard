@@ -54,6 +54,7 @@ function InputDeadSick(props) {
 
     const handleDate = (date) => {
         setState({
+            ...state,
             date: date
         });
     };

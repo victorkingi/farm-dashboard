@@ -782,7 +782,8 @@ exports.dailyChanges = functions.runWith(runtimeOpts)
                                 split: {
                                     BABRA: 0,
                                     JEFF: 0,
-                                    VICTOR: 0
+                                    VICTOR: 0,
+                                    remain: 0
                                 },
                                 submittedOn: admin.firestore.FieldValue.serverTimestamp()
                             });
@@ -1164,7 +1165,7 @@ function predictProfit() {
             update();
         }};
 
-    admin.firestore().collection('profit').where("time", "==", "Weekly")
+    admin.firestore().collection('profit').orderBy("profit", "asc")
         .get().then((query) => {
             const dates = [];
             const profits = [];

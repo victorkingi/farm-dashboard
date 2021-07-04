@@ -1,4 +1,4 @@
-import {messaging} from "../api/firebase configurations/fbConfig";
+import {messaging} from "../api/fbConfig";
 
 export const hideBars = () => {
     return (dispatch) => {

@@ -1,4 +1,4 @@
-import {functions} from "../api/firebase configurations/fbConfig";
+import {functions} from "../api/fbConfig";
 
 export const sendTokenToServer = (token) => {
     return (dispatch, getState, {getFirestore, getFirebase}) => {

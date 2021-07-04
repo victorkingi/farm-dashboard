@@ -1,20 +1,49 @@
-import React, {useEffect, useState, useCallback } from 'react';
+import React, {useState, Fragment, useEffect, useCallback} from 'react';
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import { withSnackbar } from "notistack";
+import { Button } from "@material-ui/core";
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {withRouter} from 'react-router-dom';
-import {toast, ToastContainer} from "react-toastify";
 import './App.scss';
 import AppRoutes from './AppRoutes';
-import Navbar from './shared/Navbar';
-import Sidebar from './shared/Sidebar';
-import {firebase, messaging} from "../services/api/firebase configurations/fbConfig";
-import {checkClaims} from "../services/actions/authActions";
+import Navbar from './app/shared/Navbar';
+import Sidebar from './app/shared/Sidebar';
+import {firebase, messaging} from "./services/api/fbConfig";
+import {checkClaims} from "./services/actions/authActions";
+
 
 function App(props) {
-  const [state, setState] = useState();
-  let navbarComponent = !state?.isFullPageLayout ? <Navbar/> : '';
-  let sidebarComponent = !state?.isFullPageLayout ? <Sidebar/> : '';
-  props.checkClaims();
+  const [state, setState] = useState({});
+  const [state_, setState_] = useState();
+
+  const updateServiceWorker = useCallback(() => {
+    const { waitingWorker } = state;
+    waitingWorker && waitingWorker.postMessage({ type: 'SKIP_WAITING' })
+    setState({ newVersionAvailable: false });
+    window.location.reload();
+  }, [state]);
+
+  const refreshAction = useCallback(() => { //render the snackbar button
+    return (
+        <Fragment>
+          <Button
+              className="snackbar-button"
+              size="small"
+              onClick={updateServiceWorker}
+          >
+            {"refresh"}
+          </Button>
+        </Fragment>
+    );
+  }, [updateServiceWorker]);
+
+  const onServiceWorkerUpdate = registration => {
+    setState({
+      waitingWorker: registration && registration.waiting,
+      newVersionAvailable: true
+    });
+  }
 
   const onRouteChanged = useCallback(() => {
     const body = document.querySelector('body');
@@ -28,7 +57,7 @@ function App(props) {
     const fullPageLayoutRoutes = ['/user-pages/login-1', '/user-pages/login-2', '/user-pages/register-1', '/user-pages/register-2', '/user-pages/lockscreen', '/error-pages/error-404', '/error-pages/error-500', '/general-pages/landing-page'];
     for ( let i = 0; i < fullPageLayoutRoutes.length; i++ ) {
       if (props.location.pathname === fullPageLayoutRoutes[i]) {
-        setState({
+        setState_({
           isFullPageLayout: true
         })
         if (document.querySelector('.page-body-wrapper')) document
@@ -36,19 +65,19 @@ function App(props) {
             .classList.add('full-page-wrapper');
         break;
       } else {
-        setState({
+        setState_({
           isFullPageLayout: false
         })
         document.querySelector('.page-body-wrapper').classList.remove('full-page-wrapper');
       }
     }
-  }, [props.location.pathname]);
+  },
+      [props.location.pathname]);
 
   const componentDidMount = useCallback(() => {
     onRouteChanged();
     if (messaging !== null) {
       navigator.serviceWorker.addEventListener("message", (message) => {
-        const customId = "myToast";
         if (message?.data) {
           const _data = `${message.data['firebase-messaging-msg-data'].data?.title}`;
           const _notification = `${message.data['firebase-messaging-msg-data']
@@ -56,33 +85,42 @@ function App(props) {
               .notification?.body}`;
 
           if (_data === 'undefined') {
-            toast.info(_notification, {
-              toastId: customId,
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            });
+           console.log(_notification);
           } else {
-            toast.info(_data, {
-              toastId: customId,
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            });
+            console.log(_data);
           }
         }
 
       });
     }
-  }, [onRouteChanged]);
+    const { enqueueSnackbar } = props;
+    const { newVersionAvailable } = state;
+
+    if (process.env.NODE_ENV === 'production') {
+      // If you want your app to work offline and load faster, you can change
+      // unregister() to register() below. Note this comes with some pitfalls.
+      // Learn more about service workers: https://cra.link/PWA
+      serviceWorkerRegistration.register({ onUpdate: onServiceWorkerUpdate });
+    }
+
+    if (newVersionAvailable) {
+      //show snackbar with refresh button
+      enqueueSnackbar("A new version was released", {
+        persist: true,
+        variant: "success",
+        action: refreshAction(),
+      });
+    }
+  }, [props, state, refreshAction, onRouteChanged]);
+
+  useEffect(() => {
+    componentDidMount();
+
+  }, [componentDidMount]);
+
+  let navbarComponent = !state_?.isFullPageLayout ? <Navbar/> : '';
+  let sidebarComponent = !state_?.isFullPageLayout ? <Sidebar/> : '';
+  props.checkClaims();
 
   const componentDidUpdate = useCallback((prevProps) => {
     if (props.location !== prevProps.location) {
@@ -97,8 +135,8 @@ function App(props) {
         if (user) {
           await wait(10000);
         } else {
-          localStorage.removeItem('user');
-          await wait(10000);
+          localStorage.clear();
+          window.location.reload();
         }
       });
     }
@@ -126,33 +164,19 @@ function App(props) {
 
   }, [props.location, componentDidMount, componentDidUpdate, props, onRouteChanged]);
 
-
   return (
-        <div>
-          <ToastContainer
-              position="top-right"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-          />
-          <div className="container-scroller">
-            { sidebarComponent }
-            <div className="container-fluid page-body-wrapper">
-              { navbarComponent }
-              <div className="main-panel">
-                <div className="content-wrapper">
-                  <AppRoutes/>
-                </div>
-              </div>
+      <div className="container-scroller">
+        { sidebarComponent }
+        <div className="container-fluid page-body-wrapper">
+          { navbarComponent }
+          <div className="main-panel">
+            <div className="content-wrapper">
+              <AppRoutes />
             </div>
           </div>
         </div>
-    );
+      </div>
+  );
 }
 
 const mapStateToProps = function(state) {
@@ -168,4 +192,4 @@ const mapDispatchToProps = (dispatch) => {
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(withRouter(App));
+export default compose(connect(mapStateToProps, mapDispatchToProps))(withRouter(withSnackbar(App)));

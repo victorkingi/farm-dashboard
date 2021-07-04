@@ -367,6 +367,7 @@ exports.eggsChange = functions.firestore.document('eggs_collected/{eggId}')
                                                 });
                                                 doc_.ref.update({
                                                     weekPercent: total,
+                                                    submittedBy: data.submittedBy,
                                                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
                                                 })
                                             }
@@ -389,6 +390,7 @@ exports.eggsChange = functions.firestore.document('eggs_collected/{eggId}')
                                                 doc__.ref.update({
                                                     prev,
                                                     linkedList: newList,
+                                                    submittedBy: data.submittedBy,
                                                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
                                                 }).then(() => {
                                                     console.log("LINKED LIST UPDATED");
@@ -582,6 +584,48 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
             submittedOn: admin.firestore.FieldValue.serverTimestamp()
         });
     }));
+
+exports.availWithdraw = functions.firestore.document('profit/{profitId}')
+    .onWrite(((change, context) => {
+        const beforeData = change.before.exists ? change.before.data() : false;
+        const afterData = change.after.exists ? change.after.data() : false;
+        const writtenTo = context.params.profitId;
+        //TODO Prevent infinite loop
+        //can never be deleted
+        if (!afterData) {
+            console.error("PROFIT DOC DELETED");
+            throw new Error("PROFIT DOC DELETED!");
+        }
+
+        if (writtenTo === "available") {
+            return 0;
+        }
+
+        let BABRA = parseFloat(beforeData.split.BABRA);
+        BABRA = parseFloat(afterData.split.BABRA) - BABRA;
+
+        let VICTOR = parseFloat(beforeData.split.VICTOR);
+        VICTOR = parseFloat(afterData.split.VICTOR) - VICTOR;
+
+        let JEFF = parseFloat(beforeData.split.JEFF);
+        JEFF = parseFloat(afterData.split.JEFF) - JEFF;
+
+        let remain = parseFloat(beforeData.split.remain);
+        remain = parseFloat(afterData.split.remain) - remain;
+
+        let totalLeaving = JEFF + VICTOR + BABRA;
+
+        return admin.firestore().doc('profit/available')
+            .update({
+                submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+                VICTOR: admin.firestore.FieldValue.increment(VICTOR),
+                JEFF: admin.firestore.FieldValue.increment(JEFF),
+                BABRA: admin.firestore.FieldValue.increment(BABRA),
+                remain: admin.firestore.FieldValue.increment(remain),
+                totalLeaving
+            });
+
+    }))
 
 exports.salesMade = functions.firestore.document('sales/{saleId}')
     .onCreate((snap, context) => {

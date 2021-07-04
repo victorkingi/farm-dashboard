@@ -63,6 +63,7 @@ function InputPurchase(props) {
 
     const handleDate = (date) => {
         setState({
+            ...state,
             date: date
         });
     };
