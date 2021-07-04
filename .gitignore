@@ -22,7 +22,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .firebase
-.firebaserc
 firestore.indexes.json
 firestore.rules
 storage.rules

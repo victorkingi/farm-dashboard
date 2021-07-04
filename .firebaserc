@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "poultry101-6b1ed"
+  },
+  "targets": {
+    "poultry101-6b1ed": {
+      "hosting": {
+        "poultryfarm.web.app": [
+          "poultryfarm"
+        ]
+      }
+    }
+  }
+}
