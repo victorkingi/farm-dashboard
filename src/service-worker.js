@@ -12,6 +12,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst } from 'workbox-strategies';
+import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
 clientsClaim();
 
@@ -74,30 +75,42 @@ registerRoute(
     })
 );
 registerRoute(
-    'https://fonts.googleapis.com/css?family=Rubik:300,400,500,700&display=swap',
+    ({url}) => url.origin === 'https://fonts.googleapis.com' &&
+        url.pathname.startsWith('/css'),
     new CacheFirst({
         cacheName: 'style',
         plugins: [
-            new ExpirationPlugin({
-                maxEntries: 60,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-            }),
-        ],
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            })
+        ]
     })
 );
 registerRoute(
-    /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/poultry101-6b1ed\.appspot\.com\/o\//,
+    ({url}) => url.origin === 'https://fonts.gstatic.com' &&
+        url.pathname.startsWith('/s/rubik/'),
     new CacheFirst({
-        cacheName: 'cloud_storage',
+        cacheName: 'style',
         plugins: [
-            new ExpirationPlugin({
-                maxEntries: 60,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
-            }),
-        ],
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            })
+        ]
     })
 );
 
+registerRoute(
+    ({url}) => url.origin === 'https://firebasestorage.googleapis.com' &&
+        url.pathname.startsWith('/v0/b/poultry101-6b1ed.appspot.com/o/'),
+    new CacheFirst({
+        cacheName: 'store-cache',
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            })
+        ]
+    })
+);
 
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
