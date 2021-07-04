@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: yarn install && yarn build && firebase target:apply hosting poultryfarm.web.app poultryfarm
+      - run: yarn install && yarn build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_POULTRY101_6B1ED }}'
-          channelId: poultryfarm
+          channelId: live
           projectId: poultry101-6b1ed
