@@ -35,7 +35,7 @@ function truncate(str, length) {
     name = sanitize_string(name);
     str = name+str.slice(6);
   }
-  if (str?.length > length) return str?.substring(0, length)+'...';
+  if (str?.length > length) return str?.substring(0, length-3)+'...';
   else return str;
 }
 
@@ -615,7 +615,7 @@ function Dashboard(props) {
                                 <div className="preview-item-content d-sm-flex flex-grow">
                                   <div className="flex-grow">
                                     <h6 className="preview-subject">{item.content}</h6>
-                                    <p className="text-muted mb-0">{`${truncate(item?.extraContent, 33)}`}</p>
+                                    <p className="text-muted mb-0">{`${truncate(item?.extraContent, 24)}`}</p>
                                   </div>
                                   <div className="mr-auto text-sm-right pt-2 pt-sm-0">
                                     <p className="text-muted"/>
@@ -638,7 +638,7 @@ function Dashboard(props) {
                                 <div className="preview-item-content d-sm-flex flex-grow">
                                   <div className="flex-grow">
                                     <h6 className="preview-subject">{item.content}</h6>
-                                    <p className="text-muted mb-0">{`${truncate(item?.extraContent, 33)}`}</p>
+                                    <p className="text-muted mb-0">{`${truncate(item?.extraContent, 24)}`}</p>
                                   </div>
                                   <div className="mr-auto text-sm-right pt-2 pt-sm-0">
                                     <p className="text-muted"/>
