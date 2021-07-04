@@ -2,7 +2,7 @@ import React, {useState, useMemo} from 'react';
 import {Link, Redirect} from 'react-router-dom';
 import {Button, Form, Spinner } from 'react-bootstrap';
 import {connect} from 'react-redux';
-import {firebase} from '../../services/api/firebase configurations/fbConfig';
+import {firebase} from '../../services/api/fbConfig';
 import {signIn} from "../../services/actions/authActions";
 import {sendTokenToServer} from "../../services/actions/chickenAction";
 import {handleToken} from "../../services/actions/utilAction";
@@ -181,7 +181,7 @@ function Login(props) {
                     <div className="form-check">
                       <label htmlFor="notify" className="form-check-label text-muted">
                         <input type="checkbox" onChange={handleChange} className="form-check-input" id="notify" name="notify" defaultValue={0} />
-                        <i className="input-helper"></i>
+                        <i className="input-helper"/>
                         I want to receive notifications
                       </label>
                     </div>

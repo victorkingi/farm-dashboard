@@ -11,7 +11,7 @@ import {Alert} from "./InputEggs";
 //df
 function InputBorrowed() {
     const [state, setState] = useState({
-        selectedDate: new Date(),
+        date: new Date(),
         who: 'Who Borrowed',
         get_from: 'Receive From',
         category: 'borrow'
@@ -61,7 +61,8 @@ function InputBorrowed() {
 
     const handleDate = (date) => {
         setState({
-            selectedDate: date
+            ...state,
+            date: date
         });
     };
 
@@ -133,7 +134,7 @@ function InputBorrowed() {
                                 <label htmlFor="date">Date</label>
                                 <Form.Group>
                                     <DatePicker
-                                        selected={state.selectedDate}
+                                        selected={state.date}
                                         onChange={handleDate}
                                         className='form-control'
                                         id='date'

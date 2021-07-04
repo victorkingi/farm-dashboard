@@ -222,7 +222,7 @@ function Dashboard(props) {
      else if (item?.values?.amount) return item?.values?.amount;
    }
 
-   const handleSelect = (e, id) => {
+   const handleSelect = (e) => {
      e.preventDefault();
      let arr = [];
      if (e.target.id === "pending" && e.target.checked) {
@@ -252,19 +252,35 @@ function Dashboard(props) {
      setOpen(true);
    }
 
-   const getLatestWeekProfit = () => {
-     const curDate = profit[0].submittedOn.toDate();
-     curDate.setHours(0, 0, 0, 0);
-     let sun = getLastSunday(curDate);
-     sun.setDate(sun.getDate() - 1);
-     sun = getLastSunday(sun);
-     for (let i = 0; i < profit.length; i++) {
-       const dateClean = profit[i].submittedOn.toDate();
-       dateClean.setHours(0, 0, 0, 0);
-       if (dateClean.getTime() === sun.getTime()) {
-           return profit[i].profit;
-       }
+   const isRejected = (date) => {
+     if (date) {
+       let today = new Date().getTime();
+       const mineTime = date;
+       mineTime.setDate(mineTime.getDate()+1);
+       mineTime.setHours(3, 0, 0, 0);
+       return mineTime.getTime() < today; //if expected mining date is long ago then it failed
+     } else {
+       return false;
      }
+   }
+
+   const getLatestWeekProfit = () => {
+     if (profit) {
+       const curDate = profit[0].submittedOn.toDate();
+       curDate.setHours(0, 0, 0, 0);
+       let sun = getLastSunday(curDate);
+       sun.setDate(sun.getDate() - 1);
+       sun = getLastSunday(sun);
+       for (let i = 0; i < profit.length; i++) {
+         const dateClean = profit[i].submittedOn.toDate();
+         dateClean.setHours(0, 0, 0, 0);
+         if (dateClean.getTime() === sun.getTime()) {
+           return profit[i].profit;
+         }
+       }
+       return 0;
+     }
+     return 0;
    }
 
    const getIcon = (identifier, big) => {
@@ -308,7 +324,7 @@ function Dashboard(props) {
                       <div
                           className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+    className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -337,7 +353,7 @@ function Dashboard(props) {
                       <div
                           className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+    className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -363,7 +379,7 @@ function Dashboard(props) {
                       <div
                           className={`icon icon-box-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+    className={`mdi mdi-arrow-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -393,7 +409,7 @@ function Dashboard(props) {
                       <div
                           className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+    className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -423,7 +439,7 @@ function Dashboard(props) {
                       <div
                           className={`icon icon-box-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+    className={`mdi mdi-arrow-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -453,7 +469,7 @@ function Dashboard(props) {
                       <div
                           className={`icon icon-box-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+    className={`mdi mdi-arrow-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -498,9 +514,9 @@ function Dashboard(props) {
                           getEggs(decodeTrayEgg(trays[0].prev)[0],
                               decodeTrayEgg(trays[0].prev)[1])) < 0 ? 'danger' : 'success'}`}>
                         <span className={`mdi mdi-arrow-${riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
-                            decodeTrayEgg(trays[0].current)[1]),
-                            getEggs(decodeTrayEgg(trays[0].prev)[0],
-                                decodeTrayEgg(trays[0].prev)[1])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+    decodeTrayEgg(trays[0].current)[1]),
+    getEggs(decodeTrayEgg(trays[0].prev)[0],
+        decodeTrayEgg(trays[0].prev)[1])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -529,7 +545,7 @@ function Dashboard(props) {
                       <div
                           className={`icon icon-box-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'bottom-left' : 'top-right'} icon-item`}></span>
+    className={`mdi mdi-arrow-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -554,9 +570,11 @@ function Dashboard(props) {
                   {JSON.stringify(trans) !== '{}' &&
                   <div>
                     { trans.time.map((item) => {
-                      itemCount++;
+                      if (trans.time.length-1 > itemCount) itemCount++;
+                      else itemCount = 0;
+
                       return (
-                          <div key={trans.key[itemCount]}
+                          <div key={itemCount}
                               className="bg-gray-dark d-flex d-md-block d-xl-flex flex-row py-3 px-4 px-md-3 px-xl-4 rounded mt-3">
                             <div className="text-md-center text-xl-left">
                               <h6 className="mb-1">Transfer to {trans.labels[itemCount]}</h6>
@@ -591,7 +609,7 @@ function Dashboard(props) {
                               <div key={item.id} className="preview-item border-bottom">
                                 <div className="preview-thumbnail">
                                   <div className="preview-icon bg-primary">
-                                    <i className={`mdi mdi-${icon}`}></i>
+                                    <i className={`mdi mdi-${icon}`}/>
                                   </div>
                                 </div>
                                 <div className="preview-item-content d-sm-flex flex-grow">
@@ -600,7 +618,7 @@ function Dashboard(props) {
                                     <p className="text-muted mb-0">{`${truncate(item?.extraContent, 33)}`}</p>
                                   </div>
                                   <div className="mr-auto text-sm-right pt-2 pt-sm-0">
-                                    <p className="text-muted"></p>
+                                    <p className="text-muted"/>
                                     <p className="text-muted mb-0">On {moment(item.time.toDate()).format("MMM Do YY")}</p>
                                   </div>
                                 </div>
@@ -614,7 +632,7 @@ function Dashboard(props) {
                               <div key={item.id} className="preview-item border-bottom">
                                 <div className="preview-thumbnail">
                                   <div className="preview-icon bg-primary">
-                                    <i className={`mdi mdi-${icon}`}></i>
+                                    <i className={`mdi mdi-${icon}`}/>
                                   </div>
                                 </div>
                                 <div className="preview-item-content d-sm-flex flex-grow">
@@ -623,7 +641,7 @@ function Dashboard(props) {
                                     <p className="text-muted mb-0">{`${truncate(item?.extraContent, 33)}`}</p>
                                   </div>
                                   <div className="mr-auto text-sm-right pt-2 pt-sm-0">
-                                    <p className="text-muted"></p>
+                                    <p className="text-muted"/>
                                     <p className="text-muted mb-0">On {moment(item.time.toDate()).format("MMM Do YY")}</p>
                                   </div>
                                 </div>
@@ -651,7 +669,7 @@ function Dashboard(props) {
                       <h6 className="text-muted font-weight-normal">11.38% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                      <i className="icon-lg mdi mdi-codepen text-primary ml-auto"></i>
+                      <i className="icon-lg mdi mdi-codepen text-primary ml-auto"/>
                     </div>
                   </div>
                 </div>
@@ -670,7 +688,7 @@ function Dashboard(props) {
                       <h6 className="text-muted font-weight-normal"> 9.61% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                      <i className="icon-lg mdi mdi-wallet-travel text-danger ml-auto"></i>
+                      <i className="icon-lg mdi mdi-wallet-travel text-danger ml-auto"/>
                     </div>
                   </div>
                 </div>
@@ -689,7 +707,7 @@ function Dashboard(props) {
                       <h6 className="text-muted font-weight-normal">2.27% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                      <i className="icon-lg mdi mdi-monitor text-success ml-auto"></i>
+                      <i className="icon-lg mdi mdi-monitor text-success ml-auto"/>
                     </div>
                   </div>
                 </div>
@@ -709,7 +727,7 @@ function Dashboard(props) {
                           <div className="form-check form-check-muted m-0">
                             <label className="form-check-label">
                               <input type="checkbox" className="form-check-input" defaultValue={0} onChange={handleSelect} id="pending" name="pending" />
-                              <i className="input-helper"></i>
+                              <i className="input-helper"/>
                             </label>
                           </div>
                         </th>
@@ -731,7 +749,7 @@ function Dashboard(props) {
                                   <div className="form-check form-check-muted m-0">
                                     <label className="form-check-label">
                                       <input type="checkbox" className="form-check-input" defaultValue={0} onChange={(e) => handleSelect(e, item?.id)} id={item.id} name={item.id}  />
-                                      <i className="input-helper"></i>
+                                      <i className="input-helper"/>
                                     </label>
                                   </div>
                                 </td>
@@ -746,7 +764,10 @@ function Dashboard(props) {
                                 <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                 <td>
-                                  <div className="badge badge-outline-warning">Pending</div>
+                                  {isRejected(item?.submittedOn?.toDate()) ? <div className="badge badge-outline-danger">Rejected</div>
+                                      : <div className="badge badge-outline-warning">Pending</div>
+                                  }
+
                                 </td>
                               </tr>
                             )

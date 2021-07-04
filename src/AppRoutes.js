@@ -1,32 +1,32 @@
 import React, {Suspense, lazy} from 'react';
 import { Switch, Route } from 'react-router-dom';
 
-import Spinner from '../app/shared/Spinner';
+import Spinner from './app/shared/Spinner';
 
-const Dashboard = lazy(() => import('./dashboard/Dashboard'));
+const Dashboard = lazy(() => import('./app/dashboard/Dashboard'));
 
-const Buttons = lazy(() => import('./basic-ui/Buttons'));
-const Dropdowns = lazy(() => import('./basic-ui/Dropdowns'));
-const Typography = lazy(() => import('./basic-ui/Typography'));
+const Buttons = lazy(() => import('./app/basic-ui/Buttons'));
+const Dropdowns = lazy(() => import('./app/basic-ui/Dropdowns'));
+const Typography = lazy(() => import('./app/basic-ui/Typography'));
 
-const InputSell = lazy(() => import('./form-elements/InputSell'));
-const InputPurchase = lazy(() => import('./form-elements/InputPurchase'));
-const InputMoney = lazy(() => import('./form-elements/InputMoney'));
-const InputDeadSick = lazy(() => import('./form-elements/InputDeadSick'));
-const InputBorrowed = lazy(() => import('./form-elements/InputBorrowed'));
-const InputEggs = lazy(() => import('./form-elements/InputEggs'));
+const InputSell = lazy(() => import('./app/form-elements/InputSell'));
+const InputPurchase = lazy(() => import('./app/form-elements/InputPurchase'));
+const InputMoney = lazy(() => import('./app/form-elements/InputMoney'));
+const InputDeadSick = lazy(() => import('./app/form-elements/InputDeadSick'));
+const InputBorrowed = lazy(() => import('./app/form-elements/InputBorrowed'));
+const InputEggs = lazy(() => import('./app/form-elements/InputEggs'));
 
-const BasicTable = lazy(() => import('./tables/BasicTable'));
+const BasicTable = lazy(() => import('./app/tables/BasicTable'));
 
-const Mdi = lazy(() => import('./icons/Mdi'));
+const Mdi = lazy(() => import('./app/icons/Mdi'));
 
-const ChartJs = lazy(() => import('./charts/ChartJs'));
+const ChartJs = lazy(() => import('./app/charts/ChartJs'));
 
-const Error404 = lazy(() => import('./error-pages/Error404'));
-const Error500 = lazy(() => import('./error-pages/Error500'));
+const Error404 = lazy(() => import('./app/error-pages/Error404'));
+const Error500 = lazy(() => import('./app/error-pages/Error500'));
 
-const Login = lazy(() => import('./user-pages/Login'));
-const Register1 = lazy(() => import('./user-pages/Register'));
+const Login = lazy(() => import('./app/user-pages/Login'));
+const Register1 = lazy(() => import('./app/user-pages/Register'));
 
 function AppRoutes() {
     return (

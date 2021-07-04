@@ -80,6 +80,7 @@ function InputSell(props) {
 
   const handleDate = (date) => {
     setState({
+      ...state,
       date: date
     });
   }
