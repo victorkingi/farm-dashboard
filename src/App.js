@@ -11,11 +11,60 @@ import Navbar from './app/shared/Navbar';
 import Sidebar from './app/shared/Sidebar';
 import {firebase, messaging} from "./services/api/fbConfig";
 import {checkClaims} from "./services/actions/authActions";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import {uploadPending} from "./services/actions/utilAction";
 
+let wasOffline = false;
+
+window.addEventListener('offline', () => {
+  wasOffline = true;
+});
+window.addEventListener('online', () => {
+  wasOffline = false;
+});
+
+function componentDidMount_() {
+  navigator.serviceWorker.addEventListener("message", (message) => {
+    const customId = "myToast";
+    if (message?.data) {
+      const _data = `${message.data['firebase-messaging-msg-data'].data?.title}`;
+      const _notification = `${message.data['firebase-messaging-msg-data']
+          .notification?.title}: ${message.data['firebase-messaging-msg-data']
+          .notification?.body}`;
+
+      if (_data === 'undefined') {
+        toast.info(_notification, {
+          toastId: customId,
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      } else {
+        toast.info(_data, {
+          toastId: customId,
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    }
+
+  });
+}
 
 function App(props) {
   const [state, setState] = useState({});
   const [state_, setState_] = useState();
+  const { uploadPending } = props;
 
   const updateServiceWorker = useCallback(() => {
     const { waitingWorker } = state;
@@ -76,23 +125,6 @@ function App(props) {
 
   const componentDidMount = useCallback(() => {
     onRouteChanged();
-    if (messaging !== null) {
-      navigator.serviceWorker.addEventListener("message", (message) => {
-        if (message?.data) {
-          const _data = `${message.data['firebase-messaging-msg-data'].data?.title}`;
-          const _notification = `${message.data['firebase-messaging-msg-data']
-              .notification?.title}: ${message.data['firebase-messaging-msg-data']
-              .notification?.body}`;
-
-          if (_data === 'undefined') {
-           console.log(_notification);
-          } else {
-            console.log(_data);
-          }
-        }
-
-      });
-    }
     const { enqueueSnackbar } = props;
     const { newVersionAvailable } = state;
 
@@ -140,6 +172,7 @@ function App(props) {
         }
       });
     }
+
     const callWithRetry = async (fn, depth = 0) => {
       try {
         await fn();
@@ -153,8 +186,9 @@ function App(props) {
         }
       }
     }
+    uploadPending();
     return () => callWithRetry(checkAuthState);
-  }, []);
+  }, [uploadPending]);
 
   useEffect(() => {
     return () => {
@@ -162,34 +196,93 @@ function App(props) {
       componentDidUpdate(props);
     }
 
-  }, [props.location, componentDidMount, componentDidUpdate, props, onRouteChanged]);
+  }, [props.location, componentDidMount,
+    componentDidUpdate, props, onRouteChanged]);
+
+  useEffect(() => {
+    if (messaging !== null) {
+      componentDidMount_();
+    }
+  }, []);
 
   return (
-      <div className="container-scroller">
-        { sidebarComponent }
-        <div className="container-fluid page-body-wrapper">
-          { navbarComponent }
-          <div className="main-panel">
-            <div className="content-wrapper">
-              <AppRoutes />
+        <div className="container-scroller">
+          <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+          />
+            {wasOffline &&
+            toast.success("🦄 Back Online!", {
+              position: "top-center",
+              toastId: "toastOn",
+              autoClose: 2000,
+              hideProgressBar: false,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: false,
+              progress: undefined,
+            })}
+            <ToastContainer
+                toastId={"toastOn"}
+                position="top-center"
+                autoClose={2000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick={false}
+                rtl={false}
+                pauseOnFocusLoss
+                draggable={false}
+                pauseOnHover
+            />
+            <div>
+            {!navigator.onLine && toast.warn("🚀 Oops! Currently Offline", {
+              position: "top-center",
+              toastId: "toastOff",
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: false,
+              progress: undefined,
+            })}
+            <ToastContainer
+                toastId={"toastOff"}
+                position="top-center"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick={false}
+                rtl={false}
+                pauseOnFocusLoss
+                draggable={false}
+                pauseOnHover
+            />
+            </div>
+          { sidebarComponent }
+          <div className="container-fluid page-body-wrapper">
+            { navbarComponent }
+            <div className="main-panel">
+              <div className="content-wrapper">
+                <AppRoutes />
+              </div>
             </div>
           </div>
         </div>
-      </div>
   );
-}
-
-const mapStateToProps = function(state) {
-  return {
-    auth: state.firebase.auth,
-    admin: state.auth.admin
-  }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    checkClaims: () => dispatch(checkClaims())
+    checkClaims: () => dispatch(checkClaims()),
+    uploadPending: () => dispatch(uploadPending())
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(withRouter(withSnackbar(App)));
+export default compose(connect(null, mapDispatchToProps))(withRouter(withSnackbar(App)));

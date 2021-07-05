@@ -10,6 +10,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {inputPurchase} from "../../services/actions/buyAction";
+import {Offline, Online} from "react-detect-offline";
 
 //df
 function InputPurchase(props) {
@@ -172,11 +173,20 @@ function InputPurchase(props) {
                         </div>
                     </div>
                 </div>
-                <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="success">
-                        Data Submitted
-                    </Alert>
-                </Snackbar>
+                <Online>
+                    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                        <Alert onClose={handleClose} severity="success">
+                            Data Submitted
+                        </Alert>
+                    </Snackbar>
+                </Online>
+                <Offline>
+                    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                        <Alert onClose={handleClose} severity="warning">
+                            Data will be submitted automatically when back online
+                        </Alert>
+                    </Snackbar>
+                </Offline>
                 <Snackbar open={openError} autoHideDuration={3000} onClose={handleClose}>
                     <Alert severity="error">{error}!</Alert>
                 </Snackbar>

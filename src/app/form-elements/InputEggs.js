@@ -8,6 +8,7 @@ import {Redirect} from "react-router-dom";
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import "react-datepicker/dist/react-datepicker.css";
+import {Offline, Online} from "react-detect-offline";
 
 export function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -190,11 +191,20 @@ function InputEggs(props) {
                     </div>
                 </div>
             </div>
-            <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity="success">
-                    Data Submitted
-                </Alert>
-            </Snackbar>
+            <Online>
+                <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="success">
+                        Data Submitted
+                    </Alert>
+                </Snackbar>
+            </Online>
+            <Offline>
+                <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="warning">
+                        Data will be submitted automatically when back online
+                    </Alert>
+                </Snackbar>
+            </Offline>
             <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
                 <Alert severity="error">{error}!</Alert>
             </Snackbar>

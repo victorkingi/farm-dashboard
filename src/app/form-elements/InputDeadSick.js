@@ -9,8 +9,8 @@ import Dropdown from 'react-bootstrap/Dropdown'
 import {Redirect} from "react-router-dom";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
+import {Offline, Online} from "react-detect-offline";
 
-//df
 function InputDeadSick(props) {
     const [state, setState] = useState({
         date: new Date(),
@@ -187,11 +187,20 @@ function InputDeadSick(props) {
                         </div>
                     </div>
                 </div>
-                <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="warning">
-                        This page is still in development, Sorry.
-                    </Alert>
-                </Snackbar>
+                <Online>
+                    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                        <Alert onClose={handleClose} severity="success">
+                            Data Submitted, image will be uploaded
+                        </Alert>
+                    </Snackbar>
+                </Online>
+                <Offline>
+                    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                        <Alert onClose={handleClose} severity="warning">
+                            Data will be submitted automatically when back online
+                        </Alert>
+                    </Snackbar>
+                </Offline>
                 <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
                     <Alert severity="error">{error}!</Alert>
                 </Snackbar>
