@@ -10,6 +10,7 @@ import {Alert} from '../form-elements/InputEggs';
 import {rollBack, sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {isMobile} from 'react-device-detect';
+import {Offline, Online} from "react-detect-offline";
 
 function getLastSunday(d) {
   const t = new Date(d);
@@ -50,7 +51,7 @@ function removeA(arr) {
   return arr;
 }
 
-function getRanColor() {
+export function getRanColor() {
   const randomColor = Math.floor(Math.random()*16777215).toString(16);
   return "#"+randomColor;
 }
@@ -58,7 +59,7 @@ function getRanColor() {
 function Dashboard(props) {
   const { notifications, pend, forProfit,
       profit, bags, eggs, chick, trays,
-      block
+      block, current
   } = props;
 
   const [state, setState] = useState([]);
@@ -300,31 +301,40 @@ function Dashboard(props) {
      return (change / parseFloat(prev)) * 100.0;
    }
 
+   const availToWithdraw = () => {
+     if (profit) {
+       const doc_ = profit[0];
+       let user = localStorage.getItem('name');
+       user = user !== null ? user.toUpperCase() : '';
+       return doc_[user].toString()+','+doc_['prev'+user];
+     }
+   }
+
     return (
         <div>
           <div className="row">
             <div id="safeWithdraw" className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
-                  {chick &&
+                  {profit &&
                   <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">{numeral(chick[0].weekPercent).format("0.00")}%</h3>
-                        <p className={`text-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)
+                        <h3 className="mb-0">Ksh {numeral(availToWithdraw().split(',')[0]).format("0,0")}</h3>
+                        <p className={`text-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0
-                              ? numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0"))}%
+                          {riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0
+                              ? numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0.0")
+                              : '+'.concat(numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0.0"))}%
                         </p>
                       </div>
 
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0 ? 'danger' : 'success'}`}>
                         <span
-    className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                            className={`mdi mdi-arrow-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -391,25 +401,25 @@ function Dashboard(props) {
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
-                  {chick &&
+                  {current &&
                   <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">{numeral(chick[0].weekPercent).format("0.00")}%</h3>
-                        <p className={`text-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)
+                        <h3 className="mb-0">Ksh {numeral(current[2].balance).format("0,0.00")}</h3>
+                        <p className={`text-${riseDrop(current[2].balance, current[2].balance)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0
-                              ? numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0"))}%
+                          {riseDrop(current[2].balance, current[2].balance) < 0
+                              ? numeral(riseDrop(current[2].balance, current[2].balance)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(current[2].balance, current[2].balance)).format("0.0"))}%
                         </p>
                       </div>
 
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(current[2].balance, current[2].balance) < 0 ? 'danger' : 'success'}`}>
                         <span
-    className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+    className={`mdi mdi-arrow-${riseDrop(riseDrop(current[2].balance, current[2].balance)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -781,11 +791,20 @@ function Dashboard(props) {
             <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='rewind'>
               Rewind
             </button>
-            <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
-              <Alert onClose={handleClose} severity="success">
-                Pending Transactions will be rewinded
-              </Alert>
-            </Snackbar>
+            <Online>
+              <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity="success">
+                  Accepted. Pending Transactions will be rewinded
+                </Alert>
+              </Snackbar>
+            </Online>
+            <Offline>
+              <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity="warning">
+                  Accepted. Rewinding will happen when back online
+                </Alert>
+              </Snackbar>
+            </Offline>
           </div>
         </div>
     );
@@ -801,7 +820,8 @@ const mapStateToProps = function(state) {
     eggs: state.firestore.ordered.eggs_collected,
     chick: state.firestore.ordered.chicken_details,
     trays: state.firestore.ordered.trays,
-    block: state.firestore.ordered.blockchain
+    block: state.firestore.ordered.blockchain,
+    current: state.firestore.ordered.current,
   }
 }
 
@@ -824,5 +844,6 @@ export default compose(
       {collection: 'chicken_details'},
       {collection: 'trays'},
       {collection: 'blockchain', limit: 3, orderBy: ['minedOn', 'desc']},
+      {collection: 'current', limit: 3, orderBy: ['name', 'asc']}
     ])
 )(Dashboard)

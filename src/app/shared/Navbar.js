@@ -1,11 +1,20 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import { Dropdown } from 'react-bootstrap';
 import {Link, Redirect} from 'react-router-dom';
 import {signOut} from "../../services/actions/authActions";
+import {firestoreConnect} from "react-redux-firebase";
+import { Line } from 'rc-progress';
+import moment from "moment";
+import {getRanColor} from "../dashboard/Dashboard";
+
+let itemCount = -1;
 
 function Navbar(props) {
+  const { pending_upload } = props;
+  const [state, ] = useState({color: getRanColor(), percent: 1});
+
   const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
   }
@@ -47,40 +56,56 @@ function Navbar(props) {
             <Dropdown alignRight as="li" className="nav-item border-left">
               <Dropdown.Toggle as="a" className="nav-link count-indicator cursor-pointer">
                 <i className="mdi mdi-bell"/>
-                <span className="count bg-danger"/>
+                {pending_upload?.length > 0 && <span className="count bg-danger"/>}
               </Dropdown.Toggle>
               <Dropdown.Menu className="dropdown-menu navbar-dropdown preview-list">
                 <h6 className="p-3 mb-0">Notifications</h6>
                 <Dropdown.Divider />
-                <Dropdown.Item className="dropdown-item preview-item" onClick={evt =>evt.preventDefault()}>
-                  <div className="preview-thumbnail">
-                    <div className="preview-icon bg-dark rounded-circle">
-                      <i className="mdi mdi-calendar text-success"/>
+                {
+                  pending_upload?.length > 0 ? pending_upload.map((item) => {
+                    if (pending_upload.length-1 > itemCount) itemCount++;
+                    else itemCount = 0;
+                    return (
+                        <Dropdown.Item
+                            key={item.id}
+                            className="dropdown-item preview-item"
+                            onClick={evt =>evt.preventDefault()}>
+                          <div className="preview-thumbnail">
+                            <div className="preview-icon bg-dark rounded-circle">
+                              <i className="mdi mdi-cloud-upload text-success"/>
+                            </div>
+                          </div>
+                          <div className="preview-item-content">
+                            <p className="preview-subject mb-1">Uploading image submitted {moment(item.submittedOn.toDate()).fromNow()}</p>
+                            <p className="text-muted ellipsis mb-0">
+                                <Line
+                                      percent={state.percent} strokeWidth="4" strokeColor={state.color} />
+                                <Line
+                                    percent={[state.percent / 2, state.percent / 2]}
+                                    strokeWidth="4"
+                                    strokeColor={[state.color, '#CCC']}
+                                />
+                            </p>
+                          </div>
+                        </Dropdown.Item>
+                    )
+                  }) :
+                      <Dropdown.Item
+                      className="dropdown-item preview-item"
+                      onClick={evt =>evt.preventDefault()}>
+                    <div className="preview-thumbnail">
+                      <div className="preview-icon bg-dark rounded-circle">
+                        <i className="mdi mdi-cloud-upload text-success"/>
+                      </div>
                     </div>
-                  </div>
-                  <div className="preview-item-content">
-                    <p className="preview-subject mb-1">Event today</p>
-                    <p className="text-muted ellipsis mb-0">
-                    Just a reminder that you have an event today
-                    </p>
-                  </div>
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item className="dropdown-item preview-item" onClick={evt =>evt.preventDefault()}>
-                  <div className="preview-thumbnail">
-                    <div className="preview-icon bg-dark rounded-circle">
-                      <i className="mdi mdi-settings text-danger"/>
+                    <div className="preview-item-content">
+                      <p className="preview-subject mb-1">You're all caught up!</p>
+                      <p className="text-muted ellipsis mb-0">
+                        No new Notifications
+                      </p>
                     </div>
-                  </div>
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item className="dropdown-item preview-item" onClick={evt =>evt.preventDefault()}>
-                  <div className="preview-thumbnail">
-                    <div className="preview-icon bg-dark rounded-circle">
-                      <i className="mdi mdi-link-variant text-warning"/>
-                    </div>
-                  </div>
-                </Dropdown.Item>
+                  </Dropdown.Item>
+                }
                 <Dropdown.Divider />
               </Dropdown.Menu>
             </Dropdown>
@@ -117,11 +142,20 @@ function Navbar(props) {
     );
 }
 
+const mapStateToProps = function(state) {
+  return {
+    pending_upload: state.firestore.ordered.pending_upload
+  }
+}
+
 const mapDispatchToProps = (dispatch) => {
   return {
     signOut: () => dispatch(signOut())
   }
 }
 
-
-export default compose(connect(null, mapDispatchToProps))(Navbar);
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    firestoreConnect([
+      {collection: 'pending_upload', orderBy: ['submittedOn', 'asc']},
+    ]))(Navbar);
