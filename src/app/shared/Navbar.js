@@ -53,6 +53,7 @@ function Navbar(props) {
     const storageRef = storage.ref();
     const keyPair = allStorage();
     keyPair.forEach((value, key) => {
+      if (state.percent.get(key).toString() === "0") {
         const uploadImagesRef = storageRef.child(`dead_sick/${key.substring(5)}`);
         const metadata = {
           contentType: `image/${getExt(key.substring(5))}`
@@ -133,9 +134,10 @@ function Navbar(props) {
                 })
               })
             });
-      });
+      }
+    });
 
-  }, []);
+  }, [state]);
 
   const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
