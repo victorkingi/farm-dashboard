@@ -13,6 +13,8 @@ import {firebase, messaging} from "./services/api/fbConfig";
 import {checkClaims} from "./services/actions/authActions";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {Alert} from "./app/form-elements/InputEggs";
+import Snackbar from "@material-ui/core/Snackbar";
 
 let wasOffline = false;
 
@@ -63,6 +65,14 @@ function componentDidMount_() {
 function App(props) {
   const [state, setState] = useState({});
   const [state_, setState_] = useState();
+  const [open, setOpen] = useState(false);
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
 
   const updateServiceWorker = useCallback(() => {
     const { waitingWorker } = state;
@@ -203,6 +213,7 @@ function App(props) {
   }, []);
 
   return (
+      <div>
         <div className="container-scroller">
           <ToastContainer
               position="top-right"
@@ -215,51 +226,18 @@ function App(props) {
               draggable
               pauseOnHover
           />
-            {wasOffline &&
-            toast.success("🦄 Back Online!", {
-              position: "top-center",
-              toastId: "toastOn",
-              autoClose: 4000,
-              hideProgressBar: false,
-              closeOnClick: false,
-              pauseOnHover: true,
-              draggable: false,
-              progress: undefined,
-            })}
-            <ToastContainer
-                toastId={"toastOn"}
-                position="top-center"
-                autoClose={4000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick={false}
-                rtl={false}
-                pauseOnFocusLoss
-                draggable={false}
-                pauseOnHover
-            />
-            {!navigator.onLine && toast.warn("🚀 Oops! Currently Offline", {
-              position: "top-center",
-              toastId: "toastOff",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: false,
-              pauseOnHover: true,
-              draggable: false,
-              progress: undefined,
-            })}
-            <ToastContainer
-                toastId={"toastOff"}
-                position="top-center"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick={false}
-                rtl={false}
-                pauseOnFocusLoss
-                draggable={false}
-                pauseOnHover
-            />
+          {wasOffline &&
+          <Snackbar open={open} autoHideDuration={4000} onClose={handleClose}>
+            <Alert onClose={handleClose} severity="success">
+              🦄 Back Online!
+            </Alert>
+          </Snackbar>}
+          {!navigator.onLine &&
+          <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
+            <Alert onClose={handleClose} severity="warning">
+              🚀 Oops! Currently Offline
+            </Alert>
+          </Snackbar>}
           { sidebarComponent }
           <div className="container-fluid page-body-wrapper">
             { navbarComponent }
@@ -270,6 +248,7 @@ function App(props) {
             </div>
           </div>
         </div>
+      </div>
   );
 }
 
