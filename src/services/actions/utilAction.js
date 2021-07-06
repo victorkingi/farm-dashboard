@@ -1,4 +1,4 @@
-import {messaging, storage} from "../api/fbConfig";
+import {messaging} from "../api/fbConfig";
 
 export const sanitize_string = (str) => {
     let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
@@ -19,91 +19,6 @@ export const checkDate = (date) => {
         throw err;
     } else {
         return true;
-    }
-}
-
-//gets key value pairs of all pending files
-function allStorage() {
-    let keys = Object.keys(localStorage);
-    const keyPair = new Map();
-    for (let k = 0; k < keys.length; k++) {
-        if (keys[k].startsWith('DEAD_')) {
-            keyPair.set(keys[k], localStorage.getItem(keys[k]));
-        }
-    }
-    return keyPair;
-}
-
-function getExt(file) {
-    return file.substring(file.lastIndexOf('.')+1);
-}
-
-export const uploadPending = () => {
-    return (dispatch, getState, {getFirebase, getFirestore}) => {
-        const firestore = getFirestore();
-        const firebase = getFirebase();
-        const storageRef = storage.ref();
-        const keyPair = allStorage();
-
-        keyPair.forEach((value, key) => {
-            const uploadImagesRef = storageRef.child(`dead_sick/${key.substring(5)}`);
-            const metadata = {
-                contentType: `image/${getExt(key.substring(5))}`
-            }
-            const uploadTask = uploadImagesRef.putString(value, 'data_url', metadata);
-            uploadTask.on('state_changed',
-                function (snapshot) {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log("Upload is " + progress + " % done");
-                    switch (snapshot.state) {
-                        case firebase.storage.TaskState.PAUSED: // or 'paused'
-                            console.log('Upload is paused');
-                            break;
-                        case firebase.storage.TaskState.RUNNING: // or 'running'
-                            console.log('Upload is running');
-                            break;
-                        default:
-                    }
-                },
-                function (error) {
-                    switch (error.code) {
-                        case 'storage/unauthorized':
-                            window.alert("ERROR: You don't have permission to perform this task!");
-                            break;
-                        case 'storage/canceled':
-                            window.alert("Upload successfully cancelled!");
-                            break;
-                        case 'storage/unknown':
-                            window.alert("ERROR: Unknown error occurred!");
-                            break;
-                        default:
-                    }
-                },
-                function () {
-                    uploadTask.snapshot.ref.getDownloadURL().then(function (url) {
-                        console.log('done')
-                        firestore
-                            .collection('pending_upload')
-                            .where("file_name", "==", key)
-                            .get().then((query) => {
-                            if (query.size === 0) {
-                                window.alert("UPLOADED FILE DOESN'T HAVE A DOC");
-                                throw new Error("UPLOADED FILE DOESN'T HAVE A DOC");
-                            } else if (query.size > 1) {
-                                window.alert("MORE THAN ONE MATCH: "+query.size);
-                                throw new Error("MORE THAN ONE MATCH: "+query.size);
-                            }
-                            query.forEach((doc) => {
-                                doc.ref.update({
-                                    url
-                                }).then(() => {
-                                    localStorage.removeItem(key);
-                                });
-                            });
-                        })
-                    })
-                });
-        })
     }
 }
 

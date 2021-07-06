@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import { Dropdown } from 'react-bootstrap';
@@ -8,12 +8,134 @@ import {firestoreConnect} from "react-redux-firebase";
 import { Line } from 'rc-progress';
 import moment from "moment";
 import {getRanColor} from "../dashboard/Dashboard";
+import {storage, firebase, firestore} from "../../services/api/fbConfig";
+import {Alert} from "../form-elements/InputEggs";
+import Snackbar from "@material-ui/core/Snackbar";
 
 let itemCount = -1;
 
+//gets key value pairs of all pending files
+function allStorage() {
+  let keys = Object.keys(localStorage);
+  const keyPair = new Map();
+  for (let k = 0; k < keys.length; k++) {
+    if (keys[k].startsWith('DEAD_')) {
+      keyPair.set(keys[k], localStorage.getItem(keys[k]));
+    }
+  }
+  return keyPair;
+}
+
+function getExt(file) {
+  return file.substring(file.lastIndexOf('.')+1);
+}
+
 function Navbar(props) {
   const { pending_upload } = props;
-  const [state, ] = useState({color: getRanColor(), percent: 1});
+  const [state, setState] = useState({
+    color: new Map(),
+    percent: new Map()
+  });
+  const [open, setOpen] = useState(false);
+  const [openError, setOpenError] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+    setOpenError(false);
+  };
+
+  useEffect(() => {
+    const storageRef = storage.ref();
+    const keyPair = allStorage();
+    keyPair.forEach((value, key) => {
+        const uploadImagesRef = storageRef.child(`dead_sick/${key.substring(5)}`);
+        const metadata = {
+          contentType: `image/${getExt(key.substring(5))}`
+        }
+        const uploadTask = uploadImagesRef.putString(value, 'data_url', metadata);
+        uploadTask.on('state_changed',
+            function (snapshot) {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              console.log("Upload is " + progress + " % done");
+              let prev = state.percent;
+              let prevColor = state.color;
+              prev.set(key, progress);
+              prevColor.set(key, getRanColor());
+              setState({
+                percent: prev,
+                color: prevColor
+              });
+              switch (snapshot.state) {
+                case firebase.storage.TaskState.PAUSED: // or 'paused'
+                  console.log('Upload is paused');
+                  break;
+                case firebase.storage.TaskState.RUNNING: // or 'running'
+                  console.log('Upload is running');
+                  break;
+                default:
+              }
+            },
+            function (error) {
+              switch (error.code) {
+                case 'storage/unauthorized':
+                  setOpen(false);
+                  setError("You don't have permission to perform this task");
+                  setOpenError(true);
+                  break;
+                case 'storage/canceled':
+                  setOpen(false);
+                  setError("Upload successfully cancelled");
+                  setOpenError(true);
+                  break;
+                case 'storage/unknown':
+                  setOpen(false);
+                  setError("Unknown error occurred");
+                  setOpenError(true);
+                  break;
+                default:
+              }
+            },
+            function () {
+              uploadTask.snapshot.ref.getDownloadURL().then(function (url) {
+                console.log('done')
+                firestore
+                    .collection('pending_upload')
+                    .where("file_name", "==", key)
+                    .get().then((query) => {
+                  if (query.size === 0) {
+                    setOpen(false);
+                    setError("Uploaded file doesn't have a doc");
+                    setOpenError(true);
+                    throw new Error("UPLOADED FILE DOESN'T HAVE A DOC");
+                  } else if (query.size > 1) {
+                    setOpen(false);
+                    setError("More than one match: "+query.size+" found");
+                    setOpenError(true);
+                    throw new Error("MORE THAN ONE MATCH: "+query.size);
+                  }
+                  query.forEach((doc) => {
+                    doc.ref.update({
+                      url
+                    }).then(() => {
+                      localStorage.removeItem(key);
+                      setOpenError(false);
+                      let imageName = key;
+                      if (key.length > 10) imageName = imageName.substring(5, 10)+'...'+imageName.substr(-4);
+                      setSuccess(`Image ${imageName} uploaded`);
+                      setOpen(true);
+                    });
+                  });
+                })
+              })
+            });
+      });
+
+  }, []);
 
   const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
@@ -79,11 +201,11 @@ function Navbar(props) {
                             <p className="preview-subject mb-1">Uploading image submitted {moment(item.submittedOn.toDate()).fromNow()}</p>
                             <p className="text-muted ellipsis mb-0">
                                 <Line
-                                      percent={state.percent} strokeWidth="4" strokeColor={state.color} />
+                                      percent={state.percent.get(item.file_name)} strokeWidth="4" strokeColor={state.color.get(item.file_name)} />
                                 <Line
-                                    percent={[state.percent / 2, state.percent / 2]}
+                                    percent={[state.percent.get(item.file_name) / 2, state.percent.get(item.file_name) / 2]}
                                     strokeWidth="4"
-                                    strokeColor={[state.color, '#CCC']}
+                                    strokeColor={[state.color.get(item.file_name), '#CCC']}
                                 />
                             </p>
                           </div>
@@ -138,6 +260,14 @@ function Navbar(props) {
             <span className="mdi mdi-format-line-spacing"/>
           </button>
         </div>
+        <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+          <Alert onClose={handleClose} severity="success">
+            {success}
+          </Alert>
+        </Snackbar>
+        <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
+          <Alert severity="error">{error}!</Alert>
+        </Snackbar>
       </nav>
     );
 }

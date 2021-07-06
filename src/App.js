@@ -13,7 +13,6 @@ import {firebase, messaging} from "./services/api/fbConfig";
 import {checkClaims} from "./services/actions/authActions";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import {uploadPending} from "./services/actions/utilAction";
 
 let wasOffline = false;
 
@@ -64,7 +63,6 @@ function componentDidMount_() {
 function App(props) {
   const [state, setState] = useState({});
   const [state_, setState_] = useState();
-  const { uploadPending } = props;
 
   const updateServiceWorker = useCallback(() => {
     const { waitingWorker } = state;
@@ -186,9 +184,8 @@ function App(props) {
         }
       }
     }
-    uploadPending();
     return () => callWithRetry(checkAuthState);
-  }, [uploadPending]);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -280,8 +277,7 @@ function App(props) {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    checkClaims: () => dispatch(checkClaims()),
-    uploadPending: () => dispatch(uploadPending())
+    checkClaims: () => dispatch(checkClaims())
   }
 }
 
