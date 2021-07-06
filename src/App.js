@@ -217,51 +217,49 @@ function App(props) {
           />
             {wasOffline &&
             toast.success("🦄 Back Online!", {
+              position: "top-center",
               toastId: "toastOn",
-              position: "top-right",
-              autoClose: 5000,
+              autoClose: 4000,
               hideProgressBar: false,
-              closeOnClick: true,
+              closeOnClick: false,
               pauseOnHover: true,
-              draggable: true,
+              draggable: false,
               progress: undefined,
             })}
             <ToastContainer
                 toastId={"toastOn"}
-                position="top-right"
-                autoClose={5000}
+                position="top-center"
+                autoClose={4000}
                 hideProgressBar={false}
                 newestOnTop={false}
-                closeOnClick
+                closeOnClick={false}
                 rtl={false}
                 pauseOnFocusLoss
-                draggable
+                draggable={false}
                 pauseOnHover
             />
-            <div>
             {!navigator.onLine && toast.warn("🚀 Oops! Currently Offline", {
+              position: "top-center",
               toastId: "toastOff",
-              position: "top-right",
-              autoClose: 5000,
+              autoClose: 3000,
               hideProgressBar: false,
-              closeOnClick: true,
+              closeOnClick: false,
               pauseOnHover: true,
-              draggable: true,
+              draggable: false,
               progress: undefined,
             })}
             <ToastContainer
                 toastId={"toastOff"}
-                position="top-right"
-                autoClose={5000}
+                position="top-center"
+                autoClose={3000}
                 hideProgressBar={false}
                 newestOnTop={false}
-                closeOnClick
+                closeOnClick={false}
                 rtl={false}
                 pauseOnFocusLoss
-                draggable
+                draggable={false}
                 pauseOnHover
             />
-            </div>
           { sidebarComponent }
           <div className="container-fluid page-body-wrapper">
             { navbarComponent }
