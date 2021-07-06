@@ -217,48 +217,48 @@ function App(props) {
           />
             {wasOffline &&
             toast.success("🦄 Back Online!", {
-              position: "top-center",
               toastId: "toastOn",
-              autoClose: 2000,
+              position: "top-right",
+              autoClose: 5000,
               hideProgressBar: false,
-              closeOnClick: false,
+              closeOnClick: true,
               pauseOnHover: true,
-              draggable: false,
+              draggable: true,
               progress: undefined,
             })}
             <ToastContainer
                 toastId={"toastOn"}
-                position="top-center"
-                autoClose={2000}
+                position="top-right"
+                autoClose={5000}
                 hideProgressBar={false}
                 newestOnTop={false}
-                closeOnClick={false}
+                closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
-                draggable={false}
+                draggable
                 pauseOnHover
             />
             <div>
             {!navigator.onLine && toast.warn("🚀 Oops! Currently Offline", {
-              position: "top-center",
               toastId: "toastOff",
-              autoClose: 3000,
+              position: "top-right",
+              autoClose: 5000,
               hideProgressBar: false,
-              closeOnClick: false,
+              closeOnClick: true,
               pauseOnHover: true,
-              draggable: false,
+              draggable: true,
               progress: undefined,
             })}
             <ToastContainer
                 toastId={"toastOff"}
-                position="top-center"
-                autoClose={3000}
+                position="top-right"
+                autoClose={5000}
                 hideProgressBar={false}
                 newestOnTop={false}
-                closeOnClick={false}
+                closeOnClick
                 rtl={false}
                 pauseOnFocusLoss
-                draggable={false}
+                draggable
                 pauseOnHover
             />
             </div>
