@@ -21,6 +21,7 @@ firebase.initializeApp(firebaseConfig);
 let messaging = null;
 const functions = firebase.functions();
 const storage = firebase.storage();
+const firestore = firebase.firestore();
 
 if (firebase.messaging.isSupported()) {
     messaging = firebase.messaging();
@@ -44,4 +45,4 @@ firebase.firestore().enablePersistence()
         }
     });
 
-export {firebase, messaging, functions, storage};
+export {firebase, messaging, functions, storage, firestore};
