@@ -22,7 +22,7 @@ async function allStorage() {
   const keyPair = new Map();
   const query = await db.collection('dead_sick').get();
   for (let k = 0; k < query.length; k++) {
-    keyPair.set(query[k].file_name, query[k].image);
+      keyPair.set(query[k].file_name, query[k].image);
   }
   return keyPair;
 }
@@ -41,6 +41,7 @@ function Navbar(props) {
   const [openError, setOpenError] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [upload, setUpload] = useState(new Map());
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {

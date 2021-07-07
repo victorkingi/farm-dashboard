@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -7,7 +7,7 @@ import numeral from 'numeral';
 import moment from 'moment';
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from '../form-elements/InputEggs';
-import {rollBack, sanitize_string} from "../../services/actions/utilAction";
+import {rollBack} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {isMobile} from 'react-device-detect';
 import {Offline, Online} from "react-detect-offline";
@@ -21,19 +21,19 @@ let itemCount = -1;
 function truncate(str, length) {
   if (str.substring(0, 6) === 'VICTOR') {
     let name = str.substring(0, 6);
-    name = sanitize_string(name);
+    name = sanitize(name);
     str = name+str.slice(6);
   } else if (str.substring(0, 6) === 'PURITY') {
     let name = str.substring(0, 6);
-    name = sanitize_string(name);
+    name = sanitize(name);
     str = name+str.slice(6);
   } else if (str.substring(0, 4) === 'JEFF') {
     let name = str.substring(0, 4);
-    name = sanitize_string(name);
+    name = sanitize(name);
     str = name+str.slice(6);
   } else if (str.substring(0, 5) === 'BABRA') {
     let name = str.substring(0, 5);
-    name = sanitize_string(name);
+    name = sanitize(name);
     str = name+str.slice(6);
   }
   if (str?.length > length) return str?.substring(0, length-3)+'...';
@@ -56,10 +56,68 @@ export function getRanColor() {
   return "#"+randomColor;
 }
 
+const getEggs =(tray, eggs) => {
+  return (parseInt(tray) * 30) + parseInt(eggs);
+};
+const decodeTrayEgg =(obj) => {
+  return obj?.split(',');
+};
+
+const sanitize = (str) => {
+  if (!str) return;
+  let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
+  str_1 = str_1.includes('_')
+      ? str_1.replace('_', ' ') : str_1;
+  let str_2 = str_1.includes(' ')
+      ? str_1.substring(str_1.lastIndexOf(' ')+1) : null;
+  str_2 = str_2 !== null ? str_2.toUpperCase().charAt(0)
+      .concat(str_2.toLowerCase().slice(1)) : null;
+  if (str_2 !== null) {
+    str_1 = str_1.substring(0, str_1.lastIndexOf(" "))
+        .concat(" ").concat(str_2);
+  }
+  return str_1
+};
+const isRejected = (date) => {
+  if (date) {
+    let today = new Date().getTime();
+    const mineTime = date;
+    mineTime.setDate(mineTime.getDate()+1);
+    mineTime.setHours(3, 0, 0, 0);
+    return mineTime.getTime() < today; //if expected mining date is long ago then it failed
+  } else {
+    return false;
+  }
+};
+const getIcon = (identifier, big) => {
+  if (identifier === "sell") {
+    if (big === true) return "cash-multiple";
+    else return "cash";
+  } else if (identifier === "mine") return "server-network";
+  else if (identifier === "buy") return "basket";
+  else if (identifier === "egg") return "basket-fill";
+};
+const riseDrop = (current, prev) => {
+  const change = parseFloat(current) - parseFloat(prev);
+  const divideByZero = change / parseFloat(prev);
+  if (!isFinite(divideByZero) && change !== 0) return 100.0;
+  if (current < 0 && prev < 0) return (change / parseFloat(prev)) * 100.0 * -1;
+  return (change / parseFloat(prev)) * 100.0;
+};
+const getAmount =(item) => {
+  if (item?.values?.trayNo)
+    return parseInt(item?.values?.trayNo)
+        * parseFloat(item?.values?.trayPrice);
+  else if (item?.values?.objectNo)
+    return  parseInt(item?.values?.objectNo)
+        * parseFloat(item?.values?.objectPrice);
+  else if (item?.values?.amount) return item?.values?.amount;
+};
+
 function Dashboard(props) {
   const { notifications, pend, forProfit,
       profit, bags, eggs, chick, trays,
-      block, current
+      block, current, rollBack
   } = props;
 
   const [state, setState] = useState([]);
@@ -97,7 +155,7 @@ function Dashboard(props) {
               let to = reason.split(':');
               to = to[to.length - 1].substring(1);
               if (!accepted.includes(to)) continue;
-              to = sanitize_string(to);
+              to = sanitize(to);
               all.push({
                 to,
                 amount: parseFloat(amount),
@@ -150,49 +208,7 @@ function Dashboard(props) {
     }
   }
 
-  const user = useMemo(() => {
-    const __user = localStorage.getItem('user') || false;
-
-    return {__user};
-  }, []);
-
-  if (!user.__user) {
-    return (
-        <Redirect to="/user-pages/login-1"/>
-    )
-  }
-
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpen(false);
-  };
-
-   const getEggs = (tray, eggs) => {
-     return (parseInt(tray) * 30) + parseInt(eggs);
-   }
-   const decodeTrayEgg = (obj) => {
-     return obj?.split(',');
-   }
-
-   const sanitize_string = (str) => {
-     if (!str) return;
-     let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
-     str_1 = str_1.includes('_')
-         ? str_1.replace('_', ' ') : str_1;
-     let str_2 = str_1.includes(' ')
-         ? str_1.substring(str_1.lastIndexOf(' ')+1) : null;
-     str_2 = str_2 !== null ? str_2.toUpperCase().charAt(0)
-         .concat(str_2.toLowerCase().slice(1)) : null;
-     if (str_2 !== null) {
-       str_1 = str_1.substring(0, str_1.lastIndexOf(" "))
-           .concat(" ").concat(str_2);
-     }
-     return str_1
-   }
-
-   const getLastEggs = () => {
+  const getLastEggs = useCallback(() => {
      if(eggs) {
        if (eggs.length > 0) {
          const curDate = new Date(eggs[0].date_);
@@ -211,104 +227,81 @@ function Dashboard(props) {
        return {weeklyAllPercent: 0};
      }
      return {weeklyAllPercent: 0};
-   }
+   }, [eggs]);
+  const handleClose = useCallback((event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  }, []);
+  const handleSelect = useCallback((e) => {
+    e.preventDefault();
+    let arr = [];
+    if (e.target.id === "pending" && e.target.checked) {
+      for (let i = 0; i < pend.length; i++) {
+        if (pend[i].id === "cleared") continue;
+        const me  = document.getElementById(pend[i].id);
+        me.checked = true;
+        arr.push(pend[i].id);
+      }
+    } else if (e.target.id === "pending" && !e.target.checked) {
+      for (let i = 0; i < pend.length; i++) {
+        if (pend[i].id === "cleared") continue;
+        const me  = document.getElementById(pend[i].id);
+        me.checked = false;
+        arr = removeA(arr, pend[i].id);
+      }
+    } else {
+      arr.push(e.target.id);
+    }
+    setState(arr);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const display = useCallback((e) => {
+    e.preventDefault();
+    const submit = document.getElementById(`rewind`);
+    submit.disabled = true;
+    rollBack(state);
+    setOpen(true);
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const getLatestWeekProfit = useCallback(() => {
+    if (profit) {
+      const curDate = profit[0].submittedOn.toDate();
+      curDate.setHours(0, 0, 0, 0);
+      let sun = getLastSunday(curDate);
+      sun.setDate(sun.getDate() - 1);
+      sun = getLastSunday(sun);
+      for (let i = 0; i < profit.length; i++) {
+        const dateClean = profit[i].submittedOn.toDate();
+        dateClean.setHours(0, 0, 0, 0);
+        if (dateClean.getTime() === sun.getTime()) {
+          return profit[i].profit;
+        }
+      }
+      return 0;
+    }
+    return 0;
+  }, [profit]);
+  const availToWithdraw = useCallback(() => {
+    if (profit) {
+      const doc_ = profit[0];
+      let user = localStorage.getItem('name');
+      user = user !== null ? user.toUpperCase() : '';
+      return doc_[user].toString()+','+doc_['prev'+user];
+    }
+  }, [profit]);
+  const user = useMemo(() => {
+    const __user = localStorage.getItem('user') || false;
 
-   const getAmount = (item) => {
-     if (item?.values?.trayNo)
-       return parseInt(item?.values?.trayNo)
-           * parseFloat(item?.values?.trayPrice);
-     else if (item?.values?.objectNo)
-       return  parseInt(item?.values?.objectNo)
-           * parseFloat(item?.values?.objectPrice);
-     else if (item?.values?.amount) return item?.values?.amount;
-   }
+    return {__user};
+  }, []);
 
-   const handleSelect = (e) => {
-     e.preventDefault();
-     let arr = [];
-     if (e.target.id === "pending" && e.target.checked) {
-       for (let i = 0; i < pend.length; i++) {
-         if (pend[i].id === "cleared") continue;
-         const me  = document.getElementById(pend[i].id);
-         me.checked = true;
-         arr.push(pend[i].id);
-       }
-     } else if (e.target.id === "pending" && !e.target.checked) {
-       for (let i = 0; i < pend.length; i++) {
-         if (pend[i].id === "cleared") continue;
-         const me  = document.getElementById(pend[i].id);
-         me.checked = false;
-         arr = removeA(arr, pend[i].id);
-       }
-     } else {
-       arr.push(e.target.id);
-     }
-     setState(arr);
-   }
-   const display = (e) => {
-     e.preventDefault();
-     const submit = document.getElementById(`rewind`);
-     submit.disabled = true;
-     props.rollBack(state);
-     setOpen(true);
-   }
-
-   const isRejected = (date) => {
-     if (date) {
-       let today = new Date().getTime();
-       const mineTime = date;
-       mineTime.setDate(mineTime.getDate()+1);
-       mineTime.setHours(3, 0, 0, 0);
-       return mineTime.getTime() < today; //if expected mining date is long ago then it failed
-     } else {
-       return false;
-     }
-   }
-
-   const getLatestWeekProfit = () => {
-     if (profit) {
-       const curDate = profit[0].submittedOn.toDate();
-       curDate.setHours(0, 0, 0, 0);
-       let sun = getLastSunday(curDate);
-       sun.setDate(sun.getDate() - 1);
-       sun = getLastSunday(sun);
-       for (let i = 0; i < profit.length; i++) {
-         const dateClean = profit[i].submittedOn.toDate();
-         dateClean.setHours(0, 0, 0, 0);
-         if (dateClean.getTime() === sun.getTime()) {
-           return profit[i].profit;
-         }
-       }
-       return 0;
-     }
-     return 0;
-   }
-
-   const getIcon = (identifier, big) => {
-     if (identifier === "sell") {
-       if (big === true) return "cash-multiple";
-       else return "cash";
-     } else if (identifier === "mine") return "server-network";
-     else if (identifier === "buy") return "basket";
-     else if (identifier === "egg") return "basket-fill";
-   }
-
-   const riseDrop = (current, prev) => {
-     const change = parseFloat(current) - parseFloat(prev);
-     const divideByZero = change / parseFloat(prev);
-     if (!isFinite(divideByZero) && change !== 0) return 100.0;
-     if (current < 0 && prev < 0) return (change / parseFloat(prev)) * 100.0 * -1;
-     return (change / parseFloat(prev)) * 100.0;
-   }
-
-   const availToWithdraw = () => {
-     if (profit) {
-       const doc_ = profit[0];
-       let user = localStorage.getItem('name');
-       user = user !== null ? user.toUpperCase() : '';
-       return doc_[user].toString()+','+doc_['prev'+user];
-     }
-   }
+  if (!user.__user) {
+    return (
+        <Redirect to="/user-pages/login-1"/>
+    )
+  }
 
     return (
         <div>
@@ -417,9 +410,12 @@ function Dashboard(props) {
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(current[2].balance, current[2].balance) < 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(current[2].balance,
+                              current[2].balance) < 0 ? 'danger' : 'success'}`}>
                         <span
-    className={`mdi mdi-arrow-${riseDrop(riseDrop(current[2].balance, current[2].balance)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                            className=
+                                {`mdi mdi-arrow-${riseDrop(riseDrop(current[2].balance,
+                                    current[2].balance)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -765,13 +761,13 @@ function Dashboard(props) {
                                 </td>
                                 <td>
                                   <div className="d-flex">
-                                    <span className="pl-2">{sanitize_string(item.values?.initiator || item.values?.name)}</span>
+                                    <span className="pl-2">{sanitize(item.values?.initiator || item.values?.name)}</span>
                                   </div>
                                 </td>
-                                <td> {sanitize_string(item?.values?.get_from || item?.values?.receiver || item?.values?.name)} </td>
+                                <td> {sanitize(item?.values?.get_from || item?.values?.receiver || item?.values?.name)} </td>
                                 <td> {getAmount(item)} </td>
-                                <td> {sanitize_string(item.values?.category)} </td>
-                                <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
+                                <td> {sanitize(item.values?.category)} </td>
+                                <td> {sanitize(item.values?.section || item.values?.category)} </td>
                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                 <td>
                                   {isRejected(item?.submittedOn?.toDate()) ? <div className="badge badge-outline-danger">Rejected</div>

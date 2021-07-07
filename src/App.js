@@ -13,6 +13,8 @@ import {firebase, messaging} from "./services/api/fbConfig";
 import {checkClaims} from "./services/actions/authActions";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {Alert} from "./app/form-elements/InputEggs";
+import Snackbar from "@material-ui/core/Snackbar";
 
 function componentDidMount_() {
   navigator.serviceWorker.addEventListener("message", (message) => {
@@ -54,6 +56,14 @@ function componentDidMount_() {
 function App(props) {
   const [state, setState] = useState({});
   const [state_, setState_] = useState();
+  const [open, setOpen] = useState(false);
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpen(false);
+  };
 
   const updateServiceWorker = useCallback(() => {
     const { waitingWorker } = state;
@@ -194,6 +204,7 @@ function App(props) {
   }, []);
 
   return (
+      <div>
         <div className="container-scroller">
           <ToastContainer
               position="top-right"
@@ -216,6 +227,7 @@ function App(props) {
             </div>
           </div>
         </div>
+      </div>
   );
 }
 
