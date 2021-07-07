@@ -14,15 +14,6 @@ import {checkClaims} from "./services/actions/authActions";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-let wasOffline = false;
-
-window.addEventListener('offline', () => {
-  wasOffline = true;
-});
-window.addEventListener('online', () => {
-  wasOffline = false;
-});
-
 function componentDidMount_() {
   navigator.serviceWorker.addEventListener("message", (message) => {
     const customId = "myToast";
@@ -215,53 +206,6 @@ function App(props) {
               draggable
               pauseOnHover
           />
-            {wasOffline &&
-            toast.success("🦄 Back Online!", {
-              toastId: "toastOn",
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            })}
-            <ToastContainer
-                toastId={"toastOn"}
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
-            <div>
-            {!navigator.onLine && toast.warn("🚀 Oops! Currently Offline", {
-              toastId: "toastOff",
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            })}
-            <ToastContainer
-                toastId={"toastOff"}
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
-            </div>
           { sidebarComponent }
           <div className="container-fluid page-body-wrapper">
             { navbarComponent }

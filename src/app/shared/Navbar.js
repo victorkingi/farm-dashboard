@@ -11,17 +11,18 @@ import {getRanColor} from "../dashboard/Dashboard";
 import {storage, firebase, firestore} from "../../services/api/fbConfig";
 import {Alert} from "../form-elements/InputEggs";
 import Snackbar from "@material-ui/core/Snackbar";
+import Localbase from "localbase";
 
 let itemCount = -1;
+const db = new Localbase('imageUpload');
+const storageRef = storage.ref();
 
 //gets key value pairs of all pending files
-function allStorage() {
-  let keys = Object.keys(localStorage);
+async function allStorage() {
   const keyPair = new Map();
-  for (let k = 0; k < keys.length; k++) {
-    if (keys[k].startsWith('DEAD_')) {
-      keyPair.set(keys[k], localStorage.getItem(keys[k]));
-    }
+  const query = await db.collection('dead_sick').get();
+  for (let k = 0; k < query.length; k++) {
+    keyPair.set(query[k].file_name, query[k].image);
   }
   return keyPair;
 }
@@ -50,94 +51,103 @@ function Navbar(props) {
   };
 
   useEffect(() => {
-    const storageRef = storage.ref();
-    const keyPair = allStorage();
-    keyPair.forEach((value, key) => {
-      if (state.percent.get(key).toString() === "0") {
-        const uploadImagesRef = storageRef.child(`dead_sick/${key.substring(5)}`);
-        const metadata = {
-          contentType: `image/${getExt(key.substring(5))}`
-        }
-        const uploadTask = uploadImagesRef.putString(value, 'data_url', metadata);
-        uploadTask.on('state_changed',
-            function (snapshot) {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              console.log("Upload is " + progress + " % done");
-              let prev = state.percent;
-              let prevColor = state.color;
-              prev.set(key, progress);
-              prevColor.set(key, getRanColor());
-              setState({
-                percent: prev,
-                color: prevColor
-              });
-              switch (snapshot.state) {
-                case firebase.storage.TaskState.PAUSED: // or 'paused'
-                  console.log('Upload is paused');
-                  break;
-                case firebase.storage.TaskState.RUNNING: // or 'running'
-                  console.log('Upload is running');
-                  break;
-                default:
-              }
-            },
-            function (error) {
-              switch (error.code) {
-                case 'storage/unauthorized':
-                  setOpen(false);
-                  setError("You don't have permission to perform this task");
-                  setOpenError(true);
-                  break;
-                case 'storage/canceled':
-                  setOpen(false);
-                  setError("Upload successfully cancelled");
-                  setOpenError(true);
-                  break;
-                case 'storage/unknown':
-                  setOpen(false);
-                  setError("Unknown error occurred");
-                  setOpenError(true);
-                  break;
-                default:
-              }
-            },
-            function () {
-              uploadTask.snapshot.ref.getDownloadURL().then(function (url) {
-                console.log('done')
-                firestore
-                    .collection('pending_upload')
-                    .where("file_name", "==", key)
-                    .get().then((query) => {
-                  if (query.size === 0) {
-                    setOpen(false);
-                    setError("Uploaded file doesn't have a doc");
-                    setOpenError(true);
-                    throw new Error("UPLOADED FILE DOESN'T HAVE A DOC");
-                  } else if (query.size > 1) {
-                    setOpen(false);
-                    setError("More than one match: "+query.size+" found");
-                    setOpenError(true);
-                    throw new Error("MORE THAN ONE MATCH: "+query.size);
-                  }
-                  query.forEach((doc) => {
-                    doc.ref.update({
-                      url
-                    }).then(() => {
-                      localStorage.removeItem(key);
-                      setOpenError(false);
-                      let imageName = key;
-                      if (key.length > 10) imageName = imageName.substring(5, 10)+'...'+imageName.substr(-4);
-                      setSuccess(`Image ${imageName} uploaded`);
-                      setOpen(true);
-                    });
+    if (pending_upload?.length > 0) {
+      allStorage().then(keyPair => {
+        let start = true;
+        keyPair.forEach((value, key) => {
+          function uploadFile() {
+            const uploadImagesRef = storageRef.child(`dead_sick/${key.substring(5)}`);
+            const metadata = {
+              contentType: `image/${getExt(key.substring(5))}`
+            }
+            const uploadTask = uploadImagesRef.put(value, metadata);
+            uploadTask.on('state_changed',
+                function (snapshot) {
+                  const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                  console.log("Upload is " + progress + " % done");
+                  let prev = state.percent;
+                  let prevColor = state.color;
+                  prev.set(key, progress);
+                  prevColor.set(key, getRanColor());
+                  setState({
+                    percent: prev,
+                    color: prevColor
                   });
-                })
-              })
-            });
-      }
-    });
-
-  }, [state]);
+                  switch (snapshot.state) {
+                    case firebase.storage.TaskState.PAUSED: // or 'paused'
+                      console.log('Upload is paused');
+                      break;
+                    case firebase.storage.TaskState.RUNNING: // or 'running'
+                      console.log('Upload is running');
+                      break;
+                    default:
+                  }
+                },
+                function (error) {
+                  switch (error.code) {
+                    case 'storage/unauthorized':
+                      setOpen(false);
+                      setError("You don't have permission to perform this task");
+                      setOpenError(true);
+                      break;
+                    case 'storage/canceled':
+                      setOpen(false);
+                      setError("Upload successfully cancelled");
+                      setOpenError(true);
+                      break;
+                    case 'storage/unknown':
+                      setOpen(false);
+                      setError("Unknown error occurred");
+                      setOpenError(true);
+                      break;
+                    default:
+                  }
+                },
+                function () {
+                  uploadTask.snapshot.ref.getDownloadURL().then(function (url) {
+                    console.log('done')
+                    firestore
+                        .collection('pending_upload')
+                        .where("file_name", "==", key)
+                        .get().then((query) => {
+                      if (query.size === 0) {
+                        setOpen(false);
+                        setError("Uploaded file doesn't have a doc");
+                        setOpenError(true);
+                        throw new Error("UPLOADED FILE DOESN'T HAVE A DOC");
+                      } else if (query.size > 1) {
+                        setOpen(false);
+                        setError("More than one match: " + query.size + " found");
+                        setOpenError(true);
+                        throw new Error("MORE THAN ONE MATCH: " + query.size);
+                      }
+                      query.forEach((doc) => {
+                        doc.ref.update({
+                          url
+                        }).then(() => {
+                          db.collection('dead_sick').doc({file_name: key}).delete();
+                          setOpenError(false);
+                          let imageName = key;
+                          if (key.length > 10) imageName = imageName.substring(5, 10) + '...' + imageName.substr(-4);
+                          setSuccess(`Image ${imageName} uploaded`);
+                          setOpen(true);
+                        });
+                      });
+                    })
+                  })
+                });
+          }
+          if (start) {
+            uploadFile();
+            start = false;
+          } else if (state.percent.get(key)?.toString() === "0") {
+            uploadFile();
+          }
+        });
+      });
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending_upload]);
 
   const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');

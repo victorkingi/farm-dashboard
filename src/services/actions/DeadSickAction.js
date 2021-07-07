@@ -1,3 +1,4 @@
+import Localbase from "localbase";
 
 export const inputDeadSick = (deadSick, image) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
@@ -13,8 +14,15 @@ export const inputDeadSick = (deadSick, image) => {
             submittedOn: new Date()
         }
         const reader = new FileReader();
+        const db = new Localbase('imageUpload');
         reader.addEventListener('load', () => {
-            localStorage.setItem(`DEAD_${image.name}`, `${reader.result}`);
+            let view = new Uint8Array(reader.result);
+            db.collection('dead_sick').add({
+                image: view,
+                file_name: `DEAD_${image.name}`,
+                ext: image.name.substring(image.name.lastIndexOf('.')+1),
+                time: new Date().getTime()
+            });
             firestore.collection('pending_upload')
                 .add({
                     values,
@@ -24,6 +32,6 @@ export const inputDeadSick = (deadSick, image) => {
                     submittedOn: new Date()
                 });
         })
-        reader.readAsDataURL(image);
+        reader.readAsArrayBuffer(image);
     }
 }
