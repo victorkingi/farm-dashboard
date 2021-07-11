@@ -11,6 +11,7 @@ import {rollBack, sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {isMobile} from 'react-device-detect';
 import {Offline, Online} from "react-detect-offline";
+import CountUp from 'react-countup';
 
 function getLastSunday(d) {
   const t = new Date(d);
@@ -65,6 +66,10 @@ function Dashboard(props) {
   const [state, setState] = useState([]);
   const [open, setOpen] = useState(false);
   const [trans, setTrans] = useState({});
+  const [done, setDone] = useState(false);
+  const [done1, setDone1] = useState(false);
+  const [done2, setDone2] = useState(false);
+  const [done3, setDone3] = useState(false);
 
   const transactionHistoryData =  {
     labels: JSON.stringify(trans) !== '{}'
@@ -320,7 +325,14 @@ function Dashboard(props) {
                   <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">Ksh {numeral(availToWithdraw().split(',')[0]).format("0,0")}</h3>
+                        <h3 className="mb-0">Ksh {!done &&
+                        <CountUp
+                          start={0}
+                          end={availToWithdraw().split(',')[0]}
+                          duration={2.75}
+                          delay={1}
+                          onEnd={() => setDone(true)}
+                        />}{done && numeral(availToWithdraw().split(',')[0]).format("0,0")}</h3>
                         <p className={`text-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0
@@ -338,7 +350,7 @@ function Dashboard(props) {
                       </div>
                     </div>
                   </div>}
-                  <h6 className="text-muted font-weight-normal">Amount</h6>
+                  <h6 className="text-muted font-weight-normal">Amount Available to Withdraw</h6>
                 </div>
               </div>
             </div>
@@ -349,7 +361,14 @@ function Dashboard(props) {
                   <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">{numeral(chick[0].weekPercent).format("0.00")}%</h3>
+                        <h3 className="mb-0">{!done1 &&
+                        <CountUp
+                            start={0}
+                            end={chick[0].weekPercent}
+                            duration={2.75}
+                            delay={1}
+                            onEnd={() => setDone1(true)}
+                        />}{done1 && numeral(chick[0].weekPercent).format("0.00")}%</h3>
                         <p className={`text-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0
@@ -377,7 +396,14 @@ function Dashboard(props) {
                   {bags && <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">{bags[1].number || bags[0].number}</h3>
+                        <h3 className="mb-0">{!done2 &&
+                        <CountUp
+                            start={0}
+                            end={bags[1].number || bags[0].number}
+                            duration={2.75}
+                            delay={1}
+                            onEnd={() => setDone2(true)}
+                        />}{done2 && (bags[1].number || bags[0].number)}</h3>
                         <p className={`text-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0
@@ -495,8 +521,17 @@ function Dashboard(props) {
                   {trays && <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">{decodeTrayEgg(trays[0].current)[0]},
+                        <h3 className="mb-0">
+                          {!done3 && <CountUp
+                              start={0}
+                              end={decodeTrayEgg(trays[0].current)[0]}
+                              duration={2.75}
+                              delay={1}
+                              onEnd={() => setDone3(true)}
+                          />}{done3 && <div>
+                          {decodeTrayEgg(trays[0].current)[0]},
                           {decodeTrayEgg(trays[0].current)[1]}
+                        </div>}
                         </h3>
                         <p className={`text-${riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
                             decodeTrayEgg(trays[0].current)[1]),
