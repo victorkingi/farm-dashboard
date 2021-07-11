@@ -303,10 +303,10 @@ function Dashboard(props) {
 
    const availToWithdraw = () => {
      if (profit) {
-       const doc_ = profit[0];
+       const doc_ = profit[0].prevBABRA ? profit[0] : profit[1];
        let user = localStorage.getItem('name');
        user = user !== null ? user.toUpperCase() : '';
-       return doc_[user].toString()+','+doc_['prev'+user];
+       return doc_[user]?.toString()+','+doc_['prev'+user];
      }
    }
 
@@ -843,7 +843,7 @@ export default compose(
       {collection: 'eggs_collected', limit: 14, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
-      {collection: 'blockchain', limit: 3, orderBy: ['minedOn', 'desc']},
+      {collection: 'blockchain', limit: 4, orderBy: ['minedOn', 'desc']},
       {collection: 'current', limit: 3, orderBy: ['name', 'asc']}
     ])
 )(Dashboard)
