@@ -178,6 +178,7 @@ function Dashboard(props) {
      return (parseInt(tray) * 30) + parseInt(eggs);
    }
    const decodeTrayEgg = (obj) => {
+     obj = obj?.toString();
      return obj?.split(',');
    }
 
@@ -328,7 +329,7 @@ function Dashboard(props) {
                         <h3 className="mb-0">Ksh {!done &&
                         <CountUp
                           start={0}
-                          end={availToWithdraw().split(',')[0]}
+                          end={parseFloat(availToWithdraw().split(',')[0])}
                           duration={2.75}
                           delay={1}
                           onEnd={() => setDone(true)}
@@ -364,7 +365,7 @@ function Dashboard(props) {
                         <h3 className="mb-0">{!done1 &&
                         <CountUp
                             start={0}
-                            end={chick[0].weekPercent}
+                            end={parseFloat(chick[0].weekPercent)}
                             duration={2.75}
                             delay={1}
                             onEnd={() => setDone1(true)}
@@ -399,7 +400,7 @@ function Dashboard(props) {
                         <h3 className="mb-0">{!done2 &&
                         <CountUp
                             start={0}
-                            end={bags[1].number || bags[0].number}
+                            end={parseFloat(bags[1].number || bags[0].number)}
                             duration={2.75}
                             delay={1}
                             onEnd={() => setDone2(true)}
@@ -524,7 +525,7 @@ function Dashboard(props) {
                         <h3 className="mb-0">
                           {!done3 && <CountUp
                               start={0}
-                              end={decodeTrayEgg(trays[0].current)[0]}
+                              end={parseFloat(decodeTrayEgg(trays[0].current)[0])}
                               duration={2.75}
                               delay={1}
                               onEnd={() => setDone3(true)}
