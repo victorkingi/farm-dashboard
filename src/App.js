@@ -120,7 +120,6 @@ function App(props) {
     const componentDidMount = () => {
       onRouteChanged();
       const { newVersionAvailable } = state;
-      console.log(state);
 
       if (newVersionAvailable) {
         //show snackbar with refresh button

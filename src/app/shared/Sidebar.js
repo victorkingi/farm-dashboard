@@ -213,6 +213,12 @@ class Sidebar extends Component {
                 </div>
               </Collapse>
             </li>
+            <li className={ this.isPathActive('/withdraw') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+              <Link className="nav-link" to="/withdraw">
+                <span className="menu-icon"><i className="mdi mdi-square-inc-cash"/></span>
+                <span className="menu-title">Withdraw</span>
+              </Link>
+            </li>
           </ul>
         </nav>
     );
