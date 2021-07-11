@@ -1,6 +1,5 @@
-import React, {useState, Fragment, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-import { withSnackbar } from "notistack";
 import { Button } from "@material-ui/core";
 import {connect} from 'react-redux';
 import {compose} from 'redux';
@@ -13,6 +12,10 @@ import {firebase, messaging} from "./services/api/fbConfig";
 import {checkClaims} from "./services/actions/authActions";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Snackbar from '@material-ui/core/Snackbar';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
+import Slide from '@material-ui/core/Slide';
 
 function componentDidMount_() {
   navigator.serviceWorker.addEventListener("message", (message) => {
@@ -51,32 +54,25 @@ function componentDidMount_() {
   });
 }
 
+function TransitionUp(props) {
+  return <Slide {...props} direction="up" />;
+}
+
 function App(props) {
   const [state, setState] = useState({});
   const [state_, setState_] = useState();
+  const [open, setOpen] = React.useState(false);
+  const [transition, setTransition] = React.useState(undefined);
 
-  const updateServiceWorker = useCallback(() => {
+  const updateServiceWorker =() => {
     const { waitingWorker } = state;
     waitingWorker && waitingWorker.postMessage({ type: 'SKIP_WAITING' })
     setState({ newVersionAvailable: false });
     window.location.reload();
-  }, [state]);
-
-  const refreshAction = useCallback(() => { //render the snackbar button
-    return (
-        <Fragment>
-          <Button
-              className="snackbar-button"
-              size="small"
-              onClick={updateServiceWorker}
-          >
-            {"refresh"}
-          </Button>
-        </Fragment>
-    );
-  }, [updateServiceWorker]);
+  };
 
   const onServiceWorkerUpdate = registration => {
+    console.log("updated")
     setState({
       waitingWorker: registration && registration.waiting,
       newVersionAvailable: true
@@ -109,35 +105,40 @@ function App(props) {
         document.querySelector('.page-body-wrapper').classList.remove('full-page-wrapper');
       }
     }
-  },
-      [props.location.pathname]);
+  }, [props.location.pathname]);
 
-  const componentDidMount = useCallback(() => {
-    onRouteChanged();
-    const { enqueueSnackbar } = props;
-    const { newVersionAvailable } = state;
-
-    if (process.env.NODE_ENV === 'production') {
-      // If you want your app to work offline and load faster, you can change
-      // unregister() to register() below. Note this comes with some pitfalls.
-      // Learn more about service workers: https://cra.link/PWA
-      serviceWorkerRegistration.register({ onUpdate: onServiceWorkerUpdate });
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
     }
 
-    if (newVersionAvailable) {
-      //show snackbar with refresh button
-      enqueueSnackbar("A new version was released", {
-        persist: true,
-        variant: "success",
-        action: refreshAction(),
-      });
-    }
-  }, [props, state, refreshAction, onRouteChanged]);
+    setOpen(false);
+    updateServiceWorker();
+  };
 
   useEffect(() => {
+    const componentDidMount = () => {
+      onRouteChanged();
+      const { newVersionAvailable } = state;
+      console.log(state);
+
+      if (newVersionAvailable) {
+        //show snackbar with refresh button
+        setTransition(() => TransitionUp);
+        setOpen(true);
+      }
+
+      if (process.env.NODE_ENV === 'production') {
+        // If you want your app to work offline and load faster, you can change
+        // unregister() to register() below. Note this comes with some pitfalls.
+        // Learn more about service workers: https://cra.link/PWA
+        serviceWorkerRegistration.register({ onUpdate: onServiceWorkerUpdate });
+      }
+    };
+
     componentDidMount();
 
-  }, [componentDidMount]);
+  }, [onRouteChanged, state]);
 
   let navbarComponent = !state_?.isFullPageLayout ? <Navbar/> : '';
   let sidebarComponent = !state_?.isFullPageLayout ? <Sidebar/> : '';
@@ -180,12 +181,10 @@ function App(props) {
 
   useEffect(() => {
     return () => {
-      componentDidMount();
       componentDidUpdate(props);
     }
 
-  }, [props.location, componentDidMount,
-    componentDidUpdate, props, onRouteChanged]);
+  }, [props.location, componentDidUpdate, props, onRouteChanged]);
 
   useEffect(() => {
     if (messaging !== null) {
@@ -215,6 +214,26 @@ function App(props) {
               </div>
             </div>
           </div>
+          <Snackbar
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'center',
+              }}
+              TransitionComponent={transition}
+              open={open}
+              onClose={handleClose}
+              message="🐣 New version was released!"
+              action={
+                <React.Fragment>
+                  <Button color="secondary" size="small" onClick={handleClose}>
+                    Update
+                  </Button>
+                  <IconButton size="small" aria-label="close" color="inherit" onClick={handleClose}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </React.Fragment>
+              }
+          />
         </div>
   );
 }
@@ -225,4 +244,4 @@ const mapDispatchToProps = (dispatch) => {
   }
 }
 
-export default compose(connect(null, mapDispatchToProps))(withRouter(withSnackbar(App)));
+export default compose(connect(null, mapDispatchToProps))(withRouter(App));

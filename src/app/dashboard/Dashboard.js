@@ -338,7 +338,7 @@ function Dashboard(props) {
                       </div>
                     </div>
                   </div>}
-                  <h6 className="text-muted font-weight-normal">Amount Available to Withdraw</h6>
+                  <h6 className="text-muted font-weight-normal">Amount</h6>
                 </div>
               </div>
             </div>
