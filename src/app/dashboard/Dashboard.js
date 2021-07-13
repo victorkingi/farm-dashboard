@@ -207,6 +207,7 @@ function Dashboard(props) {
          sun.setDate(sun.getDate() - 1);
          sun = getLastSunday(sun);
          for (let i = 0; i < eggs.length; i++) {
+           if (!eggs[i].weeklyAllPercent) continue;
            const date = new Date(eggs[i].date_);
            date.setHours(0, 0, 0, 0);
            if (date.getTime() === sun.getTime()) {
@@ -876,7 +877,7 @@ export default compose(
       {collection: 'predict_week', orderBy: ['date', 'desc']},
       {collection: 'profit', limit: 2, orderBy: ['submittedOn', 'desc']},
       {collection: 'bags', orderBy: ['submittedOn', 'desc']},
-      {collection: 'eggs_collected', limit: 14, orderBy: ['date_', 'desc']},
+      {collection: 'eggs_collected', limit: 7, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
       {collection: 'blockchain', limit: 4, orderBy: ['minedOn', 'desc']},

@@ -8,9 +8,11 @@ import {Redirect} from "react-router-dom";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Offline, Online} from "react-detect-offline";
+import {connect} from "react-redux";
+import {moneyBorrowed} from "../../services/actions/moneyAction";
 
 //df
-function InputBorrowed() {
+function InputBorrowed(props) {
     const [state, setState] = useState({
         date: new Date(),
         who: 'Who Borrowed',
@@ -27,7 +29,6 @@ function InputBorrowed() {
         const amountRegex = /^([\d]+)$/;
         const noZeroRegex = /^(0*)$/;
         const arr = Object.entries(state);
-        console.log(arr.length)
         if (arr.length < 6) {
             setError('All Inputs should be filled');
             setOpenError(true);
@@ -48,6 +49,7 @@ function InputBorrowed() {
                 break;
             }
         }
+        props.moneyBorrowed(state);
         setOpenError(false);
         setOpen(true);
     };
@@ -118,7 +120,7 @@ function InputBorrowed() {
                     <h3 className="page-title">Input Borrowed</h3>
                     <nav aria-label="breadcrumb">
                         <ol className="breadcrumb">
-                            <li className="breadcrumb-item"><a href="!#" onClick={event => {
+                            <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => {
                                 event.preventDefault();
                                 setRedirect(true);
                             }}>Home</a></li>
@@ -175,6 +177,13 @@ function InputBorrowed() {
                                     <label htmlFor="purpose">Purpose</label>
                                     <Form.Control type="text" onChange={handleSelect} className="form-control" id="purpose" placeholder="Purpose" />
                                 </Form.Group>
+                                <div className="form-check">
+                                    <label htmlFor="replaced" className="form-check-label text-muted">
+                                        <input type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
+                                        <i className="input-helper"/>
+                                        Replace an entry
+                                    </label>
+                                </div>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>
                         </div>
@@ -201,4 +210,10 @@ function InputBorrowed() {
         )
 }
 
-export default InputBorrowed
+const mapDispatchToProps = (dispatch) => {
+    return {
+        moneyBorrowed: (borrow) => dispatch(moneyBorrowed(borrow))
+    }
+}
+
+export default connect(null, mapDispatchToProps)(InputBorrowed);

@@ -106,7 +106,7 @@ function Withdraw(props) {
                 <h3 className="page-title">Withdraw</h3>
                 <nav aria-label="breadcrumb">
                     <ol className="breadcrumb">
-                        <li className="breadcrumb-item"><a href="!#" onClick={event => {
+                        <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => {
                             event.preventDefault();
                             setRedirect(true);
                         }}>Home</a></li>
