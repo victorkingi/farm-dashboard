@@ -9,9 +9,10 @@ function errorMessage(message) {
     throw  err;
 }
 
-function parameterChecks(firestore, count, values) {
+function parameterChecks(firestore, values) {
     if (values.borrower === values.get_from) {
-        errorMessage("Cannot borrow and get from yourself!");
+        console.log(values.borrower, values.get_from)
+       // errorMessage("Cannot borrow and get from yourself!");
     }
     if (values.purpose === "" || !values.purpose) {
         errorMessage("Purpose cannot be empty");
@@ -45,6 +46,10 @@ export const moneyBorrowed = (borrow) => {
         const firebase = getFirebase();
         const disName = firebase.auth().currentUser.displayName;
         const name =  disName.substring(0, disName.lastIndexOf(" ")).toUpperCase();
+        if (name !== "VICTOR") {
+            window.alert("ERROR: Untick replace wrong entry!");
+            throw new Error("Untick wrong entry!");
+        }
         let values = {
             ...borrow,
             name,
@@ -53,6 +58,13 @@ export const moneyBorrowed = (borrow) => {
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
         values.date = date;
+        let from;
+        let to;
+        if (values.borrower.startsWith("From")) from = values.borrower.substring(4).toUpperCase();
+        if (values.get_from.startsWith("Get")) to = values.get_from.substring(3).toUpperCase();
+        values.borrower = from;
+        values.get_from = to;
+        console.log(values);
         parameterChecks(firestore, values);
         firestore.collection("pending_transactions").add({
             values,

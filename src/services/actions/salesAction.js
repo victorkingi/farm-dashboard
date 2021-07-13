@@ -56,6 +56,10 @@ export const inputSell = (sales) => {
         const disName = firebase.auth().currentUser.displayName;
         const name =  disName.substring(0, disName.lastIndexOf(" ")).toUpperCase();
         const firestore = getFirestore();
+        if (name !== "VICTOR") {
+            window.alert("ERROR: Untick replace wrong entry!");
+            throw new Error("Untick wrong entry!");
+        }
         let status = true;
         if (sales.not_paid) {
             status = false;

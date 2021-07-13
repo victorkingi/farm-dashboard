@@ -8,6 +8,7 @@ import {sendTokenToServer} from "../../services/actions/chickenAction";
 import {handleToken} from "../../services/actions/utilAction";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "../form-elements/InputEggs";
+import {Offline} from 'react-detect-offline';
 
 function Login(props) {
   const [state, setState] = useState({});
@@ -66,10 +67,11 @@ function Login(props) {
           .catch((err) => {
             const errorCode = error.code;
             const errorMessage = error.message;
+            let errorM = errorCode && errorMessage ? `${errorCode}: ${errorMessage}` : `Login failed: probably incorrect password`;
             props.signIn(null, err);
             submit.style.display = 'block';
             load.style.display = 'none';
-            setError(`${errorCode}: ${errorMessage}`);
+            setError(errorM);
             setOpenError(true);
       });
     }
@@ -195,6 +197,11 @@ function Login(props) {
             </div>
           </div>
         </div>
+        <Offline>
+          <Snackbar open={true} autoHideDuration={4000} onClose={handleClose}>
+            <Alert severity="warning">Oops no internet connection detected cannot login!</Alert>
+          </Snackbar>
+        </Offline>
         <Snackbar open={open} autoHideDuration={4000} onClose={handleClose}>
           <Alert onClose={handleClose} severity="success">
             {openMess}
