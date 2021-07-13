@@ -45,6 +45,7 @@ function InputEggs(props) {
         e.preventDefault();
         const levelRegex = /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-5])$/;
         const trayStoreRegex = /^[\d]+,([0-9]|1[0-9]|2[0-9])$/;
+        const bagsRegex = /^[\d]+$/.test(state.bags_store);
         const arr = Object.entries(state);
 
         if (arr.length !== 11) {
@@ -78,6 +79,11 @@ function InputEggs(props) {
                 setOpenError(true);
                 return;
             }
+        }
+        if (!bagsRegex) {
+            setError('Bags entered should only be a number');
+            setOpenError(true);
+            return;
         }
         props.inputTray(state);
         setOpenError(false);
@@ -185,6 +191,10 @@ function InputEggs(props) {
                             <Form.Group>
                                 <label htmlFor="trays_store">Total Trays</label>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control" id="trays_store" placeholder="Total Trays And Extra Eggs Collected" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="bags_store">Bags in Store</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="bags_store" placeholder="Current bags of feeds in store" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                         </form>
