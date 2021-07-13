@@ -59,6 +59,9 @@ export const inputPurchase = (buys) => {
             replaced: !!buys.replaced
         };
         values.section = getSectionAddr(values.section);
+        let date = new Date(values.date);
+        date.setHours(0,0,0,0);
+        values.date = date;
         parameterChecks(firestore, values);
         console.log(values)
         firestore.collection("pending_transactions").add({

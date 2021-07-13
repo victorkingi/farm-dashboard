@@ -19,10 +19,6 @@ function parameterChecks(firestore, count, values) {
     if (values.amount < 1) {
         errorMessage("Invalid amount!");
     }
-    if (count % 2 !== 0) {
-        errorMessage("Functionality not yet implemented!");
-    }
-    delete values.error_doc;
     if (!values.name) errorMessage("User undefined!");
     checkDate(values.date);
 }
@@ -36,18 +32,14 @@ function parameterSendingChecks(firestore, values) {
     }
     if (!values.name) errorMessage("Sender undefined!");
     if (!values.initiator) errorMessage("User undefined!");
-
-    delete values.error_doc;
 }
 
 /**
  * pending will affect iff borrower amount is < balance
  * @param borrow
- * @param date
- * @param renderCount
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  */
-export const moneyBorrowed = (borrow, date, renderCount) => {
+export const moneyBorrowed = (borrow) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
         const firebase = getFirebase();
@@ -55,21 +47,18 @@ export const moneyBorrowed = (borrow, date, renderCount) => {
         const name =  disName.substring(0, disName.lastIndexOf(" ")).toUpperCase();
         let values = {
             ...borrow,
-            date,
             name,
-            replaced: "false"
+            replaced: !!borrow.replaced
         }
-        parameterChecks(firestore, renderCount, values);
+        let date = new Date(values.date);
+        date.setHours(0,0,0,0);
+        values.date = date;
+        parameterChecks(firestore, values);
         firestore.collection("pending_transactions").add({
             values,
             submittedOn: new Date()
         });
         dispatch({type: 'BORROW_SUCCESS'});
-        window.alert("Data Submitted");
-        const load = document.getElementById("loading-borrow");
-        const submit = document.getElementById("submit-btn-borrow");
-        load.style.display = 'none';
-        submit.style.display = 'block';
     }
 }
 

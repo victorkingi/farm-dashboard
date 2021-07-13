@@ -1,10 +1,8 @@
-function getNextDayOfWeek(date, dayOfWeek) {
-    const resultDate = new Date(date.getTime());
-    resultDate.setDate(date.getDate() + (7 + dayOfWeek - date.getDay()) % 7);
-    return resultDate;
-}
-
-//when user inputs eggs
+/**
+ *
+ * @param eggs
+ * @returns {(function(*, *, {getFirebase: *, getFirestore: *}): void)|*}
+ */
 export const inputTray = (eggs) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firebase = getFirebase();
@@ -16,10 +14,10 @@ export const inputTray = (eggs) => {
             submittedBy: name,
             submittedOn: new Date()
         }
-        values.layingPercentDay = getNextDayOfWeek(values.date_, 0).getTime();
         let newDate = values.date_;
         newDate.setHours(0, 0, 0, 0);
         values.date_ = newDate.getTime();
+        values.notUpdated = newDate.getTime();
         console.log(values);
         firestore.collection('eggs_collected').add({
             ...values

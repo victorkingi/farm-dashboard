@@ -44,7 +44,7 @@ function InputEggs(props) {
     const handleSubmit = (e) => {
         e.preventDefault();
         const levelRegex = /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-5])$/;
-        const trayStoreRegex = /^([\d]+,(|[0-9]|1[0-9]|2[0-9]))$/;
+        const trayStoreRegex = /^[\d]+,([0-9]|1[0-9]|2[0-9])$/;
         const arr = Object.entries(state);
 
         if (arr.length !== 11) {
@@ -127,7 +127,7 @@ function InputEggs(props) {
                 <h3 className="page-title">Input Eggs Collected</h3>
                 <nav aria-label="breadcrumb">
                     <ol className="breadcrumb">
-                        <li className="breadcrumb-item"><a href="!#" onClick={event => {
+                        <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => {
                             event.preventDefault();
                             setRedirect(true);
                         }}>Home</a></li>

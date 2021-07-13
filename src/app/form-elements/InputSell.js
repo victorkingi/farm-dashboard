@@ -138,6 +138,7 @@ function InputSell(props) {
           <Redirect to='/'/>
       )
     }
+    console.log(state);
     //cds
     return (
         <div>
@@ -145,7 +146,7 @@ function InputSell(props) {
             <h3 className="page-title">Input Sales</h3>
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb">
-                <li className="breadcrumb-item"><a href="/" onClick={event => {
+                <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="/" onClick={event => {
                   event.preventDefault();
                   setRedirect(true);
                 }}>Home</a></li>
@@ -211,6 +212,13 @@ function InputSell(props) {
                           <input type="radio" onChange={handleSelect} className="form-check-input" name="status" id="not_paid" defaultValue={0} />
                           <i className="input-helper"/>
                           Not Paid
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <label htmlFor="replaced" className="form-check-label text-muted">
+                          <input type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
+                          <i className="input-helper"/>
+                          Replace an entry
                         </label>
                       </div>
                     </Form.Group>

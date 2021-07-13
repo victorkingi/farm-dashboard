@@ -70,6 +70,11 @@ export const inputSell = (sales) => {
         delete values.paid;
         values.category = 'sales';
         values.section = getSectionAddr(values.section);
+        values.buyerName = values.buyerName.charAt(0).toUpperCase().concat(values
+            .buyerName.substring(1));
+        let date = new Date(values.date);
+        date.setHours(0,0,0,0);
+        values.date = date;
         parameterChecks(firestore, values);
         if (JSON.parse(values.status)) {
             firestore.collection("pending_transactions").add({
@@ -85,9 +90,6 @@ export const inputSell = (sales) => {
                 submittedOn: new Date()
             });
             dispatch({type: 'INPUT_SALES', values});
-        } else {
-            window.alert(new Error("UNKNOWN_ERROR"));
-            throw new Error("UNKNOWN_ERROR");
         }
     }
 }
