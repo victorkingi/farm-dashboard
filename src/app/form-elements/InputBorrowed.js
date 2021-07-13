@@ -15,7 +15,7 @@ import {moneyBorrowed} from "../../services/actions/moneyAction";
 function InputBorrowed(props) {
     const [state, setState] = useState({
         date: new Date(),
-        who: 'Who Borrowed',
+        borrower: 'Who Gives Out',
         get_from: 'Receive From',
         category: 'borrow'
     });
@@ -70,12 +70,11 @@ function InputBorrowed(props) {
     };
 
     const handleSelect = (e) => {
-        console.log(e);
         if (typeof e === "string") {
             if (e.slice(0, 3) !== "Get") {
                 setState({
                     ...state,
-                    who: e
+                    borrower: e
                 });
             } else {
                 setState({
@@ -108,7 +107,6 @@ function InputBorrowed(props) {
         componentDidMount();
     }, []);
 
-        console.log(state);
         if (redirect) {
             return (
                 <Redirect to='/'/>
@@ -145,7 +143,7 @@ function InputBorrowed(props) {
                                 </Form.Group>
                                 <DropdownButton
                                     alignRight
-                                    title={state.who}
+                                    title={state.borrower}
                                     id="dropdown-menu-align-right1"
                                     onSelect={handleSelect}
                                 >

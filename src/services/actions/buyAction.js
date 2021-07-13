@@ -53,6 +53,10 @@ export const inputPurchase = (buys) => {
         const firestore = getFirestore();
         const user = getFirebase().auth().currentUser.displayName;
         const name = user.substring(0, user.lastIndexOf(" ")).toUpperCase();
+        if (name !== "VICTOR") {
+            window.alert("ERROR: Untick replace wrong entry!");
+            throw new Error("Untick wrong entry!");
+        }
         let values = {
             ...buys,
             name,
