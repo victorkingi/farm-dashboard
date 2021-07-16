@@ -9,10 +9,11 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
-import {inputSell} from "../../services/actions/salesAction";
+import {getSectionAddr, inputSell} from "../../services/actions/salesAction";
 import { Offline, Online } from "react-detect-offline";
+import {firebase} from '../../services/api/fbConfig';
 
-//df
+
 function InputSell(props) {
   const [state, setState] = useState({
     date: new Date(),
@@ -23,6 +24,47 @@ function InputSell(props) {
   const [openError, setOpenError] = useState(false);
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
+
+  const checkDate = (date) => {
+    if (date.getTime() > new Date().getTime()) {
+      setError('Invalid date');
+      setOpenError(true);
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  const parameterChecks = (values) => {
+    if ((values.section === "THIKA_FARMERS" || values.section === "DUKA")
+        &&  !JSON.parse(values.status)) {
+      setError('Thika Farmers and duka are always paid');
+      setOpenError(true);
+      return false;
+    }
+    if (!values.section) {
+      setError('Section is empty!');
+      setOpenError(true);
+      return false;
+    }
+    if (values.trayNo < 1 || values.trayPrice < 1) {
+      setError('Tray price and number cannot be negative / 0');
+      setOpenError(true);
+      return false;
+    }
+    if (!values.name) {
+      setError('User undefined');
+      setOpenError(true);
+      return false;
+    }
+    let proceed = checkDate(values.date);
+    if (values.buyerName && proceed) {
+      values.buyerName = values.buyerName.charAt(0).toUpperCase().concat(values
+          .buyerName.substring(1));
+      return true;
+    }
+    return false;
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -74,9 +116,38 @@ function InputSell(props) {
       }
       }
     }
-    props.inputSell(state);
-    setOpenError(false);
-    setOpen(true);
+    let name = firebase.auth().currentUser.displayName;
+    name =  name.substring(0, name.lastIndexOf(" ")).toUpperCase();
+    let status = true;
+    if (state.not_paid) {
+      status = false;
+    }
+    const values = {
+      ...state,
+      name,
+      status,
+      replaced: !!state.replaced
+    }
+    delete values.not_paid;
+    delete values.paid;
+    values.category = 'sales';
+    values.section = getSectionAddr(values.section);
+    values.buyerName = values.buyerName.charAt(0).toUpperCase().concat(values
+        .buyerName.substring(1));
+    if (name !== "VICTOR" && values.replaced) {
+      setError('Untick replace wrong entry');
+      setOpenError(true);
+      return;
+    }
+    let date = new Date(values.date);
+    date.setHours(0,0,0,0);
+    values.date = date;
+    let proceed = parameterChecks(values);
+    if (proceed) {
+      props.inputSell(values);
+      setOpenError(false);
+      setOpen(true);
+    }
   };
 
   const handleDate = (date) => {
@@ -138,8 +209,7 @@ function InputSell(props) {
           <Redirect to='/'/>
       )
     }
-    console.log(state);
-    //cds
+
     return (
         <div>
           <div className="page-header">

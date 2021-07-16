@@ -2,10 +2,8 @@ import React, {useState, useMemo} from 'react';
 import {Link, Redirect} from 'react-router-dom';
 import {Button, Form, Spinner } from 'react-bootstrap';
 import {connect} from 'react-redux';
-import {firebase} from '../../services/api/fbConfig';
+import {firebase, firestore, functions, messaging} from '../../services/api/fbConfig';
 import {signIn} from "../../services/actions/authActions";
-import {sendTokenToServer} from "../../services/actions/chickenAction";
-import {handleToken} from "../../services/actions/utilAction";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "../form-elements/InputEggs";
 import {Offline} from 'react-detect-offline';
@@ -27,6 +25,101 @@ function Login(props) {
     setOpen(false);
     setOpenError(false);
   };
+
+  const sendTokenToServer = (token) => {
+      const batch = firestore.batch();
+      const fullName = firebase.auth().currentUser.displayName;
+      const name = fullName.substring(0, fullName.lastIndexOf(" ")).toUpperCase();
+      const email = firebase.auth().currentUser.email;
+
+      if (name) {
+        const docRef = firestore.collection("notify_token").doc(name);
+        const tokenRef = docRef.collection("tokens").doc(token);
+        const checkCount = docRef.collection("tokens").doc("count");
+        checkCount.get().then((doc) => {
+          if (!doc.exists) {
+            batch.set(checkCount, {
+              total: 0,
+              submittedOn: new Date()
+            });
+          }
+          batch.set(docRef, {
+            submittedOn: new Date()
+          });
+          batch.set(tokenRef, {
+            token,
+            email,
+            submittedOn: new Date()
+          });
+
+          batch.commit().then(() => {
+            setOpenError(false);
+            setOpenMess(`Token generated, sending to server...`);
+            setOpen(true);
+            const firstNotification = functions.httpsCallable('util-enabledNotify');
+            firstNotification({token}).then(() => {
+              window.location.reload();
+            }).catch((err) => {
+              setOpen(false);
+              setError(`${err.message || 'Unknown error occurred. Probably internet connection'}`);
+              setOpenError(true);
+              submit.style.display = 'block';
+              load.style.display = 'none';
+            });
+          }).catch((err) => {
+            setOpen(false);
+            setError(`${err.message}`);
+            setOpenError(true);
+            submit.style.display = 'block';
+            load.style.display = 'none';
+          });
+        }).catch((err) => {
+          setOpen(false);
+          setError(`${err.message}. Failed to subscribe`);
+          setOpenError(true);
+          submit.style.display = 'block';
+          load.style.display = 'none';
+        });
+      }
+  }
+
+  const handleToken = (sendTokenToServer_) => {
+    const load = document.getElementById("loading");
+    const submit = document.getElementById("login");
+
+    if (messaging !== null) {
+      messaging.requestPermission()
+          .then(async function () {
+            const token = await messaging.getToken();
+            sendTokenToServer_(token);
+          })
+          .catch(function (err) {
+            setOpen(false);
+            setError("Unable to get permission to notify."+err);
+            setOpenError(true);
+            submit.style.display = 'block';
+            load.style.display = 'none';
+          });
+      messaging.onTokenRefresh(() => {
+        messaging.getToken().then((refreshedToken) => {
+          console.log('Token refreshed.');
+          sendTokenToServer_(refreshedToken);
+        }).catch((err) => {
+          setOpen(false);
+          setError(`Unable to retrieve messaging token ${err.message} uncheck box to continue`);
+          setOpenError(true);
+          submit.style.display = 'block';
+          load.style.display = 'none';
+        });
+      });
+    } else {
+      setOpen(false);
+      setError('This browser does not support push notifications, please uncheck the box');
+      setOpenError(true);
+      submit.style.display = 'block';
+      load.style.display = 'none';
+    }
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -58,7 +151,7 @@ function Login(props) {
               setOpenMess('Logged in');
               setOpen(true);
               if (state.notify) {
-                handleToken(props.sendTokenToServer);
+                handleToken(sendTokenToServer);
               } else {
                 window.location.reload();
               }
@@ -222,8 +315,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    signIn: (creds) => dispatch(signIn(creds)),
-    sendTokenToServer: (token) => dispatch(sendTokenToServer(token))
+    signIn: (creds) => dispatch(signIn(creds))
   }
 }
 

@@ -247,7 +247,7 @@ function Navbar(props) {
               <Dropdown.Toggle as="a" className="nav-link cursor-pointer no-caret">
                 <div className="navbar-profile">
                   <img className="img-xs rounded-circle" src={"https://firebasestorage.googleapis.com/v0/b/poultry101-6b1ed.appspot.com/o/user.png?alt=media&token=e9a7afc0-27d9-4285-8e34-7b530b141c42"} alt="profile" />
-                  <p className="mb-0 d-none d-sm-block navbar-profile-name">{user.__name}</p>
+                  <p className="mb-0 d-none d-sm-block navbar-profile-name">Hi, {user.__name}</p>
                   <i className="mdi mdi-menu-down d-none d-sm-block"/>
                 </div>
               </Dropdown.Toggle>

@@ -7,11 +7,12 @@ import numeral from 'numeral';
 import moment from 'moment';
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from '../form-elements/InputEggs';
-import {rollBack, sanitize_string} from "../../services/actions/utilAction";
+import {sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {isMobile} from 'react-device-detect';
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
+import {firestore} from "../../services/api/fbConfig";
 
 function getLastSunday(d) {
   const t = new Date(d);
@@ -63,13 +64,15 @@ function Dashboard(props) {
       block, current
   } = props;
 
-  const [state, setState] = useState([]);
+  const [state, setState] = useState({arr: []});
   const [open, setOpen] = useState(false);
   const [trans, setTrans] = useState({});
   const [done, setDone] = useState(false);
   const [done1, setDone1] = useState(false);
   const [done2, setDone2] = useState(false);
   const [done3, setDone3] = useState(false);
+  const [error, setError] = useState(false);
+  const [errM, setErrM] = useState('');
 
   const transactionHistoryData =  {
     labels: JSON.stringify(trans) !== '{}'
@@ -136,6 +139,24 @@ function Dashboard(props) {
       });
     }
   }, [block]);
+
+  // undo write events to database
+  const rollBack = (state_) => {
+      for (let i = 0; i < state_.length; i++) {
+        firestore.collection("pending_transactions").doc(state_[i])
+            .get().then((doc) => {
+          if (doc.exists) {
+            doc.ref.delete();
+          } else {
+            const err = new Error("Invalid data!");
+            setOpen(false);
+            setErrM("The reference no longer exists, it probably didn't have a clean exit delete instruction");
+            setError(true);
+            throw err;
+          }
+        })
+    }
+  }
 
   const transactionHistoryOptions = {
     responsive: true,
@@ -206,6 +227,7 @@ function Dashboard(props) {
          let sun = getLastSunday(curDate);
          sun.setDate(sun.getDate() - 1);
          sun = getLastSunday(sun);
+         sun.setDate(sun.getDate() + 1);
          for (let i = 0; i < eggs.length; i++) {
            if (!eggs[i].weeklyAllPercent) continue;
            const date = new Date(eggs[i].date_);
@@ -232,7 +254,7 @@ function Dashboard(props) {
 
    const handleSelect = (e) => {
      e.preventDefault();
-     let arr = [];
+     let arr = state.arr;
      if (e.target.id === "pending" && e.target.checked) {
        for (let i = 0; i < pend.length; i++) {
          if (pend[i].id === "cleared") continue;
@@ -247,16 +269,19 @@ function Dashboard(props) {
          me.checked = false;
          arr = removeA(arr, pend[i].id);
        }
+     } else if (!e.target.checked) {
+       arr = removeA(arr, e.target.id);
      } else {
        arr.push(e.target.id);
      }
-     setState(arr);
+     setState({arr});
    }
+
    const display = (e) => {
      e.preventDefault();
      const submit = document.getElementById(`rewind`);
      submit.disabled = true;
-     props.rollBack(state);
+     rollBack(state.arr);
      setOpen(true);
    }
 
@@ -834,6 +859,11 @@ function Dashboard(props) {
                   Accepted. Pending Transactions will be rewinded
                 </Alert>
               </Snackbar>
+              <Snackbar open={error} autoHideDuration={5000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity="danger">
+                  {errM}
+                </Alert>
+              </Snackbar>
             </Online>
             <Offline>
               <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
@@ -862,22 +892,15 @@ const mapStateToProps = function(state) {
   }
 }
 
-const mapDispatchToProps = (dispatch) => {
-
-  return {
-    rollBack: (details) => dispatch(rollBack(details))
-  }
-}
-
 export default compose(
-    connect(mapStateToProps, mapDispatchToProps),
+    connect(mapStateToProps),
     firestoreConnect([
       {collection: 'notifications', limit: 8, orderBy: ['time', 'desc']},
       {collection: 'pending_transactions' },
       {collection: 'predict_week', orderBy: ['date', 'desc']},
       {collection: 'profit', limit: 2, orderBy: ['submittedOn', 'desc']},
       {collection: 'bags', orderBy: ['submittedOn', 'desc']},
-      {collection: 'eggs_collected', limit: 7, orderBy: ['date_', 'desc']},
+      {collection: 'eggs_collected', limit: 15, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
       {collection: 'blockchain', limit: 4, orderBy: ['minedOn', 'desc']},

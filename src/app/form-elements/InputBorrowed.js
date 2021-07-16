@@ -10,8 +10,9 @@ import {Alert} from "./InputEggs";
 import {Offline, Online} from "react-detect-offline";
 import {connect} from "react-redux";
 import {moneyBorrowed} from "../../services/actions/moneyAction";
+import {firebase} from '../../services/api/fbConfig';
 
-//df
+
 function InputBorrowed(props) {
     const [state, setState] = useState({
         date: new Date(),
@@ -23,6 +24,40 @@ function InputBorrowed(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+
+    const checkDate = (date) => {
+        if (date.getTime() > new Date().getTime()) {
+            setError('Invalid date');
+            setOpenError(true);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    const parameterChecks = (values) => {
+        if (values.borrower === values.get_from) {
+            setError('Cannot borrow and get from yourself');
+            setOpenError(true);
+            return false;
+        }
+        if (values.purpose === "" || !values.purpose) {
+            setError('Purpose cannot be empty');
+            setOpenError(true);
+            return false;
+        }
+        if (values.amount < 1) {
+            setError('Invalid amount');
+            setOpenError(true);
+            return false;
+        }
+        if (!values.name) {
+            setError('User undefined');
+            setOpenError(true);
+            return false;
+        }
+        return checkDate(values.date);
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -49,9 +84,34 @@ function InputBorrowed(props) {
                 break;
             }
         }
-        props.moneyBorrowed(state);
-        setOpenError(false);
-        setOpen(true);
+        let name = firebase.auth().currentUser.displayName;
+        name =  name.substring(0, name.lastIndexOf(" ")).toUpperCase();
+        let values = {
+            ...state,
+            name,
+            replaced: !!state.replaced
+        }
+        if (name !== "VICTOR" && values.replaced) {
+            setError('Untick replace wrong entry');
+            setOpenError(true);
+            return;
+        }
+        let date = new Date(values.date);
+        date.setHours(0,0,0,0);
+        values.date = date;
+        let from;
+        let to;
+        if (values.borrower.startsWith("From")) from = values.borrower.substring(4).toUpperCase();
+        if (values.get_from.startsWith("Get")) to = values.get_from.substring(3).toUpperCase();
+        values.borrower = from;
+        values.get_from = to;
+        console.log(values);
+        let proceed = parameterChecks(values);
+        if (proceed) {
+            props.moneyBorrowed(values);
+            setOpenError(false);
+            setOpen(true);
+        }
     };
 
     const handleClose = (event, reason) => {

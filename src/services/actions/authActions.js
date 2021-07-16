@@ -18,7 +18,6 @@ export const checkClaims = () => {
             if (user) {
                 user.getIdTokenResult().then(function(idToken) {
                     if (idToken.claims.admin) dispatch({type: 'ADMIN_ACCESS'})
-                    else if (idToken.claims.moderator) dispatch({type: 'MOD_ACCESS'})
                     else if (idToken.claims.changer) dispatch({type: 'CHANGER_ACCESS'})
                 }).catch(function(err){
                     dispatch({type: 'ADMIN_ERROR', err})
