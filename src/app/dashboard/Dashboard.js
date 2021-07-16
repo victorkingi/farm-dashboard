@@ -409,7 +409,7 @@ function Dashboard(props) {
                       <div
                           className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
                         <span
-    className={`mdi mdi-arrow-${riseDrop(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+    className={`mdi mdi-arrow-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
