@@ -13,6 +13,8 @@ import {getSectionAddr, inputSell} from "../../services/actions/salesAction";
 import { Offline, Online } from "react-detect-offline";
 import {firebase} from '../../services/api/fbConfig';
 
+let name = firebase.auth().currentUser.displayName;
+name =  name.substring(0, name.lastIndexOf(" ")).toUpperCase();
 
 function InputSell(props) {
   const [state, setState] = useState({
@@ -24,6 +26,16 @@ function InputSell(props) {
   const [openError, setOpenError] = useState(false);
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
+  const [disReplace, setDisReplace] = useState(false);
+  const [defPaid, setDefPaid] = useState(false);
+
+  useEffect(() => {
+    if (name !== "VICTOR") setDisReplace(true);
+    else setDisReplace(false);
+    if (state.section === "Thika Farmers" || state.section === "Duka") setDefPaid(true);
+    else setDefPaid(false);
+
+  }, [state]);
 
   const checkDate = (date) => {
     if (date.getTime() > new Date().getTime()) {
@@ -116,8 +128,6 @@ function InputSell(props) {
       }
       }
     }
-    let name = firebase.auth().currentUser.displayName;
-    name =  name.substring(0, name.lastIndexOf(" ")).toUpperCase();
     let status = true;
     if (state.not_paid) {
       status = false;
@@ -272,21 +282,21 @@ function InputSell(props) {
                     <Form.Group>
                       <div className="form-check">
                         <label htmlFor="1" className="form-check-label">
-                          <input type="radio" onChange={handleSelect} className="form-check-input" name="status" id="paid" defaultChecked defaultValue={0}/>
+                          <input disabled={defPaid} type="radio" onChange={handleSelect} className="form-check-input" name="status" id="paid" defaultChecked defaultValue={0}/>
                           <i className="input-helper"/>
                           Paid
                         </label>
                       </div>
                       <div className="form-check">
                         <label htmlFor="0" className="form-check-label">
-                          <input type="radio" onChange={handleSelect} className="form-check-input" name="status" id="not_paid" defaultValue={0} />
+                          <input disabled={defPaid} type="radio" onChange={handleSelect} className="form-check-input" name="status" id="not_paid" defaultValue={0} />
                           <i className="input-helper"/>
                           Not Paid
                         </label>
                       </div>
                       <div className="form-check">
                         <label htmlFor="replaced" className="form-check-label text-muted">
-                          <input type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
+                          <input disabled={disReplace} type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
                           <i className="input-helper"/>
                           Replace an entry
                         </label>

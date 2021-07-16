@@ -12,6 +12,8 @@ import {connect} from "react-redux";
 import {moneyBorrowed} from "../../services/actions/moneyAction";
 import {firebase} from '../../services/api/fbConfig';
 
+let name = firebase.auth().currentUser.displayName;
+name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
 
 function InputBorrowed(props) {
     const [state, setState] = useState({
@@ -24,6 +26,13 @@ function InputBorrowed(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+    const [disReplace, setDisReplace] = useState(false);
+
+    useEffect(() => {
+        if (name !== "VICTOR") setDisReplace(true);
+        else setDisReplace(false);
+
+    }, [state]);
 
     const checkDate = (date) => {
         if (date.getTime() > new Date().getTime()) {
@@ -237,7 +246,7 @@ function InputBorrowed(props) {
                                 </Form.Group>
                                 <div className="form-check">
                                     <label htmlFor="replaced" className="form-check-label text-muted">
-                                        <input type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
+                                        <input disabled={disReplace} type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
                                         <i className="input-helper"/>
                                         Replace an entry
                                     </label>
