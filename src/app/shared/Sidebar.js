@@ -1,9 +1,10 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import { Collapse } from 'react-bootstrap';
 
-class Sidebar extends Component {
+const __name = localStorage.getItem('name') || 'User';
 
+class Sidebar extends Component {
   state = {};
 
   toggleMenuState(menuState) {
@@ -50,6 +51,7 @@ class Sidebar extends Component {
 
   }
 
+
   render () {
     return (
         <nav className="sidebar sidebar-offcanvas" id="sidebar">
@@ -65,7 +67,7 @@ class Sidebar extends Component {
                     <span className="count bg-success"/>
                   </div>
                   <div className="profile-name">
-                    <h5 className="mb-0 font-weight-normal">Victor</h5>
+                    <h5 className="mb-0 font-weight-normal">Hi, {__name}</h5>
                   </div>
                 </div>
               </div>
