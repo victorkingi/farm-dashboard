@@ -48,7 +48,7 @@ function InputEggs(props) {
         const bagsRegex = /^[\d]+$/.test(state.bags_store);
         const arr = Object.entries(state);
 
-        if (arr.length !== 11) {
+        if (arr.length < 11) {
             setError('All Inputs should be filled');
             setOpenError(true);
             return;
