@@ -11,8 +11,10 @@ import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {inputPurchase} from "../../services/actions/buyAction";
 import {Offline, Online} from "react-detect-offline";
+import {getSectionAddr} from "../../services/actions/salesAction";
+import {firebase} from '../../services/api/fbConfig';
 
-//df
+
 function InputPurchase(props) {
     const [state, setState] = useState({
         date: new Date(),
@@ -23,6 +25,62 @@ function InputPurchase(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+
+    const checkDate = (date) => {
+        if (date.getTime() > new Date().getTime()) {
+            setError('Invalid date');
+            setOpenError(true);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    const parameterChecks = (values) => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        if (values.itemName) {
+            values.itemName = values.itemName.charAt(0).toUpperCase().concat(values
+                .itemName.substring(1));
+        }
+        if (values.itemName && values.section === "OTHER_PURITY") {
+            const regex = /^([A-Z][a-z]{2},)+$/gm;
+            if (!regex.test(values.itemName)) {
+                setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
+                setOpenError(true);
+                return false;
+            } else {
+                const enteredMonths = values.itemName.split(',');
+                const found = [];
+                for (let i = 0; i < enteredMonths.length; i++) {
+                    for (let p = 0; p < months.length; p++) {
+                        if (enteredMonths[i] === months[p]) {
+                            found.push(enteredMonths[i]);
+                        }
+                    }
+                }
+                if (found.length+1 !== enteredMonths.length) {
+                    setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
+                    setOpenError(true);
+                    return false;
+                }
+                if (found.length !== parseInt(values.objectNo) || parseInt(values.objectNo) > 12) {
+                    setError("Item name should be of this format [Month,Month] i.e. Jan,Feb and object number should be equal to number of months");
+                    setOpenError(true);
+                    return false;
+                }
+            }
+        } else if (!values.section) {
+            setError('Section cannot be empty');
+            setOpenError(true);
+            return false;
+        }
+        if (!values.name) {
+            setError('User undefined');
+            setOpenError(true);
+            return false;
+        }
+        return checkDate(values.date);
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -48,9 +106,28 @@ function InputPurchase(props) {
                 return;
             }
         }
-        props.inputPurchase(state);
-        setOpenError(false);
-        setOpen(true);
+        let name = firebase.auth().currentUser.displayName;
+        name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
+        let values = {
+            ...state,
+            name,
+            replaced: !!state.replaced
+        };
+        values.section = getSectionAddr(values.section);
+        if (name !== "VICTOR" && values.replaced) {
+            setError('Untick replace wrong entry');
+            setOpenError(true);
+            return;
+        }
+        let date = new Date(values.date);
+        date.setHours(0,0,0,0);
+        values.date = date;
+        let proceed = parameterChecks(values);
+        if (proceed) {
+            props.inputPurchase(values);
+            setOpenError(false);
+            setOpen(true);
+        }
     };
 
     const handleClose = (event, reason) => {

@@ -9,8 +9,16 @@ import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {sendMoney} from "../../services/actions/moneyAction";
 import {Offline, Online} from "react-detect-offline";
+import {firebase} from '../../services/api/fbConfig';
 
-//df
+const cleanSendReceive = (str, name) => {
+    let str1 = str.toUpperCase();
+    if (str.includes('From')) return str1.slice(4);
+    else if (str.includes('To')) return str1.slice(2);
+    else if (str.includes('Me')) return name;
+    return str1;
+}
+
 function InputMoney(props) {
     const [state, setState] = useState({
         from: 'From',
@@ -21,6 +29,30 @@ function InputMoney(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+
+    const parameterSendingChecks = (values) => {
+        if (values.name === values.receiver) {
+            setError('Cannot send money to yourself');
+            setOpenError(true);
+            return false;
+        }
+        if (values.amount < 1) {
+            setError('Invalid amount');
+            setOpenError(true);
+            return false;
+        }
+        if (!values.name) {
+            setError('Sender undefined');
+            setOpenError(true);
+            return false;
+        }
+        if (!values.initiator) {
+            setError('User undefined');
+            setOpenError(true);
+            return false;
+        }
+        return true;
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -55,9 +87,26 @@ function InputMoney(props) {
                 }
             }
         }
-        props.sendMoney(state);
-        setOpenError(false);
-        setOpen(true);
+        let name = firebase.auth().currentUser.displayName;
+        name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
+        let values = {
+            ...state,
+            name: state.from,
+            receiver: state.to,
+            initiator: name
+        }
+        delete values.from;
+        delete values.to;
+        values.receiver = cleanSendReceive(values.receiver, name);
+        values.name = cleanSendReceive(values.name, name);
+        values.initiator = cleanSendReceive(values.initiator, name);
+        console.log(values);
+        let proceed = parameterSendingChecks(values);
+        if (proceed) {
+            props.sendMoney(values);
+            setOpenError(false);
+            setOpen(true);
+        }
     };
 
     const handleClose = (event, reason) => {
