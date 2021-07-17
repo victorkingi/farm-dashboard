@@ -14,9 +14,6 @@ import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
 import {firestore, firebase} from "../../services/api/fbConfig";
 
-let name = firebase.auth().currentUser?.displayName;
-name = name?.substring(0, name?.lastIndexOf(' '))?.toUpperCase();
-
 function getLastSunday(d) {
   const t = new Date(d);
   t.setDate(t.getDate() - t.getDay());
@@ -77,6 +74,7 @@ function Dashboard(props) {
   const [error, setError] = useState(false);
   const [errM, setErrM] = useState('');
   const [disable, setDisable] = useState(false);
+  const [name, setName] = useState('');
 
   const transactionHistoryData =  {
     labels: JSON.stringify(trans) !== '{}'
@@ -91,6 +89,10 @@ function Dashboard(props) {
   };
 
   useEffect(() => {
+    let name = firebase.auth().currentUser?.displayName;
+    name = name?.substring(0, name?.lastIndexOf(' '))?.toUpperCase();
+    setName(name);
+
     if (block) {
       const labels = [];
       let data = [];
