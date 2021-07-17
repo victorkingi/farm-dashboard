@@ -323,6 +323,8 @@ function Dashboard(props) {
      } else if (identifier === "mine") return "server-network";
      else if (identifier === "buy") return "basket";
      else if (identifier === "egg") return "basket-fill";
+     else if (identifier === "sick") return "yelp";
+     else if (identifier === "dead") return "biohazard";
    }
 
    const riseDrop = (current, prev) => {
