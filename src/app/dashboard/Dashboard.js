@@ -861,7 +861,7 @@ function Dashboard(props) {
                                   {item.values.category === "send" && sanitize_string(item?.values?.receiver)}
                                   {item.values.category === "borrow" && sanitize_string(item?.values?.get_from)}
                                 </td>
-                                <td> {getAmount(item)} </td>
+                                <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
                                 <td> {sanitize_string(item.values?.category)} </td>
                                 <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
