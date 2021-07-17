@@ -12,7 +12,10 @@ import {Redirect} from "react-router-dom";
 import {isMobile} from 'react-device-detect';
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
-import {firestore} from "../../services/api/fbConfig";
+import {firestore, firebase} from "../../services/api/fbConfig";
+
+let name = firebase.auth().currentUser?.displayName;
+name = name?.substring(0, name?.lastIndexOf(' '))?.toUpperCase();
 
 function getLastSunday(d) {
   const t = new Date(d);
@@ -73,6 +76,7 @@ function Dashboard(props) {
   const [done3, setDone3] = useState(false);
   const [error, setError] = useState(false);
   const [errM, setErrM] = useState('');
+  const [disable, setDisable] = useState(false);
 
   const transactionHistoryData =  {
     labels: JSON.stringify(trans) !== '{}'
@@ -138,7 +142,17 @@ function Dashboard(props) {
         key
       });
     }
-  }, [block]);
+    if (pend) {
+      if (pend.length > 0) {
+        for (let k = 0; k < pend.length; k++) {
+          if (pend[k].values?.name !== name
+              && pend[k].values?.name !== "ANNE") {
+            setDisable(true);
+          }
+        }
+      }
+    }
+  }, [block, pend]);
 
   // undo write events to database
   const rollBack = (state_) => {
@@ -800,7 +814,7 @@ function Dashboard(props) {
                         <th>
                           <div className="form-check form-check-muted m-0">
                             <label className="form-check-label">
-                              <input type="checkbox" className="form-check-input" defaultValue={0} onChange={handleSelect} id="pending" name="pending" />
+                              <input disabled={disable} type="checkbox" className="form-check-input" defaultValue={0} onChange={handleSelect} id="pending" name="pending" />
                               <i className="input-helper"/>
                             </label>
                           </div>
@@ -816,23 +830,35 @@ function Dashboard(props) {
                       </thead>
                       <tbody>
                       {pend && pend.map((item) => {
+                        let disCheckBox = name !== item.values?.name
+                            && item.values?.name !== "ANNE";
                         if (item.id === "cleared") return null;
+
                         return (
                               <tr key={item.id}>
                                 <td>
                                   <div className="form-check form-check-muted m-0">
                                     <label className="form-check-label">
-                                      <input type="checkbox" className="form-check-input" defaultValue={0} onChange={(e) => handleSelect(e, item?.id)} id={item.id} name={item.id}  />
+                                      <input disabled={disCheckBox} type="checkbox" className="form-check-input" defaultValue={0} onChange={(e) => handleSelect(e, item?.id)} id={item.id} name={item.id}  />
                                       <i className="input-helper"/>
                                     </label>
                                   </div>
                                 </td>
                                 <td>
                                   <div className="d-flex">
-                                    <span className="pl-2">{sanitize_string(item.values?.initiator || item.values?.name)}</span>
+                                    <span className="pl-2">
+                                      {item.values.category !== "send" && item.values.category !== "borrow" && 'Miner'}
+                                      {item.values.category === "send" && sanitize_string(item?.values?.name)}
+                                      {item.values.category === "borrow" && sanitize_string(item?.values?.borrower)}
+                                    </span>
                                   </div>
                                 </td>
-                                <td> {sanitize_string(item?.values?.get_from || item?.values?.receiver || item?.values?.name)} </td>
+                                <td>
+                                  {item.values.category !== "send" && item.values.category !== "borrow"
+                                  && sanitize_string(item?.values?.name)}
+                                  {item.values.category === "send" && sanitize_string(item?.values?.receiver)}
+                                  {item.values.category === "borrow" && sanitize_string(item?.values?.get_from)}
+                                </td>
                                 <td> {getAmount(item)} </td>
                                 <td> {sanitize_string(item.values?.category)} </td>
                                 <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
