@@ -13,8 +13,8 @@ import {getSectionAddr, inputSell} from "../../services/actions/salesAction";
 import { Offline, Online } from "react-detect-offline";
 import {firebase} from '../../services/api/fbConfig';
 
-let name = firebase.auth().currentUser.displayName;
-name =  name.substring(0, name.lastIndexOf(" ")).toUpperCase();
+let name = firebase.auth().currentUser?.displayName;
+name =  name ? name.substring(0, name.lastIndexOf(" ")).toUpperCase() : '';
 
 function InputSell(props) {
   const [state, setState] = useState({
@@ -101,7 +101,7 @@ function InputSell(props) {
           setOpenError(true);
           return;
         }
-        if (arr[i][1] !== "Other") {
+        if (arr[i][1] !== "Other Buyer") {
           if (state.section !== state.buyerName) {
             setError('Section and buyer name should be the same');
             setOpenError(true);
@@ -261,7 +261,7 @@ function InputSell(props) {
                       <Dropdown.Item eventKey="Cakes">Cakes</Dropdown.Item>
                       <Dropdown.Item eventKey="Duka">Duka</Dropdown.Item>
                       <Dropdown.Divider />
-                      <Dropdown.Item eventKey="Other">Other</Dropdown.Item>
+                      <Dropdown.Item eventKey="Other Buyer">Other Buyer</Dropdown.Item>
                     </DropdownButton>
                   </Form.Group>
                   <Form.Group>

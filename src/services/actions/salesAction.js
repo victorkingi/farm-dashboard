@@ -10,7 +10,9 @@ function makeid(l) {
 export const getSectionAddr = (section) => {
     let newSection = section.toUpperCase();
     const index = newSection.indexOf(' ');
-    if (section === 'Other') return newSection.concat('_SALE');
+    if (section === 'Other Buyer') return newSection.substring(0, 5).concat('_SALE');
+    else if (section === 'Other Purchase') return newSection.substring(0, 5).concat('_BUY');
+    else if (section === 'Purity') return 'OTHER_PURITY';
     if (index < 0) return newSection;
     return newSection.substring(0, index).concat('_', newSection.substring(index+1))
 }
