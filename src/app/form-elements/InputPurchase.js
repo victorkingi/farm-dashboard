@@ -52,7 +52,7 @@ function InputPurchase(props) {
                 .itemName.substring(1));
         }
         if (values.itemName && values.section === "OTHER_PURITY") {
-            const regex = /^([A-Z][a-z]{2},)+$/gm;
+            const regex = /^([A-Z][a-z]{2},)+$/;
             if (!regex.test(values.itemName)) {
                 setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
                 setOpenError(true);
@@ -232,7 +232,7 @@ function InputPurchase(props) {
                                 >
                                     <Dropdown.Item eventKey="Feeds">Feeds</Dropdown.Item>
                                     <Dropdown.Item eventKey="Drug">Drug</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Other">Other</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Other Purchase">Other Purchase</Dropdown.Item>
                                     <Dropdown.Divider />
                                     <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
                                 </DropdownButton>
