@@ -26,5 +26,7 @@ firestore.indexes.json
 firestore.rules
 storage.rules
 yarn.lock
-functions/
+functions/node_modules/
+functions/.gitignore
+functions/yarn.lock
 .idea
