@@ -372,7 +372,7 @@ function Dashboard(props) {
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">Ksh {!done &&
                         <CountUp
-                          start={0}
+                          start={Math.abs(parseFloat(availToWithdraw().split(',')[0]) - 1000)}
                           end={parseFloat(availToWithdraw().split(',')[0])}
                           duration={2.75}
                           delay={1}
