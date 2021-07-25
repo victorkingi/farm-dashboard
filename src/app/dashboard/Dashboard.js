@@ -211,15 +211,15 @@ function Dashboard(props) {
     setOpen(false);
   };
 
-   const getEggs = (tray, eggs) => {
+  const getEggs = (tray, eggs) => {
      return (parseInt(tray) * 30) + parseInt(eggs);
    }
-   const decodeTrayEgg = (obj) => {
+  const decodeTrayEgg = (obj) => {
      obj = obj?.toString();
      return obj?.split(',');
    }
 
-   const sanitize_string = (str) => {
+  const sanitize_string = (str) => {
      if (!str) return;
      let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
      str_1 = str_1.includes('_')
@@ -235,7 +235,7 @@ function Dashboard(props) {
      return str_1
    }
 
-   const getLastEggs = () => {
+  const getLastEggs = () => {
      if(eggs) {
        if (eggs.length > 0) {
          const curDate = new Date(eggs[0].date_);
@@ -258,7 +258,7 @@ function Dashboard(props) {
      return {weeklyAllPercent: 0};
    }
 
-   const getAmount = (item) => {
+  const getAmount = (item) => {
      if (item?.values?.trayNo)
        return parseInt(item?.values?.trayNo)
            * parseFloat(item?.values?.trayPrice);
@@ -268,7 +268,7 @@ function Dashboard(props) {
      else if (item?.values?.amount) return item?.values?.amount;
    }
 
-   const handleSelect = (e) => {
+  const handleSelect = (e) => {
      e.preventDefault();
      let arr = state.arr;
      if (e.target.id === "pending" && e.target.checked) {
@@ -293,7 +293,7 @@ function Dashboard(props) {
      setState({arr});
    }
 
-   const display = (e) => {
+  const display = (e) => {
      e.preventDefault();
      const submit = document.getElementById(`rewind`);
      submit.disabled = true;
@@ -301,7 +301,7 @@ function Dashboard(props) {
      setOpen(true);
    }
 
-   const isRejected = (date) => {
+  const isRejected = (date) => {
      if (date) {
        let today = new Date().getTime();
        const mineTime = date;
@@ -313,7 +313,7 @@ function Dashboard(props) {
      }
    }
 
-   const getLatestWeekProfit = () => {
+  const getLatestWeekProfit = () => {
      if (profit) {
        const curDate = profit[0].submittedOn.toDate();
        curDate.setHours(0, 0, 0, 0);
@@ -332,7 +332,7 @@ function Dashboard(props) {
      return 0;
    }
 
-   const getIcon = (identifier, big) => {
+  const getIcon = (identifier, big) => {
      if (identifier === "sell") {
        if (big === true) return "cash-multiple";
        else return "cash";
@@ -343,7 +343,7 @@ function Dashboard(props) {
      else if (identifier === "dead") return "biohazard";
    }
 
-   const riseDrop = (current, prev) => {
+  const riseDrop = (current, prev) => {
      const change = parseFloat(current) - parseFloat(prev);
      const divideByZero = change / parseFloat(prev);
      if (!isFinite(divideByZero) && change !== 0) return 100.0;
@@ -351,7 +351,7 @@ function Dashboard(props) {
      return (change / parseFloat(prev)) * 100.0;
    }
 
-   const availToWithdraw = () => {
+  const availToWithdraw = () => {
      if (profit) {
        const doc_ = profit[0].prevBABRA ? profit[0] : profit[1];
        let user = localStorage.getItem('name');
@@ -360,8 +360,8 @@ function Dashboard(props) {
      }
    }
 
-    return (
-        <div>
+  return (
+      <div>
           <div className="row">
             <div id="safeWithdraw" className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
@@ -904,7 +904,7 @@ function Dashboard(props) {
             </Offline>
           </div>
         </div>
-    );
+  );
 }
 
 const mapStateToProps = function(state) {
