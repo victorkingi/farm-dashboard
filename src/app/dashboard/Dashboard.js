@@ -933,7 +933,7 @@ export default compose(
       {collection: 'eggs_collected', limit: 15, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
-      {collection: 'blockchain', limit: 10, orderBy: ['minedOn', 'desc']},
+      {collection: 'blockchain', limit: 15, orderBy: ['minedOn', 'desc']},
       {collection: 'current', limit: 3, orderBy: ['name', 'asc']}
     ])
-)(Dashboard)
+)(Dashboard);
