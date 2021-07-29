@@ -322,16 +322,26 @@ function Dashboard(props) {
        const curDate = profit[0].submittedOn.toDate();
        curDate.setHours(0, 0, 0, 0);
        let sun = getLastSunday(curDate);
+       const prevSun = getLastSunday(curDate);
        sun.setDate(sun.getDate() - 1);
        sun = getLastSunday(sun);
+       let vals = {};
        for (let i = 0; i < profit.length; i++) {
-         const dateClean = profit[i].submittedOn.toDate();
+         const dateClean = new Date(profit[i].docId);
          dateClean.setHours(0, 0, 0, 0);
          if (dateClean.getTime() === sun.getTime()) {
-           return profit[i].profit;
+           vals = {
+             ...vals,
+             sun2: profit[i].profit
+           }
+         } else if (dateClean.getTime() === prevSun.getTime()) {
+           vals = {
+             ...vals,
+             sun1: profit[i].profit
+           }
          }
        }
-       return 0;
+       return vals;
      }
      return 0;
    }
@@ -626,20 +636,20 @@ function Dashboard(props) {
                   {chick && <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">KSh {numeral(chick[0].weekProfit).format("0,0.00")}</h3>
-                        <p className={`text-${riseDrop(chick[0].weekProfit, getLatestWeekProfit())
+                        <h3 className="mb-0">KSh {numeral(getLatestWeekProfit().sun2).format("0,0.00")}</h3>
+                        <p className={`text-${riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0
-                              ? numeral(riseDrop(chick[0].weekProfit, getLatestWeekProfit())).format("0.0")
-                              : '+'.concat(numeral(riseDrop(chick[0].weekProfit, getLatestWeekProfit())).format("0.0"))}%
+                          {riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2) < 0
+                              ? numeral(riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2)).format("0.0"))}%
                         </p>
                       </div>
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2) < 0 ? 'danger' : 'success'}`}>
                         <span
-    className={`mdi mdi-arrow-${riseDrop(chick[0].weekProfit, getLatestWeekProfit()) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+    className={`mdi mdi-arrow-${riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -935,7 +945,7 @@ export default compose(
       {collection: 'notifications', limit: 8, orderBy: ['time', 'desc']},
       {collection: 'pending_transactions' },
       {collection: 'predict_week', orderBy: ['date', 'desc']},
-      {collection: 'profit', limit: 2, orderBy: ['submittedOn', 'desc']},
+      {collection: 'profit', limit: 3, orderBy: ['submittedOn', 'desc']},
       {collection: 'bags', orderBy: ['submittedOn', 'desc']},
       {collection: 'eggs_collected', limit: 15, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
