@@ -70,75 +70,35 @@ module.exports = {
     saleInput: function saleInput(val) {
         const buyer = val.buyerName ? val.buyerName : val.section;
         const salesDocRef = admin.firestore().collection("sales").doc();
-        const traysDocRef = admin.firestore()
-            .collection("trays").doc("current_trays");
-
-        admin.firestore().collection("sales")
-            .orderBy("submittedOn", "desc")
-            .limit(10).get().then( (snapshot) => {
-                let found = false;
-                snapshot.docs.forEach((doc) => {
-                    if (found) {
-                        return 0;
-                    }
-                    if (doc.data().replaced) {
-                        if (JSON.parse(doc.data().replaced) === false) {
-                            found = true;
-                            return admin.firestore()
-                                .runTransaction((transaction) => {
-                                    return transaction.get(salesDocRef).then((_saleDoc) => {
-                                        return transaction.get(traysDocRef).then((traysDoc) => {
-                                            transaction.set(salesDocRef, {
-                                                ...val,
-                                                buyerName: buyer,
-                                                date: val.date,
-                                                submittedBy: val.name,
-                                                submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                                            });
-                                        })
-                                    })
-                                });
-                        }
-                    }
+        return admin.firestore().runTransaction((transaction) => {
+            return transaction.get(salesDocRef).then((_saleDoc) => {
+                transaction.set(salesDocRef, {
+                    ...val,
+                    buyerName: buyer,
+                    date: val.date,
+                    submittedBy: val.name,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
                 });
             })
-            .then(() => { return console.log("SALES_ENTERED") });
+        }).then(() => { return console.log("SALES_ENTERED") });
     },
     buyInput: function buyInput(buys) {
         const key = makeid(28);
         const buyDocRef = admin.firestore().collection("purchases").doc();
-
-        admin.firestore().collection('purchases')
-            .orderBy("submittedOn", "desc")
-            .limit(10).get().then((snapshot) => {
-                let found = false;
-
-                snapshot.docs.forEach((doc) => {
-                    if (found) {
-                        return 0;
-                    }
-
-                    if (JSON.parse(doc.data().replaced) === false) {
-                        found = true;
-
-                        return admin.firestore().runTransaction((transaction) => {
-                            return transaction.get(buyDocRef).then((_buyDoc) => {
-                                transaction.set(buyDocRef, {
-                                    ...buys,
-                                    key,
-                                    date: buys.date,
-                                    submittedBy: buys.name,
-                                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                                });
-                            });
-                        }).then(() => {
-                            return console.log("BUY_ENTERED");
-                        }).catch(err => {
-                            const error = err.message || err;
-                            return console.error(error);
-                        });
-                    }
+        return admin.firestore().runTransaction((transaction) => {
+            return transaction.get(buyDocRef).then((_buyDoc) => {
+                transaction.set(buyDocRef, {
+                    ...buys,
+                    key,
+                    date: buys.date,
+                    submittedBy: buys.name,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
                 });
+            });
+        }).then(() => { return console.log("BUY_ENTERED"); })
+            .catch(err => {
+                const error = err.message || err;
+                return console.error(error);
             });
     },
     borrowInput: function borrowInput(val) {
