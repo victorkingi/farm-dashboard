@@ -442,12 +442,8 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
                     errorMessage("BIG QUERY RETURNED: "+query.size, buy.submittedBy);
                 }
                 query.forEach((doc_) => {
-                    let split = 0;
-                    let remain = 0;
-                    if ((parseFloat(doc_.data().profit) - loss) >= 0) {
-                        split = 0.05 * (parseFloat(doc_.data().profit) - loss);
-                        remain = 0.85 * (parseFloat(doc_.data().profit) - loss);
-                    }
+                    let split = 0.05 * (parseFloat(doc_.data().profit) - loss);
+                    let remain = 0.85 * (parseFloat(doc_.data().profit) - loss);
                     doc_.ref.update({
                         profit: admin.firestore.FieldValue.increment(loss * -1),
                         split: {
@@ -565,8 +561,6 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
 
         let remain = parseFloat(beforeData.split.remain) || 0;
         remain = parseFloat(afterData.split.remain) - remain;
-
-        console.log("VICTOR: ", VICTOR);
 
         let totalLeaving = JEFF + VICTOR + BABRA;
 
