@@ -244,6 +244,7 @@ function Dashboard(props) {
          sun.setDate(sun.getDate() - 1);
          sun = getLastSunday(sun);
          sun.setDate(sun.getDate() + 1);
+         let backup;
          for (let i = 0; i < eggs.length; i++) {
            if (!eggs[i].weeklyAllPercent) continue;
            const date = new Date(eggs[i].date_);
@@ -251,7 +252,10 @@ function Dashboard(props) {
            if (date.getTime() === sun.getTime()) {
              return eggs[i];
            }
+           if (Math.abs(sun.getTime()-date.getTime()) <= 86400000) backup = eggs[i];
          }
+         if (backup) return backup;
+
        }
        return {weeklyAllPercent: 0};
      }
@@ -857,7 +861,10 @@ function Dashboard(props) {
                                 </td>
                                 <td>
                                   {item.values.category !== "send" && item.values.category !== "borrow"
+                                  && item.values.section !== "THIKA_FARMERS" && item.values.section !== "DUKA"
                                   && sanitize_string(item?.values?.name)}
+                                  {item.values.section === "THIKA_FARMERS" && "Thika Farmers"}
+                                  {item.values.section === "DUKA" && "Jeff Duka"}
                                   {item.values.category === "send" && sanitize_string(item?.values?.receiver)}
                                   {item.values.category === "borrow" && sanitize_string(item?.values?.get_from)}
                                 </td>

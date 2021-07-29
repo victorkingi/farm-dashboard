@@ -143,7 +143,7 @@ class Block {
                     diff: admin.firestore.FieldValue.increment(-1),
                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
                 });
-            } else if (difficulty > 4) {
+            } else if (difficulty > 3) {
                 admin.firestore().doc('temp/difficulty').update({
                     diff: admin.firestore.FieldValue.increment(-1),
                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
@@ -151,7 +151,7 @@ class Block {
             }
         } else {
             let rand = Math.random();
-            if (difficulty > 4) {
+            if (difficulty > 3) {
                 admin.firestore().doc('temp/difficulty').update({
                     diff: admin.firestore.FieldValue.increment(-1),
                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
