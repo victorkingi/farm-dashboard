@@ -442,20 +442,25 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
                     errorMessage("BIG QUERY RETURNED: "+query.size, buy.submittedBy);
                 }
                 query.forEach((doc_) => {
-                    let split = 0.05 * (parseFloat(doc_.data().profit) - loss);
-                    let remain = 0.85 * (parseFloat(doc_.data().profit) - loss);
-                    doc_.ref.update({
-                        profit: admin.firestore.FieldValue.increment(loss * -1),
-                        split: {
-                            BABRA: split,
-                            JEFF: split,
-                            VICTOR: split,
-                            remain
-                        },
-                        submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                    const profitDocRef = admin.firestore().doc(`profit/${doc_.id}`);
+                    admin.firestore().runTransaction((transaction) => {
+                        return transaction.get(profitDocRef).then((_profitDoc) => {
+                            let split = 0.05 * (parseFloat(_profitDoc.data().profit) - loss);
+                            let remain = 0.85 * (parseFloat(_profitDoc.data().profit) - loss);
+                            transaction.update(profitDocRef, {
+                                profit: admin.firestore.FieldValue.increment(loss * -1),
+                                split: {
+                                    BABRA: split,
+                                    JEFF: split,
+                                    VICTOR: split,
+                                    remain
+                                },
+                                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                            });
+                        })
                     });
                 })
-            })
+            });
 
             const notification = {
                 content: 'Purchase was made',
@@ -495,17 +500,22 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
                     errorMessage("BIG QUERY RETURNED: "+query.size, buy.submittedBy);
                 }
                 query.forEach((doc_) => {
-                    let split = 0.05 * (parseFloat(doc_.data().profit) + loss);
-                    let remain = 0.85 * (parseFloat(doc_.data().profit) + loss);
-                    doc_.ref.update({
-                        profit: admin.firestore.FieldValue.increment(loss),
-                        split: {
-                            BABRA: split,
-                            JEFF: split,
-                            VICTOR: split,
-                            remain
-                        },
-                        submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                    const profitDocRef = admin.firestore().doc(`profit/${doc_.id}`);
+                    admin.firestore().runTransaction((transaction) => {
+                        return transaction.get(profitDocRef).then((_profitDoc) => {
+                            let split = 0.05 * (parseFloat(doc_.data().profit) + loss);
+                            let remain = 0.85 * (parseFloat(doc_.data().profit) + loss);
+                            transaction.update(profitDocRef, {
+                                profit: admin.firestore.FieldValue.increment(loss),
+                                split: {
+                                    BABRA: split,
+                                    JEFF: split,
+                                    VICTOR: split,
+                                    remain
+                                },
+                                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                            });
+                        })
                     });
                 })
             });
@@ -563,11 +573,11 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
         remain = parseFloat(afterData.split.remain) - remain;
 
         let totalLeaving = JEFF + VICTOR + BABRA;
-
-        return admin.firestore().doc('profit/available')
-            .get().then((doc__) => {
-                const data__ = doc__.data();
-                doc__.ref.update({
+        const availDocRef = admin.firestore().doc('profit/available');
+        return admin.firestore().runTransaction((transaction) => {
+            return transaction.get(availDocRef).then((_availDoc) => {
+                const data__ = _availDoc.data();
+                transaction.update(availDocRef, {
                     submittedOn: admin.firestore.FieldValue.serverTimestamp(),
                     VICTOR: admin.firestore.FieldValue.increment(VICTOR),
                     prevVICTOR: data__.VICTOR,
@@ -577,8 +587,9 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
                     BABRA: admin.firestore.FieldValue.increment(BABRA),
                     remain: admin.firestore.FieldValue.increment(remain),
                     totalLeaving: admin.firestore.FieldValue.increment(totalLeaving)
+                })
             })
-            })
+        });
     }));
 
 exports.salesMade = functions.firestore.document('sales/{saleId}')
@@ -605,18 +616,23 @@ exports.salesMade = functions.firestore.document('sales/{saleId}')
                 .where('docId', '==', lastSunday.toDateString())
                 .get().then((query) => {
                 query.forEach((doc_) => {
-                    const split = 0.05 * (parseFloat(doc_.data().profit) + profit);
-                    const remain = 0.85 * (parseFloat(doc_.data().profit) + profit);
-                    doc_.ref.update({
-                        profit: admin.firestore.FieldValue.increment(profit),
-                        split: {
-                            BABRA: split,
-                            JEFF: split,
-                            VICTOR: split,
-                            remain
-                        },
-                        submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                    })
+                    const profitDocRef = admin.firestore().doc(`profit/${doc_.id}`);
+                    return admin.firestore().runTransaction((transaction) => {
+                        return transaction.get(profitDocRef).then((_profitDoc) => {
+                            const split = 0.05 * (parseFloat(_profitDoc.data().profit) + profit);
+                            const remain = 0.85 * (parseFloat(_profitDoc.data().profit) + profit);
+                            transaction.update(profitDocRef, {
+                                profit: admin.firestore.FieldValue.increment(profit),
+                                split: {
+                                    BABRA: split,
+                                    JEFF: split,
+                                    VICTOR: split,
+                                    remain
+                                },
+                                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                            })
+                        })
+                    });
                 })
             })
 
@@ -667,22 +683,23 @@ exports.salesMade = functions.firestore.document('sales/{saleId}')
                             sale.submittedBy)
                     }
                 query.forEach((doc_) => {
-                    let split = 0;
-                    let remain = 0;
-                    if (parseFloat(doc_.data().profit) - profit >= 0) {
-                        split = 0.05 * (parseFloat(doc_.data().profit) - profit);
-                        remain = 0.85 * (parseFloat(doc_.data().profit) - profit);
-                    }
-                    doc_.ref.update({
-                        profit: admin.firestore.FieldValue.increment(profit * -1),
-                        split: {
-                            BABRA: split,
-                            JEFF: split,
-                            VICTOR: split,
-                            remain
-                        },
-                        submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                    })
+                    const profitDocRef = admin.firestore().doc(`profit/${doc_.id}`);
+                    return admin.firestore().runTransaction((transaction) => {
+                        return transaction.get(profitDocRef).then((_profitDoc) => {
+                            let split = 0.05 * (parseFloat(_profitDoc.data().profit) - profit);
+                            let remain = 0.85 * (parseFloat(_profitDoc.data().profit) - profit);
+                            transaction.update(profitDocRef, {
+                                profit: admin.firestore.FieldValue.increment(profit * -1),
+                                split: {
+                                    BABRA: split,
+                                    JEFF: split,
+                                    VICTOR: split,
+                                    remain
+                                },
+                                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                            })
+                        })
+                    });
                 })
             });
         }
