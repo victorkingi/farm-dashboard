@@ -936,13 +936,96 @@ exports.eggsChange = functions.region('europe-west2').pubsub
     .timeZone('Africa/Nairobi').onRun(() => {
     return eggsChange();
 })
+
+const cleanString = (str) => {
+    let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
+    str_1 = str_1.includes('_') ? str_1.replace('_', ' ') : str_1;
+    let str_2 = str_1.includes(' ') ? str_1.substring(str_1.lastIndexOf(' ')+1) : null;
+    str_2 = str_2 !== null ? str_2.toUpperCase().charAt(0).concat(str_2.toLowerCase().slice(1)) : null;
+    if (str_2 !== null) {
+        str_1 = str_1.substring(0, str_1.lastIndexOf(" ")).concat(" ").concat(str_2);
+    }
+    return str_1
+}
+function getRanColor() {
+    const randomColor = Math.floor(Math.random()*16777215).toString(16);
+    return "#"+randomColor;
+}
+async function updateTxList() {
+    const blockAll = await admin.firestore().collection("blockchain")
+        .orderBy("minedOn", "desc")
+        .get();
+    const block = blockAll.docs;
+    const labels = [];
+    let data = [];
+    let sent;
+    let time = [];
+    let all = [];
+    const accepted = ["PURITY", "JEFF", "VICTOR", "BABRA", "ANNE"];
+    for (let i = 0; i < blockAll.size; i++) {
+        const data = block[i].data();
+        for (let p = 0; p < data.chain.length; p++) {
+            for (let k = 0; k < data.chain[p].transactions.length; k++) {
+                const reason = data.chain[p].transactions[k].reason || '';
+                const amount = data.chain[p].transactions[k].amount;
+                const timeStamp = data.chain[p].transactions[k].timestamp;
+                if (reason.substring(0, 5) === 'TRADE' || reason.substring(0, 4) === 'SELL') {
+                    let to = reason.split(':');
+                    to = to[to.length - 1].substring(1);
+                    if (!accepted.includes(to)) continue;
+                    to = cleanString(to);
+                    all.push({
+                        to,
+                        amount: parseFloat(amount),
+                        timestamp: new Date(timeStamp)
+                    });
+                }
+            }
+        }
+    }
+    all = all.sort((a, b) => { return b.timestamp.getTime() - a.timestamp.getTime()});
+    for (let i = 0; i < all.length; i++) {
+        labels.push(all[i].to);
+        data.push(all[i].amount);
+        time.push(all[i].timestamp);
+    }
+    sent = data;
+    let total = data.reduce((a, b) => a + b, 0);
+    data = data.map(x => Math.floor((x/total) * 100));
+    let color = new Array(data.length).fill('');
+    color = color.map(_ => getRanColor());
+    let ranKey = 0;
+    let key = data.map(x => ranKey++);
+    const ans = {
+        labels,
+        data,
+        color,
+        total,
+        sent,
+        time,
+        key
+    };
+    return await admin.firestore().doc('transactions/all_tx')
+        .set({
+            ...ans,
+            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+        });
+}
+
+exports.updateTx = functions.region('europe-west2').pubsub
+    .schedule('every 24 hours')
+    .timeZone('Africa/Nairobi').onRun(() => {
+        return updateTxList();
+    });
+
 /**
  * eggsChange function always has to run earlier than dailyChanges function to prevent
  * situation where trays are sold on the same day they where collected and no
  * trays to burn are available in the linked list to accomodate the transaction.
  */
-exports.dailyChanges = functions.runWith(runtimeOpts)
-    .pubsub.schedule('every 1 hours from 17:00 to 18:00').onRun(async () => {
+exports.dailyChanges = functions.region('europe-west2').pubsub
+    .schedule('every 1 hours from 03:00 to 04:00')
+    .timeZone('Africa/Nairobi').onRun(async () => {
         const date  = new Date();
         if (date.getDay() === 0) {
             await admin.firestore().collection('profit').where("docId", "==", date.toDateString())
@@ -1115,6 +1198,7 @@ exports.dailyChanges = functions.runWith(runtimeOpts)
                     if (counter === query.size) {
                         viczcoin.minePendingTransactions();
                         console.log("Is blockchain valid: ", viczcoin.isChainValid());
+                        updateAllTransactions(viczcoin.chain);
                         const hash = viczcoin.getLatestBlock().hash;
                         const converted = JSON.stringify(viczcoin);
                         const final = JSON.parse(converted);
