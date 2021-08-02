@@ -88,61 +88,55 @@ function Dashboard(props) {
     ]
   };
 
+  function truncateMap(mobileMax, desktopMax, vals) {
+    //truncate everything except total
+    let labels = isMobile ? vals.labels.slice(0, mobileMax)
+        : vals.labels.slice(0, desktopMax);
+    let data = isMobile ? vals.sent.slice(0, mobileMax)
+        : vals.sent.slice(0, desktopMax);
+    let time = isMobile ? vals.time.slice(0, mobileMax)
+        : vals.time.slice(0, desktopMax);
+    let key = isMobile ? vals.key.slice(0, mobileMax)
+        : vals.key.slice(0, desktopMax);
+    let sent = data;
+    let total = data.reduce((a, b) => a + b, 0);
+    data = data.map(x => Math.round((x/total) * 100));
+    let color = new Array(data.length).fill('');
+    color = color.map(_ => getRanColor());
+    return  {
+      labels,
+      data,
+      color,
+      sent,
+      time,
+      key,
+      total
+    }
+  }
+
   useEffect(() => {
     let name = firebase.auth().currentUser?.displayName;
     name = name?.substring(0, name?.lastIndexOf(' '))?.toUpperCase();
     setName(name);
-
     if (block) {
-      const labels = [];
-      let data = [];
-      let sent;
-      let time = [];
-      let all = [];
-      const accepted = ["PURITY", "JEFF", "VICTOR", "BABRA", "ANNE"];
-      for (let i = 0; i < block.length; i++) {
-        for (let p = 0; p < block[i].chain.length; p++) {
-          for (let k = 0; k < block[i].chain[p].transactions.length; k++) {
-            const reason = block[i].chain[p].transactions[k].reason;
-            const amount = block[i].chain[p].transactions[k].amount;
-            const timeStamp = block[i].chain[p].transactions[k].timestamp;
-            if (reason.substring(0, 5) === 'TRADE' || reason.substring(0, 4) === 'SELL') {
-              if (all.length > 3) break;
-              let to = reason.split(':');
-              to = to[to.length - 1].substring(1);
-              if (!accepted.includes(to)) continue;
-              to = sanitize_string(to);
-              all.push({
-                to,
-                amount: parseFloat(amount),
-                timestamp: new Date(timeStamp)
-              });
-            }
-          }
-        }
+      let temp = block[0];
+      const time = temp.time.map(x => x.toDate());
+      temp = {
+        ...temp,
+        time
       }
-      all = all.sort((a, b) => { return b.timestamp.getTime() - a.timestamp.getTime()});
-      all = isMobile ? all.slice(0, 3) : all;
-      for (let i = 0; i < all.length; i++) {
-        labels.push(all[i].to);
-        data.push(all[i].amount);
-        time.push(all[i].timestamp);
+      console.log(time.length)
+      temp = {
+        data: temp.data,
+        key: temp.key,
+        labels: temp.labels,
+        time: temp.time,
+        sent: temp.sent,
+        total: temp.total,
+        color: temp.color
       }
-      sent = data;
-      let total = data.reduce((a, b) => a + b, 0);
-      data = data.map(x => Math.floor((x/total) * 100));
-      let color = new Array(data.length).fill('');
-      color = color.map(_ => getRanColor());
-      let key = data.map(x => (Math.random()*x)-x);
-      setTrans({
-        labels,
-        data,
-        color,
-        total,
-        sent,
-        time,
-        key
-      });
+      let finalTemp = truncateMap(3, 4, temp);
+      setTrans(finalTemp);
     }
     if (pend) {
       if (pend.length > 0) {
@@ -934,7 +928,7 @@ const mapStateToProps = function(state) {
     eggs: state.firestore.ordered.eggs_collected,
     chick: state.firestore.ordered.chicken_details,
     trays: state.firestore.ordered.trays,
-    block: state.firestore.ordered.blockchain,
+    block: state.firestore.ordered.transactions,
     current: state.firestore.ordered.current,
   }
 }
@@ -950,7 +944,7 @@ export default compose(
       {collection: 'eggs_collected', limit: 15, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
-      {collection: 'blockchain', limit: 15, orderBy: ['minedOn', 'desc']},
+      {collection: 'transactions', limit: 1},
       {collection: 'current', limit: 3, orderBy: ['name', 'asc']}
     ])
 )(Dashboard);
