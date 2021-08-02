@@ -661,7 +661,7 @@ function Dashboard(props) {
                   <div className="aligner-wrapper">
                     <Doughnut data={transactionHistoryData} options={transactionHistoryOptions} />
                     <div className="absolute center-content">
-                      <h5 className="font-weight-normal text-white text-center mb-2 text-white">{trans.total}</h5>
+                      <h5 className="font-weight-normal text-white text-center mb-2 text-white">{numeral(parseFloat(trans.total)).format('0,0')}</h5>
                       <p className="text-small text-muted text-center mb-0">Total</p>
                     </div>
                   </div>
