@@ -58,10 +58,47 @@ export function getRanColor() {
   return "#"+randomColor;
 }
 
+function getRevenue(sales, buys) {
+  return sales - buys;
+}
+
+function getTotal(stats) {
+  if (stats) {
+    let sales;
+    let buys;
+    let prevMonthSale;
+    let prevAmountSale;
+    let prevAmountBuy;
+    let prevMonthBuy;
+    for (let i = 0; i < stats.length; i++) {
+      if (stats[i].id === 'data_buys') {
+        buys = stats[i].totalAmountSpent;
+        prevMonthBuy = stats[i].prevMonth;
+        prevAmountBuy = stats[i].prevAmount;
+      }
+      else if (stats[i].id === 'data_sales') {
+        sales = stats[i].totalAmountEarned;
+        prevMonthSale = stats[i].prevMonth;
+        prevAmountSale = stats[i].prevAmount;
+      }
+    }
+    if (sales && buys) return {
+      sales,
+      prevMonthSale,
+      prevAmountSale,
+      buys,
+      prevMonthBuy,
+      prevAmountBuy
+    }
+    else console.error("Sales or Buys returned undefined", stats);
+  }
+  return { sales: 0, buys: 0 }
+}
+
 function Dashboard(props) {
   const { notifications, pend, forProfit,
-      profit, bags, eggs, chick, trays,
-      block, current
+      profit, bags, chick, trays,
+      block, current, stats
   } = props;
 
   const [state, setState] = useState({arr: []});
@@ -125,7 +162,6 @@ function Dashboard(props) {
         ...temp,
         time
       }
-      console.log(time.length)
       temp = {
         data: temp.data,
         key: temp.key,
@@ -230,30 +266,10 @@ function Dashboard(props) {
    }
 
   const getLastEggs = () => {
-     if(eggs) {
-       if (eggs.length > 0) {
-         const curDate = new Date(eggs[0].date_);
-         curDate.setHours(0, 0, 0, 0);
-         let sun = getLastSunday(curDate);
-         sun.setDate(sun.getDate() - 1);
-         sun = getLastSunday(sun);
-         sun.setDate(sun.getDate() + 1);
-         let backup;
-         for (let i = 0; i < eggs.length; i++) {
-           if (!eggs[i].weeklyAllPercent) continue;
-           const date = new Date(eggs[i].date_);
-           date.setHours(0, 0, 0, 0);
-           if (date.getTime() === sun.getTime()) {
-             return eggs[i];
-           }
-           if (Math.abs(sun.getTime()-date.getTime()) <= 86400000) backup = eggs[i];
-         }
-         if (backup) return backup;
-
-       }
-       return {weeklyAllPercent: 0};
+     if(chick) {
+       return { weeklyAllPercent: chick.prevWeekPercent };
      }
-     return {weeklyAllPercent: 0};
+     return { weeklyAllPercent: 0 };
    }
 
   const getAmount = (item) => {
@@ -361,11 +377,11 @@ function Dashboard(props) {
 
   const availToWithdraw = () => {
      if (profit) {
-       const doc_ = profit[0].prevBABRA ? profit[0] : profit[1];
        let user = localStorage.getItem('name');
        user = user !== null ? user.toUpperCase() : '';
-       return doc_[user]?.toString()+','+doc_['prev'+user];
+       return profit[0][user].toString()+','+profit[0]['prev'+user];
      }
+    return '0,0'
    }
 
   return (
@@ -761,10 +777,39 @@ function Dashboard(props) {
                   <div className="row">
                     <div className="col-8 col-sm-12 col-xl-8 my-auto">
                       <div className="d-flex d-sm-block d-md-flex align-items-center">
-                        <h2 className="mb-0">KSh 32,123</h2>
-                        <p className="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
+                        <h2 className="mb-0">KSh {
+                          numeral(getRevenue(getTotal(stats).sales,
+                                getTotal(stats).buys)).format('0,0')
+                        }</h2>
+                        <p className={`text-${riseDrop(
+                            getRevenue(getTotal(stats).sales,
+                                getTotal(stats).buys), getRevenue(getTotal(stats).prevMonthSale,
+                                getTotal(stats).prevMonthBuy)) < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}> {riseDrop(
+                            getRevenue(getTotal(stats).sales,
+                            getTotal(stats).buys), getRevenue(getTotal(stats).prevAmountSale,
+                                getTotal(stats).prevAmountBuy)) < 0
+                            ? numeral(riseDrop(
+                                getRevenue(getTotal(stats).sales,
+                                    getTotal(stats).buys), getRevenue(getTotal(stats).prevAmountSale,
+                                    getTotal(stats).prevAmountBuy))).format("0.0")
+                            : '+'.concat(numeral(riseDrop(
+                                getRevenue(getTotal(stats).sales,
+                                    getTotal(stats).buys), getRevenue(getTotal(stats).prevAmountSale,
+                                    getTotal(stats).prevAmountBuy))).format("0.0"))}%
+                        </p>
                       </div>
-                      <h6 className="text-muted font-weight-normal">11.38% Since last month</h6>
+                      <h6 className="text-muted font-weight-normal">{riseDrop(
+                          getRevenue(getTotal(stats).sales,
+                              getTotal(stats).buys), getRevenue(getTotal(stats).prevMonthSale,
+                              getTotal(stats).prevMonthBuy)) < 0
+                          ? numeral(riseDrop(
+                              getRevenue(getTotal(stats).sales,
+                                  getTotal(stats).buys), getRevenue(getTotal(stats).prevMonthSale,
+                                  getTotal(stats).prevMonthBuy))).format("0.0")
+                          : '+'.concat(numeral(riseDrop(
+                              getRevenue(getTotal(stats).sales,
+                                  getTotal(stats).buys), getRevenue(getTotal(stats).prevMonthSale,
+                                  getTotal(stats).prevMonthBuy))).format("0.0"))}% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
                       <i className="icon-lg mdi mdi-codepen text-primary ml-auto"/>
@@ -780,10 +825,28 @@ function Dashboard(props) {
                   <div className="row">
                     <div className="col-8 col-sm-12 col-xl-8 my-auto">
                       <div className="d-flex d-sm-block d-md-flex align-items-center">
-                        <h2 className="mb-0">KSh 45,850</h2>
-                        <p className="text-success ml-2 mb-0 font-weight-medium">+8.3%</p>
+                        <h2 className="mb-0">KSh {numeral(getTotal(stats).sales).format('0,0')}</h2>
+                        <p className={`text-${riseDrop( 
+                            getTotal(stats).sales,
+                            getTotal(stats).prevAmountSale) < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>{riseDrop(
+                            getTotal(stats).sales,
+                                getTotal(stats).prevAmountSale) < 0
+                            ? numeral(riseDrop(
+                                getTotal(stats).sales,
+                                getTotal(stats).prevAmountSale)).format("0.0")
+                            : '+'.concat(numeral(riseDrop(
+                                getTotal(stats).sales,
+                                getTotal(stats).prevAmountSale)).format("0.0"))}%</p>
                       </div>
-                      <h6 className="text-muted font-weight-normal"> 9.61% Since last month</h6>
+                      <h6 className="text-muted font-weight-normal">{riseDrop(
+                          getTotal(stats).sales,
+                          getTotal(stats).prevMonthSale) < 0
+                          ? numeral(riseDrop(
+                              getTotal(stats).sales,
+                              getTotal(stats).prevMonthSale)).format("0.0")
+                          : '+'.concat(numeral(riseDrop(
+                              getTotal(stats).sales,
+                              getTotal(stats).prevMonthSale)).format("0.0"))}% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
                       <i className="icon-lg mdi mdi-wallet-travel text-danger ml-auto"/>
@@ -795,14 +858,32 @@ function Dashboard(props) {
             <div className="col-sm-4 grid-margin">
               <div className="card">
                 <div className="card-body">
-                  <h5>Purchase</h5>
+                  <h5>Purchases</h5>
                   <div className="row">
                     <div className="col-8 col-sm-12 col-xl-8 my-auto">
                       <div className="d-flex d-sm-block d-md-flex align-items-center">
-                        <h2 className="mb-0">KSh 2,039</h2>
-                        <p className="text-danger ml-2 mb-0 font-weight-medium">-2.1%</p>
+                        <h2 className="mb-0">KSh {numeral(getTotal(stats).buys).format('0,0')}</h2>
+                        <p className={`text-${riseDrop(
+                            getTotal(stats).buys,
+                            getTotal(stats).prevAmountBuy) < 0 ? 'success' : 'danger'} ml-2 mb-0 font-weight-medium`}>{riseDrop(
+                            getTotal(stats).buys,
+                            getTotal(stats).prevAmountBuy) < 0
+                            ? numeral(riseDrop(
+                                getTotal(stats).buys,
+                                getTotal(stats).prevAmountBuy)).format("0.0")
+                            : '+'.concat(numeral(riseDrop(
+                                getTotal(stats).buys,
+                                getTotal(stats).prevAmountBuy)).format("0.0"))}%</p>
                       </div>
-                      <h6 className="text-muted font-weight-normal">2.27% Since last month</h6>
+                      <h6 className="text-muted font-weight-normal">{riseDrop(
+                          getTotal(stats).buys,
+                          getTotal(stats).prevMonthBuy) < 0
+                          ? numeral(riseDrop(
+                              getTotal(stats).buys,
+                              getTotal(stats).prevMonthBuy)).format("0.0")
+                          : '+'.concat(numeral(riseDrop(
+                              getTotal(stats).buys,
+                              getTotal(stats).prevMonthBuy)).format("0.0"))}% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
                       <i className="icon-lg mdi mdi-monitor text-success ml-auto"/>
@@ -925,11 +1006,11 @@ const mapStateToProps = function(state) {
     forProfit: state.firestore.ordered.predict_week,
     profit: state.firestore.ordered.profit,
     bags: state.firestore.ordered.bags,
-    eggs: state.firestore.ordered.eggs_collected,
     chick: state.firestore.ordered.chicken_details,
     trays: state.firestore.ordered.trays,
     block: state.firestore.ordered.transactions,
     current: state.firestore.ordered.current,
+    stats: state.firestore.ordered.stats
   }
 }
 
@@ -939,12 +1020,12 @@ export default compose(
       {collection: 'notifications', limit: 8, orderBy: ['time', 'desc']},
       {collection: 'pending_transactions' },
       {collection: 'predict_week', orderBy: ['date', 'desc']},
-      {collection: 'profit', limit: 3, orderBy: ['submittedOn', 'desc']},
+      {collection: 'profit', limit: 3, orderBy: ['date', 'desc']},
       {collection: 'bags', orderBy: ['submittedOn', 'desc']},
-      {collection: 'eggs_collected', limit: 15, orderBy: ['date_', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
       {collection: 'transactions', limit: 1},
-      {collection: 'current', limit: 3, orderBy: ['name', 'asc']}
+      {collection: 'current', limit: 3, orderBy: ['name', 'asc']},
+      {collection: 'stats'}
     ])
 )(Dashboard);

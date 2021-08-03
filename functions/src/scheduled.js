@@ -893,6 +893,7 @@ async function eggsChange() {
                     if (used !== 7) throw  new Error("Wrong used expected 7 but got "+used);
                     total = total / used;
                     console.log("TOTAL:", total, "count", count, "used", used);
+                    const prevWeekPercent = parseFloat(chickenDoc.data().weekPercent);
                     notUpdatedDoc.ref.set({
                         notUpdated: admin.firestore.FieldValue.delete(),
                         bags_store: admin.firestore.FieldValue.delete(),
@@ -901,6 +902,7 @@ async function eggsChange() {
                     }, {merge: true});
                     chickenDoc.ref.update({
                         weekPercent: total,
+                        prevWeekPercent,
                         submittedBy: notUpdatedData.submittedBy,
                         submittedOn: admin.firestore.FieldValue.serverTimestamp()
                     });
@@ -1026,26 +1028,6 @@ exports.updateTx = functions.region('europe-west2').pubsub
 exports.dailyChanges = functions.region('europe-west2').pubsub
     .schedule('every 1 hours from 03:00 to 04:00')
     .timeZone('Africa/Nairobi').onRun(async () => {
-        const date  = new Date();
-        if (date.getDay() === 0) {
-            await admin.firestore().collection('profit').where("docId", "==", date.toDateString())
-                .get().then((query) => {
-                    if (query.size === 0) {
-                        admin.firestore().collection('profit')
-                            .add({
-                                docId: date.toDateString(),
-                                profit: 0,
-                                split: {
-                                    BABRA: 0,
-                                    JEFF: 0,
-                                    VICTOR: 0,
-                                    remain: 0
-                                },
-                                submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                            });
-                    }
-                })
-        }
         await dailyUpdateBags();
         await dailyCurrentTraysCheck();
 
@@ -1454,12 +1436,48 @@ exports.weeklyChanges = functions.runWith(runtimeOptWeekly)
     await weeklyChickenAgeUpdate();
     await weeklyExportFirestore();
     predictProfit();
+    const sunday = new Date();
+    sunday.setHours(0, 0, 0, 0);
+    await admin.firestore().collection('profit')
+        .add({
+            docId: date.toDateString(),
+            date: sunday,
+            profit: 0,
+            split: {
+                BABRA: 0,
+                JEFF: 0,
+                VICTOR: 0,
+                remain: 0
+            },
+            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+        });
     return 0;
 }));
+
+async function updateMonthlyRev() {
+    const buyGross = await admin.firestore().doc('stats/data_buys')
+        .get();
+    const saleGross = await admin.firestore().doc('stats/data_sales')
+        .get();
+    const saleGrossVal = saleGross.data().totalAmountEarned;
+    const buyGrossVal = buyGross.data().totalAmountSpent;
+    saleGross.ref.set({
+        prevMonth: saleGrossVal,
+        submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+        totalAmountEarned: 0
+    }, { merge: true });
+    buyGross.ref.set({
+        prevMonth: buyGrossVal,
+        submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+        totalAmountSpent: 0
+    }, { merge: true });
+    return 0;
+}
 
 exports.monthlyChanges = functions.pubsub
     .schedule('1 of month 01:00').onRun(( async () => {
     await monthlyJeffDebt();
+    await updateMonthlyRev();
     return 0;
 }));
 

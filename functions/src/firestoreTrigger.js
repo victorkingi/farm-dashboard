@@ -109,23 +109,31 @@ exports.salesStats = functions.firestore.document('sales/{saleId}')
     .onCreate((snapshot, context) => {
         const data = snapshot.data();
         const total = parseInt(data.trayNo) * parseFloat(data.trayPrice);
-        return admin.firestore().collection('stats')
-            .doc('data_sales').update({
-                totalSales: admin.firestore.FieldValue.increment(parseInt(data.trayNo)),
-                totalAmountEarned: admin.firestore.FieldValue.increment(total),
-                submittedOn: admin.firestore.FieldValue.serverTimestamp()
-            })
+        return admin.firestore().doc('stats/data_sales')
+            .get().then((doc) => {
+                const prevAmount = doc.data().totalAmountEarned;
+                doc.ref.update({
+                    totalSales: admin.firestore.FieldValue.increment(parseInt(data.trayNo)),
+                    totalAmountEarned: admin.firestore.FieldValue.increment(total),
+                    prevAmount,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                })
+            });
     });
 
 exports.buysStats = functions.firestore.document('purchases/{buyId}')
     .onCreate((snapshot, context) => {
         const data = snapshot.data();
         const total = parseInt(data.objectNo) * parseFloat(data.objectPrice);
-        return admin.firestore().collection('stats')
-            .doc('data_buys').update({
-                totalPurchase: admin.firestore.FieldValue.increment(parseInt(data.objectNo)),
-                totalAmountSpent: admin.firestore.FieldValue.increment(total),
-                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+        return admin.firestore().doc('stats/data_buys')
+            .get().then((doc) => {
+                const prevAmount = doc.data().totalAmountSpent;
+                doc.ref.update({
+                    totalPurchase: admin.firestore.FieldValue.increment(parseInt(data.objectNo)),
+                    totalAmountSpent: admin.firestore.FieldValue.increment(total),
+                    prevAmount,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
             });
     });
 
@@ -464,7 +472,7 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
 
             const notification = {
                 content: 'Purchase was made',
-                extraContent: `${buy.submittedBy.charAt(0)+buy.submittedBy.slice(1).toLowerCase()} bought ${buy.objectNo} objects, category ${buy.section}`,
+                extraContent: `${buy.submittedBy.charAt(0)+buy.submittedBy.slice(1).toLowerCase()} bought ${buy.objectNo} ${buy.objectNo === 1 ? 'object' : 'objects'}, category ${buy.section}`,
                 identifier: 'buy',
                 user: `${buy.submittedBy}`,
                 time: admin.firestore.FieldValue.serverTimestamp(),
@@ -579,6 +587,7 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
                 const data__ = _availDoc.data();
                 transaction.update(availDocRef, {
                     submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+                    date: admin.firestore.FieldValue.serverTimestamp(),
                     VICTOR: admin.firestore.FieldValue.increment(VICTOR),
                     prevVICTOR: data__.VICTOR,
                     prevJEFF: data__.JEFF,
@@ -634,12 +643,15 @@ exports.salesMade = functions.firestore.document('sales/{saleId}')
                         })
                     });
                 })
-            })
+            });
+            function saleWord(num) {
+                return num === 1 ? 'tray' : 'trays';
+            }
 
             let details;
             const notification = {
                 content: 'A sale was made',
-                extraContent: `${sale.submittedBy.charAt(0)+sale.submittedBy.slice(1).toLowerCase()} sold ${sale.trayNo} trays to ${sale.buyerName}`,
+                extraContent: `${sale.submittedBy.charAt(0)+sale.submittedBy.slice(1).toLowerCase()} sold ${sale.trayNo} ${saleWord(sale.trayNo)} to ${sale.buyerName}`,
                 identifier: 'sell',
                 big: parseInt(sale.trayNo) > 4,
                 user: `${sale.submittedBy}`,
