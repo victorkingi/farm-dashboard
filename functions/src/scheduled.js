@@ -1180,7 +1180,6 @@ exports.dailyChanges = functions.region('europe-west2').pubsub
                     if (counter === query.size) {
                         viczcoin.minePendingTransactions();
                         console.log("Is blockchain valid: ", viczcoin.isChainValid());
-                        updateAllTransactions(viczcoin.chain);
                         const hash = viczcoin.getLatestBlock().hash;
                         const converted = JSON.stringify(viczcoin);
                         const final = JSON.parse(converted);
