@@ -849,7 +849,9 @@ function Dashboard(props) {
                               getTotal(stats).prevMonthSale)).format("0.0"))}% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                      <i className="icon-lg mdi mdi-wallet-travel text-danger ml-auto"/>
+                      <i className={`icon-lg mdi mdi-wallet-travel text-${riseDrop(
+                          getTotal(stats).sales,
+                          getTotal(stats).prevAmountSale) < 0 ? 'danger' : 'success'} ml-auto`}/>
                     </div>
                   </div>
                 </div>
@@ -886,7 +888,9 @@ function Dashboard(props) {
                               getTotal(stats).prevMonthBuy)).format("0.0"))}% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
-                      <i className="icon-lg mdi mdi-monitor text-success ml-auto"/>
+                      <i className={`icon-lg mdi mdi-monitor text-${riseDrop(
+                          getTotal(stats).buys,
+                          getTotal(stats).prevAmountBuy) < 0 ? 'success' : 'danger'} ml-auto`}/>
                     </div>
                   </div>
                 </div>
