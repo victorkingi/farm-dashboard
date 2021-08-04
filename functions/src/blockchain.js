@@ -3,6 +3,8 @@ const { SHA512, actions } = require('./constants');
 const { performance } = require('perf_hooks');
 const admin = require('firebase-admin');
 
+let SAFE_DIFFICULTY_LOCK = 0;
+
 class Blockchain {
     constructor(minerWallet, minerReward, prevHash, difficulty) {
             this.difficulty = difficulty;
@@ -150,17 +152,19 @@ class Block {
                 });
             }
         } else {
-            let rand = Math.random();
             if (difficulty > 3) {
                 admin.firestore().doc('temp/difficulty').update({
                     diff: admin.firestore.FieldValue.increment(-1),
                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
                 });
-            } else if (rand < 0.5) {
+            } else if (SAFE_DIFFICULTY_LOCK === 0) {
                 admin.firestore().doc('temp/difficulty').update({
                     diff: admin.firestore.FieldValue.increment(1),
                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
                 });
+                SAFE_DIFFICULTY_LOCK = 1
+            } else {
+                SAFE_DIFFICULTY_LOCK = 0;
             }
         }
         if (this.previousHash === "genesis_block") console.log("genesis block mined!");

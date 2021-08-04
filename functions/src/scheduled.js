@@ -1039,7 +1039,7 @@ async function updateTxList() {
     let sent;
     let time = [];
     let all = [];
-    const accepted = ["PURITY", "JEFF", "VICTOR", "BABRA", "ANNE"];
+    const accepted = ["PURITY", "JEFF", "VICTOR", "BABRA", "ANNE", "BANK"];
     for (let i = 0; i < blockAll.size; i++) {
         const data = block[i].data();
         for (let p = 0; p < data.chain.length; p++) {
@@ -1048,8 +1048,8 @@ async function updateTxList() {
                 const amount = data.chain[p].transactions[k].amount;
                 const timeStamp = data.chain[p].transactions[k].timestamp;
                 if (reason.substring(0, 5) === 'TRADE' || reason.substring(0, 4) === 'SELL') {
-                    let to = reason.split(':');
-                    to = to[to.length - 1].substring(1);
+                    let to = reason.split(';');
+                    to = to[to.length - 1].substring(3);
                     if (!accepted.includes(to)) continue;
                     to = cleanString(to);
                     all.push({
