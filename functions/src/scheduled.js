@@ -510,9 +510,77 @@ async function verifyEggs(values) {
             console.log("clean");
         }
     });
-
     if (toSellEggs !== 0) {
         errorMessage("Not enough trays to sell!",
+            values.values.name);
+    }
+}
+
+async function updateEggs(values) {
+    const trayNo = parseInt(values.values.trayNo);
+    const date = values.values.date;
+    const traysDoc = await admin.firestore()
+        .collection("trays").doc("current_trays").get();
+
+    const data = traysDoc.data();
+    let timeStamp = date.toDate();
+    timeStamp.setHours(0, 0, 0, 0);
+    timeStamp.setDate(timeStamp.getDate() + 1)
+    console.log("DATE:", timeStamp.toDateString())
+    if (timeStamp.getTime() < 1625691600000) return 0;
+    let list = data.linkedList;
+    let justAboveItem;
+    let complete = false;
+    Object.entries(list)
+        .sort(
+            (a, b) => parseInt(b[0]) - parseInt(a[0]))
+        .forEach(item => {
+            if (complete) return 0;
+            if (parseInt(item[0]) <= timeStamp.getTime()) {
+                justAboveItem = parseInt(item[0]);
+                complete = true;
+            }
+        });
+    let toSellEggs = trayNo * 30;
+    let lessThanValues = Object.entries(list)
+        .filter(x => parseInt(x[0]) <= justAboveItem);
+
+    let remainder;
+    let done = false;
+    let cleanExit;
+    lessThanValues = lessThanValues
+        .sort((a, b) => parseInt(b[0]) - parseInt(a[0]));
+    console.log("LESS THAN VALUES----------------------------------------------")
+    console.log(lessThanValues)
+    lessThanValues.forEach(item => {
+        if (done) return 0;
+        console.log("AT:", new Date(parseInt(item[0])).toDateString(), item[1]);
+        const eggStr = item[1].split(',');
+        let trays = parseInt(eggStr[0]);
+        let eggs = parseInt(eggStr[1]);
+        const totalEggs = (trays * 30) + eggs;
+        if (toSellEggs - totalEggs < 0) {
+            const temp = totalEggs - toSellEggs;
+            toSellEggs = 0;
+            remainder = {
+                date: parseInt(item[0]),
+                eggs: temp
+            }
+            console.log("less than zero");
+            done = true;
+        } else if (toSellEggs - totalEggs === 0) {
+            toSellEggs -= totalEggs;
+            console.log("clean");
+            cleanExit = parseInt(item[0]);
+            done = true;
+        } else {
+            toSellEggs -= totalEggs;
+            console.log("clean");
+        }
+    });
+
+    if (toSellEggs !== 0) {
+        errorMessage("Previous check got passed, not enough trays!",
             values.values.name);
     }
 
@@ -585,6 +653,7 @@ async function saleParamCheck(values) {
     if (found) {
         errorMessage("Duplicate data!", values.values.name);
     }
+    //checks if some sales will not have enough eggs to burn
     await verifyEggs(values);
 }
 async function buyParamCheck(values, submittedOn) {
@@ -766,6 +835,14 @@ async function assertInputsAreCorrect(query) {
         }
         else if (data.values.category === "send") {
             await sendParamCheck(data.values, data.submittedOn);
+        }
+    }
+    for (let i = 0; i < query.size; i++) {
+        const doc = query.docs[i];
+        const data = doc.data();
+        if (data.values.category === "sales") {
+            //burns eggs
+            await updateEggs(data);
         }
     }
 }
