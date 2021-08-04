@@ -265,13 +265,6 @@ function Dashboard(props) {
      return str_1
    }
 
-  const getLastEggs = () => {
-     if(chick) {
-       return { weeklyAllPercent: chick.prevWeekPercent };
-     }
-     return { weeklyAllPercent: 0 };
-   }
-
   const getAmount = (item) => {
      if (item?.values?.trayNo)
        return parseInt(item?.values?.trayNo)
@@ -438,20 +431,20 @@ function Dashboard(props) {
                             delay={1}
                             onEnd={() => setDone1(true)}
                         />}{done1 && numeral(chick[0].weekPercent).format("0.00")}%</h3>
-                        <p className={`text-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)
+                        <p className={`text-${riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0
-                              ? numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent)).format("0.0"))}%
+                          {riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent) < 0
+                              ? numeral(riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent)).format("0.0"))}%
                         </p>
                       </div>
 
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent) < 0 ? 'danger' : 'success'}`}>
                         <span
-    className={`mdi mdi-arrow-${riseDrop(chick[0].weekPercent, getLastEggs().weeklyAllPercent) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+    className={`mdi mdi-arrow-${riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}

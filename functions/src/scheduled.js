@@ -752,7 +752,6 @@ async function sendParamCheck(values, submittedOn) {
 }
 
 async function assertInputsAreCorrect(query) {
-    //TODO Mark 1500 and Feeds entry in my balance as wrong entry
     for (let i = 0; i < query.size; i++) {
         const doc = query.docs[i];
         const data = doc.data();
@@ -1025,74 +1024,32 @@ exports.updateTx = functions.region('europe-west2').pubsub
  * situation where trays are sold on the same day they where collected and no
  * trays to burn are available in the linked list to accomodate the transaction.
  */
-exports.dailyChanges = functions.region('europe-west2').pubsub
-    .schedule('every 1 hours from 03:00 to 04:00')
+exports.dailyChanges = functions.runWith(runtimeOpts).region('europe-west2')
+    .pubsub.schedule('every 1 hours from 03:00 to 04:00')
     .timeZone('Africa/Nairobi').onRun(async () => {
         await dailyUpdateBags();
         await dailyCurrentTraysCheck();
-
-    return admin.firestore()
-        .collection("pending_transactions")
-        .orderBy("submittedOn", "asc")
-        .get()
-        .then(async (query) => {
-            await assertInputsAreCorrect(query);
-            initializeMap();
-            await calculateBalance();
-            let counter = 0;
-            console.log("Balances correct, Starting miner...");
-            let difficulty = await admin.firestore().doc('temp/difficulty').get();
-            difficulty = parseInt(difficulty.data().diff);
-            const viczcoin = new Blockchain(users.get(USERS.MINER),
-                999999999999999,
-                'genesis_block', difficulty);
-
-            query.forEach((doc) => {
-                counter += 1;
-                const data = doc.data();
-                if (data.values.category === "sales") {
-                    const total = parseFloat(data.values.trayNo)
-                        * parseFloat(data.values.trayPrice);
-
-                    if (total <= 0) {
-                        const err = new Error("Less than zero / zero!");
-                        let details = {
-                            title: `Less than zero / zero!`,
-                            body: `${err.message}: ${err.stack}`,
-                            name: 'VICTOR'
-                        }
-                        makeANotificationToOneUser(details);
-                        throw err;
-                    }
-                    let replaced = 'null';
-                    if (data.values.replaced) {
-                        replaced = JSON.parse(data.values.replaced)
-                            ? data.values.date.toDate().toDateString().concat(";")
-                                .concat(data.values.section).concat(";")
-                                .concat("sales", ";",data.values.buyerName) : "null";
-                    }
-                    const tx1 = new Transaction(
-                        users.get(USERS.MINER),
-                        users.get(data.values.section), total,
-                        actions.SELL.concat(";", data.values.section, ";",
-                            data.values.buyerName, ";FROM:", USERS.MINER, ";TO:",
-                            data.values.section), replaced,
-                        data.values.date.toDate().toDateString());
-                    tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
-                    viczcoin.addTransaction(tx1);
-                        if (data.values.section !== "THIKA_FARMERS") {
-                            const tx2 = new Transaction(users.get(USERS.MINER),
-                                users.get(data.values.name), total,
-                                actions.SELL.concat(";").concat(data.values.section, ";").concat(data.values.buyerName,
-                                    ";FROM:", USERS.MINER, ";TO:", data.values.name),
-                                replaced, data.values.date.toDate().toDateString());
-                            tx2.signTransaction(users.get(USERS.MINER.concat("_pr")));
-                            viczcoin.addTransaction(tx2);
-                        }
-                    }
-                    else if (data.values.category === "buys") {
-                        const total = parseFloat(data.values.objectNo) * parseFloat(data.values.objectPrice);
-
+        return admin.firestore()
+            .collection("pending_transactions")
+            .orderBy("submittedOn", "asc")
+            .get()
+            .then(async (query) => {
+                await assertInputsAreCorrect(query);
+                initializeMap();
+                await calculateBalance();
+                let counter = 0;
+                console.log("Balances correct, Starting miner...");
+                let difficulty = await admin.firestore().doc('temp/difficulty').get();
+                difficulty = parseInt(difficulty.data().diff);
+                const viczcoin = new Blockchain(users.get(USERS.MINER),
+                    999999999999999,
+                    'genesis_block', difficulty);
+                query.forEach((doc) => {
+                    counter += 1;
+                    const data = doc.data();
+                    if (data.values.category === "sales") {
+                        const total = parseFloat(data.values.trayNo)
+                            * parseFloat(data.values.trayPrice);
                         if (total <= 0) {
                             const err = new Error("Less than zero / zero!");
                             let details = {
@@ -1105,211 +1062,249 @@ exports.dailyChanges = functions.region('europe-west2').pubsub
                         }
                         let replaced = 'null';
                         if (data.values.replaced) {
+                            replaced = JSON.parse(data.values.replaced)
+                                ? data.values.date.toDate().toDateString().concat(";")
+                                    .concat(data.values.section).concat(";")
+                                    .concat("sales", ";",data.values.buyerName) : "null";
+                        }
+                        const tx1 = new Transaction(
+                            users.get(USERS.MINER),
+                            users.get(data.values.section), total,
+                            actions.SELL.concat(";", data.values.section, ";",
+                                data.values.buyerName, ";FROM:", USERS.MINER, ";TO:",
+                                data.values.section), replaced,
+                            data.values.date.toDate().toDateString());
+                        tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
+                        viczcoin.addTransaction(tx1);
+                            if (data.values.section !== "THIKA_FARMERS") {
+                                const tx2 = new Transaction(users.get(USERS.MINER),
+                                    users.get(data.values.name), total,
+                                    actions.SELL.concat(";").concat(data.values.section, ";").concat(data.values.buyerName,
+                                        ";FROM:", USERS.MINER, ";TO:", data.values.name),
+                                    replaced, data.values.date.toDate().toDateString());
+                                tx2.signTransaction(users.get(USERS.MINER.concat("_pr")));
+                                viczcoin.addTransaction(tx2);
+                            }
+                        }
+                        else if (data.values.category === "buys") {
+                            const total = parseFloat(data.values.objectNo) * parseFloat(data.values.objectPrice);
+                            if (total <= 0) {
+                                const err = new Error("Less than zero / zero!");
+                                let details = {
+                                    title: `Less than zero / zero!`,
+                                    body: `${err.message}: ${err.stack}`,
+                                    name: 'VICTOR'
+                                }
+                                makeANotificationToOneUser(details);
+                                throw err;
+                            }
+                            let replaced = 'null';
+                            if (data.values.replaced) {
+                                replaced = JSON.parse(data.values.replaced) ? data.values.date.toDate()
+                                    .toDateString().concat(";")
+                                    .concat(data.values.section).concat(";").concat("purchase") : "null";
+                            }
+
+                            if (data.values.section === "OTHER_PURITY") {
+                                const tx1 = new Transaction(users.get(data.values.name),
+                                    users.get(data.values.section), total, actions.BUY.concat(";")
+                                        .concat(data.values.section, ";")
+                                        .concat(data.values.itemName,
+                                            ";FROM:", data.values.name, ";TO:", data.values.section),
+                                    replaced, data.values.date.toDate().toDateString());
+                                tx1.signTransaction(users.get(data.values.name.concat("_pr")));
+                                viczcoin.addTransaction(tx1);
+                            } else {
+                                const tx1 = new Transaction(users.get(USERS.MINER),
+                                    users.get(data.values.section), total, actions.BUY.concat(";")
+                                        .concat(data.values.section, ";")
+                                        .concat(data.values.itemName,
+                                            ";FROM:", USERS.MINER, ";TO:", data.values.section),
+                                    replaced, data.values.date.toDate().toDateString());
+                                tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
+                                viczcoin.addTransaction(tx1);
+                            }
+
+                        }
+                        else if (data.values.category === "borrow") {
+                        let replaced = 'null';
+                        if (data.values.replaced) {
                             replaced = JSON.parse(data.values.replaced) ? data.values.date.toDate()
                                 .toDateString().concat(";")
-                                .concat(data.values.section).concat(";").concat("purchase") : "null";
+                                .concat("BORROWED:", data.values.borrower, ";GET_FROM:",
+                                    data.values.get_from).concat(";").concat("borrow") : "null";
                         }
 
-                        if (data.values.section === "OTHER_PURITY") {
-                            const tx1 = new Transaction(users.get(data.values.name),
-                                users.get(data.values.section), total, actions.BUY.concat(";")
-                                    .concat(data.values.section, ";")
-                                    .concat(data.values.itemName,
-                                        ";FROM:", data.values.name, ";TO:", data.values.section),
+                            if (parseFloat(data.values.amount) <= 0) {
+                                const err = new Error("Less than zero / zero!");
+                                let details = {
+                                    title: `Less than zero / zero!`,
+                                    body: `${err.message}: ${err.stack}`,
+                                    name: 'VICTOR'
+                                }
+                                makeANotificationToOneUser(details);
+                                throw err;
+                            }
+                            const tx1 = new Transaction(users.get(data.values.borrower),
+                                users.get(data.values.get_from), parseFloat(data.values.amount),
+                                actions.TRADE.concat(";FROM:", data.values.borrower, ";TO:",
+                                    data.values.get_from),
                                 replaced, data.values.date.toDate().toDateString());
+                            tx1.signTransaction(users.get(data.values.borrower.concat("_pr")));
+                            viczcoin.addTransaction(tx1);
+                        }
+                        else if (data.values.category === "send") {
+                            if (parseFloat(data.values.amount) <= 0) {
+                                const err = new Error("Less than zero / zero!");
+                                let details = {
+                                    title: `Less than zero / zero!`,
+                                    body: `${err.message}: ${err.stack}`,
+                                    name: 'VICTOR'
+                                }
+                                makeANotificationToOneUser(details);
+                                throw err;
+                            }
+
+                            const tx1 = new Transaction(users.get(data.values.name), users.get(data.values.receiver),
+                                parseFloat(data.values.amount), actions.TRADE
+                                    .concat(";FROM:", data.values.name, ";TO:", data.values.receiver),
+                                "null", data.submittedOn.toDate().toDateString());
                             tx1.signTransaction(users.get(data.values.name.concat("_pr")));
                             viczcoin.addTransaction(tx1);
-                        } else {
-                            const tx1 = new Transaction(users.get(USERS.MINER),
-                                users.get(data.values.section), total, actions.BUY.concat(";")
-                                    .concat(data.values.section, ";")
-                                    .concat(data.values.itemName,
-                                        ";FROM:", USERS.MINER, ";TO:", data.values.section),
-                                replaced, data.values.date.toDate().toDateString());
-                            tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
-                            viczcoin.addTransaction(tx1);
                         }
-
-                    }
-                    else if (data.values.category === "borrow") {
-                    let replaced = 'null';
-                    if (data.values.replaced) {
-                        replaced = JSON.parse(data.values.replaced) ? data.values.date.toDate()
-                            .toDateString().concat(";")
-                            .concat("BORROWED:", data.values.borrower, ";GET_FROM:",
-                                data.values.get_from).concat(";").concat("borrow") : "null";
-                    }
-
-                        if (parseFloat(data.values.amount) <= 0) {
-                            const err = new Error("Less than zero / zero!");
-                            let details = {
-                                title: `Less than zero / zero!`,
-                                body: `${err.message}: ${err.stack}`,
-                                name: 'VICTOR'
+                        if (counter === query.size) {
+                            viczcoin.minePendingTransactions();
+                            console.log("Is blockchain valid: ", viczcoin.isChainValid());
+                            const hash = viczcoin.getLatestBlock().hash;
+                            const converted = JSON.stringify(viczcoin);
+                            const final = JSON.parse(converted);
+                            const all = {
+                                ...final
                             }
-                            makeANotificationToOneUser(details);
-                            throw err;
-                        }
-                        const tx1 = new Transaction(users.get(data.values.borrower),
-                            users.get(data.values.get_from), parseFloat(data.values.amount),
-                            actions.TRADE.concat(";FROM:", data.values.borrower, ";TO:",
-                                data.values.get_from),
-                            replaced, data.values.date.toDate().toDateString());
-                        tx1.signTransaction(users.get(data.values.borrower.concat("_pr")));
-                        viczcoin.addTransaction(tx1);
-                    }
-                    else if (data.values.category === "send") {
-                        if (parseFloat(data.values.amount) <= 0) {
-                            const err = new Error("Less than zero / zero!");
-                            let details = {
-                                title: `Less than zero / zero!`,
-                                body: `${err.message}: ${err.stack}`,
-                                name: 'VICTOR'
+                            async function calcAndSend(hash) {
+                                const notification = {
+                                    content: 'A block was mined',
+                                    extraContent: `Hash of ${hash}`,
+                                    identifier: 'mine',
+                                    user: `MINER`,
+                                    time: admin.firestore.FieldValue.serverTimestamp(),
+                                }
+                                createNotification(notification);
+                                function davidEncrypting(){
+                                    const david = {
+                                        secretKey: new Uint8Array ([
+                                            233,
+                                            216,
+                                            90,
+                                            133,
+                                            40,
+                                            79,
+                                            126,
+                                            212,
+                                            17,
+                                            200,
+                                            50,
+                                            211,
+                                            4,
+                                            132,
+                                            46,
+                                            146,
+                                            111,
+                                            111,
+                                            120,
+                                            140,
+                                            99,
+                                            156,
+                                            76,
+                                            138,
+                                            150,
+                                            212,
+                                            141,
+                                            81,
+                                            248,
+                                            49,
+                                            52,
+                                            10 ]
+                                        )
+                                    };
+                                    const viktoria = {
+                                        publicKey: new Uint8Array ([
+                                            220,
+                                            42,
+                                            120,
+                                            140,
+                                            198,
+                                            11,
+                                            136,
+                                            251,
+                                            140,
+                                            222,
+                                            150,
+                                            95,
+                                            111,
+                                            110,
+                                            42,
+                                            88,
+                                            173,
+                                            59,
+                                            131,
+                                            233,
+                                            101,
+                                            85,
+                                            187,
+                                            100,
+                                            157,
+                                            101,
+                                            89,
+                                            25,
+                                            201,
+                                            227,
+                                            174,
+                                            40 ])
+                                    };
+                                    //David computes a one time shared key
+                                    const david_shared_key = nacl.box.before(viktoria.publicKey,david.secretKey);
+
+                                    //David also computes a one time code.
+                                    const one_time_code = nacl.randomBytes(24);
+
+                                    //Davids message
+                                    const plain_text = SHA512("isDoneFam").toString();
+
+                                    //Getting the cipher text
+                                    const cipher_text = nacl.box.after(
+                                        nacl.util.decodeUTF8(plain_text),
+                                        one_time_code,
+                                        david_shared_key
+                                    );
+
+                                    //message to be transited.
+                                    return {cipher_text, one_time_code};
+                                }
+                                const cipher = davidEncrypting();
+                                const cipher_text = String(cipher.cipher_text);
+                                const one_time_code = String(cipher.one_time_code);
+
+                                await admin.firestore()
+                                    .doc('pending_transactions/cleared').update({
+                                        isDone: admin.firestore.FieldValue.serverTimestamp(),
+                                        message: {
+                                            cipher_text,
+                                            one_time_code
+                                        }
+                                    });
+                                return await calculateBalance();
                             }
-                            makeANotificationToOneUser(details);
-                            throw err;
+                            admin.firestore().collection("blockchain").add({
+                                ...all,
+                                minedOn: admin.firestore.FieldValue.serverTimestamp()
+                            }).then(async () => {
+                                await calcAndSend(hash);
+                            });
                         }
-
-                        const tx1 = new Transaction(users.get(data.values.name), users.get(data.values.receiver),
-                            parseFloat(data.values.amount), actions.TRADE
-                                .concat(";FROM:", data.values.name, ";TO:", data.values.receiver),
-                            "null", data.submittedOn.toDate().toDateString());
-                        tx1.signTransaction(users.get(data.values.name.concat("_pr")));
-                        viczcoin.addTransaction(tx1);
-                    }
-                    if (counter === query.size) {
-                        viczcoin.minePendingTransactions();
-                        console.log("Is blockchain valid: ", viczcoin.isChainValid());
-                        const hash = viczcoin.getLatestBlock().hash;
-                        const converted = JSON.stringify(viczcoin);
-                        const final = JSON.parse(converted);
-                        const all = {
-                            ...final
-                        }
-                        async function calcAndSend(hash) {
-                            const notification = {
-                                content: 'A block was mined',
-                                extraContent: `Hash of ${hash}`,
-                                identifier: 'mine',
-                                user: `MINER`,
-                                time: admin.firestore.FieldValue.serverTimestamp(),
-                            }
-                            createNotification(notification);
-                            function davidEncrypting(){
-                                const david = {
-                                    secretKey: new Uint8Array ([
-                                        233,
-                                        216,
-                                        90,
-                                        133,
-                                        40,
-                                        79,
-                                        126,
-                                        212,
-                                        17,
-                                        200,
-                                        50,
-                                        211,
-                                        4,
-                                        132,
-                                        46,
-                                        146,
-                                        111,
-                                        111,
-                                        120,
-                                        140,
-                                        99,
-                                        156,
-                                        76,
-                                        138,
-                                        150,
-                                        212,
-                                        141,
-                                        81,
-                                        248,
-                                        49,
-                                        52,
-                                        10 ]
-                                    )
-                                };
-                                const viktoria = {
-                                    publicKey: new Uint8Array ([
-                                        220,
-                                        42,
-                                        120,
-                                        140,
-                                        198,
-                                        11,
-                                        136,
-                                        251,
-                                        140,
-                                        222,
-                                        150,
-                                        95,
-                                        111,
-                                        110,
-                                        42,
-                                        88,
-                                        173,
-                                        59,
-                                        131,
-                                        233,
-                                        101,
-                                        85,
-                                        187,
-                                        100,
-                                        157,
-                                        101,
-                                        89,
-                                        25,
-                                        201,
-                                        227,
-                                        174,
-                                        40 ])
-                                };
-                                //David computes a one time shared key
-                                const david_shared_key = nacl.box.before(viktoria.publicKey,david.secretKey);
-
-                                //David also computes a one time code.
-                                const one_time_code = nacl.randomBytes(24);
-
-                                //Davids message
-                                const plain_text = SHA512("isDoneFam").toString();
-
-                                //Getting the cipher text
-                                const cipher_text = nacl.box.after(
-                                    nacl.util.decodeUTF8(plain_text),
-                                    one_time_code,
-                                    david_shared_key
-                                );
-
-                                //message to be transited.
-                                return {cipher_text, one_time_code};
-                            }
-                            const cipher = davidEncrypting();
-                            const cipher_text = String(cipher.cipher_text);
-                            const one_time_code = String(cipher.one_time_code);
-
-                            await admin.firestore()
-                                .doc('pending_transactions/cleared').update({
-                                    isDone: admin.firestore.FieldValue.serverTimestamp(),
-                                    message: {
-                                        cipher_text,
-                                        one_time_code
-                                    }
-                                });
-                            return await calculateBalance();
-                        }
-                        admin.firestore().collection("blockchain").add({
-                            ...all,
-                            minedOn: admin.firestore.FieldValue.serverTimestamp()
-                        }).then(async () => {
-                            await calcAndSend(hash);
-                        });
-                    }
-            });
-            return console.log("mining done!");
-    });
+                });
+                return console.log("mining done!");
+        });
 });
 
 function predictBags() {
