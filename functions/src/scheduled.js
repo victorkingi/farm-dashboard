@@ -1,11 +1,10 @@
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-
 const admin = require('firebase-admin');
 const functions = require('firebase-functions');
 const firestore = require('@google-cloud/firestore');
 const client = new firestore.v1.FirestoreAdminClient();
-
 const bucket = 'gs://poultry101-6b1ed-firestore-backup';
+
+const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const numeral = require('numeral');
 const {
     makeANotificationToOneUser,
@@ -13,7 +12,6 @@ const {
     createNotification,
     errorMessage
 } = require("./helper");
-
 const date = new Date();
 const chickenDocRef = admin.firestore().collection("chicken_details")
     .doc("current");
@@ -1090,22 +1088,22 @@ async function updateTxList() {
         });
 }
 
-exports.updateTx = functions.region('europe-west2').pubsub
+exports.dailyChanges = functions.region('europe-west2').pubsub
     .schedule('every 24 hours')
-    .timeZone('Africa/Nairobi').onRun(() => {
+    .timeZone('Africa/Nairobi').onRun(async () => {
+        await dailyUpdateBags();
+        await dailyCurrentTraysCheck();
         return updateTxList();
     });
 
 /**
- * eggsChange function always has to run earlier than dailyChanges function to prevent
+ * eggsChange function always has to run earlier than wakeUpMiner function to prevent
  * situation where trays are sold on the same day they where collected and no
- * trays to burn are available in the linked list to accomodate the transaction.
+ * trays to burn are available in the linked list to accommodate the transaction.
  */
-exports.dailyChanges = functions.runWith(runtimeOpts).region('europe-west2')
+exports.wakeUpMiner = functions.runWith(runtimeOpts).region('europe-west2')
     .pubsub.schedule('every 1 hours from 03:00 to 04:00')
-    .timeZone('Africa/Nairobi').onRun(async () => {
-        await dailyUpdateBags();
-        await dailyCurrentTraysCheck();
+    .timeZone('Africa/Nairobi').onRun(() => {
         return admin.firestore()
             .collection("pending_transactions")
             .orderBy("submittedOn", "asc")
