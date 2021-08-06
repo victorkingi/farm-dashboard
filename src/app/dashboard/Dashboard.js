@@ -776,8 +776,9 @@ function Dashboard(props) {
                         }</h2>
                         <p className={`text-${riseDrop(
                             getRevenue(getTotal(stats).sales,
-                                getTotal(stats).buys), getRevenue(getTotal(stats).prevMonthSale,
-                                getTotal(stats).prevMonthBuy)) < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}> {riseDrop(
+                                getTotal(stats).buys), getRevenue(getTotal(stats).prevAmountSale,
+                                getTotal(stats).prevAmountBuy)) < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(
                             getRevenue(getTotal(stats).sales,
                             getTotal(stats).buys), getRevenue(getTotal(stats).prevAmountSale,
                                 getTotal(stats).prevAmountBuy)) < 0
