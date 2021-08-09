@@ -370,9 +370,14 @@ function Dashboard(props) {
 
   const availToWithdraw = () => {
      if (profit) {
+       let myProfit = '0,0';
+       for (let i = 0; i < profit.length; i++) {
+         if (profit[i].id === 'available') myProfit = profit[i];
+       }
+       if (myProfit === '0,0') return myProfit;
        let user = localStorage.getItem('name');
        user = user !== null ? user.toUpperCase() : '';
-       return profit[0][user].toString()+','+profit[0]['prev'+user];
+       return myProfit[user]?.toString()+','+myProfit['prev'+user];
      }
     return '0,0'
    }
