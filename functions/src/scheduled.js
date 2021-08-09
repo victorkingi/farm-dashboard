@@ -400,7 +400,7 @@ async function calculateBalance() {
 
 const runtimeOptRecalc = {
     timeoutSeconds: 540,
-    memory: '128MB'
+    memory: '256MB'
 }
 
 exports.recalc = functions.runWith(runtimeOptRecalc).pubsub.schedule('every 2 hours')
@@ -1085,7 +1085,7 @@ async function updateTxList() {
 
 const runtimeOptsDaily = {
     timeoutSeconds: 540,
-    memory: '128MB'
+    memory: '256MB'
 }
 
 exports.dailyChanges = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
