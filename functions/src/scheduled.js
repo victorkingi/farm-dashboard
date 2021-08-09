@@ -400,19 +400,14 @@ async function calculateBalance() {
 
 const runtimeOptRecalc = {
     timeoutSeconds: 540,
-    memory: '8GB'
+    memory: '128MB'
 }
 
 exports.recalc = functions.runWith(runtimeOptRecalc).pubsub.schedule('every 2 hours')
     .onRun((async () => {
         initializeMap();
         await calculateBalance();
-    }))
-
-const runtimeOpts = {
-    timeoutSeconds: 540,
-    memory: '8GB'
-}
+    }));
 
 function checkPreExistingDataSale(preExist, values, found, type) {
     for (let i = 0; i < preExist.size; i++) {
@@ -1088,7 +1083,12 @@ async function updateTxList() {
         });
 }
 
-exports.dailyChanges = functions.region('europe-west2').pubsub
+const runtimeOptsDaily = {
+    timeoutSeconds: 540,
+    memory: '128MB'
+}
+
+exports.dailyChanges = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
     .schedule('every 24 hours')
     .timeZone('Africa/Nairobi').onRun(async () => {
         await dailyUpdateBags();
@@ -1101,7 +1101,7 @@ exports.dailyChanges = functions.region('europe-west2').pubsub
  * situation where trays are sold on the same day they where collected and no
  * trays to burn are available in the linked list to accommodate the transaction.
  */
-exports.wakeUpMiner = functions.runWith(runtimeOpts).region('europe-west2')
+exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
     .pubsub.schedule('every 1 hours from 03:00 to 04:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         return admin.firestore()
@@ -1497,7 +1497,7 @@ function predictProfit() {
 }
 
 const runtimeOptWeekly = {
-    timeoutSeconds: 540,
+    timeoutSeconds: 120,
 }
 
 exports.weeklyChanges = functions.runWith(runtimeOptWeekly)
