@@ -102,7 +102,7 @@ function getUser() {
   else if (user === 'JEFF') return 1;
   else if (user === 'VICTOR') return 2;
   else if (user === 'BABRA') return 3;
-  else return -1;
+  else return 3;
 }
 
 function Dashboard(props) {
