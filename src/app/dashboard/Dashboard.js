@@ -95,6 +95,16 @@ function getTotal(stats) {
   return { sales: 0, buys: 0 }
 }
 
+function getUser() {
+  let user = localStorage.getItem('name');
+  user = user !== null ? user.toUpperCase() : '';
+  if (user === 'BANK') return 0;
+  else if (user === 'JEFF') return 1;
+  else if (user === 'VICTOR') return 2;
+  else if (user === 'BABRA') return 3;
+  else return -1;
+}
+
 function Dashboard(props) {
   const { notifications, pend, forProfit,
       profit, bags, chick, trays,
@@ -108,6 +118,7 @@ function Dashboard(props) {
   const [done1, setDone1] = useState(false);
   const [done2, setDone2] = useState(false);
   const [done3, setDone3] = useState(false);
+  const [done4, setDone4] = useState(false);
   const [error, setError] = useState(false);
   const [errM, setErrM] = useState('');
   const [disable, setDisable] = useState(false);
@@ -385,7 +396,7 @@ function Dashboard(props) {
   return (
       <div>
           <div className="row">
-            <div id="safeWithdraw" className="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
                   {profit &&
@@ -418,6 +429,38 @@ function Dashboard(props) {
                     </div>
                   </div>}
                   <h6 className="text-muted font-weight-normal">Amount Available to Withdraw</h6>
+                </div>
+              </div>
+            </div>
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  {current &&
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">Ksh {!done4 &&
+                        <CountUp
+                            start={Math.abs(parseFloat(current[getUser()].balance) - 1000)}
+                            end={parseFloat(current[getUser()].balance)}
+                            duration={2.75}
+                            delay={1}
+                            onEnd={() => setDone4(true)}
+                        />}{done4 && numeral(parseFloat(current[getUser()].balance)).format("0,0")}</h3>
+                        <p className={`text-success ml-2 mb-0 font-weight-medium`}>
+                          {'+'.concat(numeral().format("0.0"))}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="col-3">
+                      <div
+                          className={`icon icon-box-success`}>
+                        <span
+                            className={`mdi mdi-arrow-top-right icon-item`}/>
+                      </div>
+                    </div>
+                  </div>}
+                  <h6 className="text-muted font-weight-normal">Current Debt</h6>
                 </div>
               </div>
             </div>
@@ -490,7 +533,6 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
-            {!isMobile &&
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
@@ -498,21 +540,21 @@ function Dashboard(props) {
                   <div className="row">
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">Ksh {numeral(current[2].balance).format("0,0.00")}</h3>
-                        <p className={`text-${riseDrop(current[2].balance, current[2].balance)
+                        <h3 className="mb-0">Ksh {numeral(current[0].balance).format("0,0.00")}</h3>
+                        <p className={`text-${riseDrop(current[0].balance, current[0].balance)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(current[2].balance, current[2].balance) < 0
-                              ? numeral(riseDrop(current[2].balance, current[2].balance)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(current[2].balance, current[2].balance)).format("0.0"))}%
+                          {riseDrop(current[0].balance, current[0].balance) < 0
+                              ? numeral(riseDrop(current[0].balance, current[0].balance)).format("0.0")
+                              : '+'.concat(numeral(riseDrop(current[0].balance, current[0].balance)).format("0.0"))}%
                         </p>
                       </div>
 
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(current[2].balance, current[2].balance) < 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(current[0].balance, current[0].balance) < 0 ? 'danger' : 'success'}`}>
                         <span
-    className={`mdi mdi-arrow-${riseDrop(riseDrop(current[2].balance, current[2].balance)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                            className={`mdi mdi-arrow-${riseDrop(riseDrop(current[0].balance, current[0].balance)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -520,7 +562,6 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
-            }
             {!isMobile &&
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
@@ -547,36 +588,6 @@ function Dashboard(props) {
                     </div>
                   </div>}
                   <h6 className="text-muted font-weight-normal">Forecasted Next Week Profit</h6>
-                </div>
-              </div>
-            </div>
-            }
-            {!isMobile &&
-            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-              <div className="card">
-                <div className="card-body">
-                  {forProfit && <div className="row">
-                    <div className="col-9">
-                      <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">KSh {numeral(parseFloat(forProfit[0].profit))
-                            .format("0,0.00")}</h3>
-                        <p className={`text-${riseDrop(forProfit[0].profit, forProfit[1].profit)
-                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(forProfit[0].profit, forProfit[1].profit) < 0
-                              ? numeral(riseDrop(forProfit[0].profit, forProfit[1].profit)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(forProfit[0].profit, forProfit[1].profit)).format("0.0"))}%
-                        </p>
-                      </div>
-                    </div>
-                    <div className="col-3">
-                      <div
-                          className={`icon icon-box-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'danger' : 'success'}`}>
-                        <span
-    className={`mdi mdi-arrow-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
-                      </div>
-                    </div>
-                  </div>}
-                  <h6 className="text-muted font-weight-normal">Forecasted 2 Weeks After Profit</h6>
                 </div>
               </div>
             </div>
@@ -1027,8 +1038,8 @@ export default compose(
       {collection: 'bags', orderBy: ['submittedOn', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
+      {collection: 'current', orderBy: ['important', 'asc'] },
       {collection: 'transactions', limit: 1},
-      {collection: 'current', limit: 3, orderBy: ['name', 'asc']},
       {collection: 'stats'}
     ])
 )(Dashboard);
