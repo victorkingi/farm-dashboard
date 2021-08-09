@@ -441,12 +441,12 @@ function Dashboard(props) {
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">Ksh {!done4 &&
                         <CountUp
-                            start={Math.abs(parseFloat(current[getUser()].balance) - 1000)}
-                            end={parseFloat(current[getUser()].balance)}
+                            start={Math.abs(parseFloat(current[getUser()]?.balance) - 1000)}
+                            end={parseFloat(current[getUser()]?.balance)}
                             duration={2.75}
                             delay={1}
                             onEnd={() => setDone4(true)}
-                        />}{done4 && numeral(parseFloat(current[getUser()].balance)).format("0,0")}</h3>
+                        />}{done4 && numeral(parseFloat(current[getUser()]?.balance)).format("0,0")}</h3>
                         <p className={`text-success ml-2 mb-0 font-weight-medium`}>
                           {'+'.concat(numeral().format("0.0"))}%
                         </p>
