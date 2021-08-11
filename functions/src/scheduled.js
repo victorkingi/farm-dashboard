@@ -1063,6 +1063,7 @@ async function updateTxList() {
         }
     }
     all = all.sort((a, b) => { return b.timestamp.getTime() - a.timestamp.getTime()});
+    all = all.slice(0, 5);
     for (let i = 0; i < all.length; i++) {
         labels.push(all[i].to);
         data.push(all[i].amount);
