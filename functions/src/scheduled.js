@@ -375,28 +375,36 @@ async function calculateBalance() {
     }
 }
 
-/*exports.fix = functions.firestore.document('me/me')
+/* exports.fix = functions.firestore.document('me/me')
     .onCreate(((snapshot, context) => {
-    console.log("Starting miner...");
-    initializeMap();
-    const viczcoin = new Blockchain(users.get(USERS.MINER));
-    const tx1 = new Transaction(users.get(USERS.MINER),
-        users.get('BANK'), 1350, actions.TRADE.concat("_").concat("WANJA_SENT_TO_BANK"),
-        "null", new Date().toDateString());
-    tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
-    viczcoin.addTransaction(tx1);
-    viczcoin.minePendingTransactions();
-    console.log("Is blockchain valid: ", viczcoin.isChainValid());
-    const converted = JSON.stringify(viczcoin);
-    const final = JSON.parse(converted);
-    const all = {
-        ...final
-    }
-    admin.firestore().collection("blockchain").add({
-        ...all,
-        minedOn: admin.firestore.FieldValue.serverTimestamp()
-    }).then(() => { return console.log("DONE"); });
-})) */
+        async function mine() {
+            console.log("Starting miner...");
+            initializeMap();
+            let difficulty = await admin.firestore().doc('temp/difficulty').get();
+            difficulty = parseInt(difficulty.data().diff);
+            const viczcoin = new Blockchain(users.get(USERS.MINER),
+                999999999999999,
+                'genesis_block', difficulty);
+            const tx1 = new Transaction(users.get(USERS.MINER),
+                users.get('BANK'), 286.43, actions.TRADE
+                    .concat(";INTEREST"),
+                "null", new Date().toDateString());
+            tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
+            viczcoin.addTransaction(tx1);
+            viczcoin.minePendingTransactions();
+            console.log("Is blockchain valid: ", viczcoin.isChainValid());
+            const converted = JSON.stringify(viczcoin);
+            const final = JSON.parse(converted);
+            const all = {
+                ...final
+            }
+            admin.firestore().collection("blockchain").add({
+                ...all,
+                minedOn: admin.firestore.FieldValue.serverTimestamp()
+            }).then(() => { return console.log("DONE"); });
+        }
+        return mine();
+})); */
 
 const runtimeOptRecalc = {
     timeoutSeconds: 540,

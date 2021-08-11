@@ -537,11 +537,24 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
         const list = data.linkedList;
         let allEggs = 0;
         if (beforeData.linkedList === data.linkedList) return 0;
+        let totalEntries = 0;
+        let oldestKey = Infinity;
         for (const [key, value] of Object.entries(list)) {
+            totalEntries++;
+            if (parseInt(key) < oldestKey) oldestKey = key;
             const collected = value.split(',');
             const trayEggs = parseInt(collected[0]) * 30;
             const total = trayEggs + parseInt(collected[1]);
             allEggs += total;
+        }
+        if (totalEntries > 100) {
+            if (list[oldestKey.toString()] === '0,0') {
+                delete list[oldestKey.toString()];
+                return admin.firestore().doc('trays/current_trays').update({
+                    linkedList: list,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+            }
         }
         const trays = allEggs / 30;
         let ans = parseInt(trays).toString().concat(',', (allEggs % 30).toString());
@@ -551,6 +564,22 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
             submittedOn: admin.firestore.FieldValue.serverTimestamp()
         });
     }));
+
+exports.prevBalance = functions.firestore.document('current/{curId}')
+    .onUpdate((change =>  {
+        const beforeData = change.before.exists ? change.before.data() : false;
+        const afterData = change.after.exists ? change.after.data() : false;
+        if (change.after.id === 'PREV') return 0;
+        const changed = beforeData && afterData && (parseFloat(afterData.balance) - parseFloat(beforeData.balance));
+        if (Math.abs(changed) > 0) {
+            return admin.firestore().doc('current/PREV')
+                .update({
+                    [change.after.id]: beforeData.balance,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+        }
+        return 0;
+    }))
 
 exports.availWithdraw = functions.firestore.document('profit/{profitId}')
     .onWrite(((change, context) => {
