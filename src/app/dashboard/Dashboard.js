@@ -12,7 +12,11 @@ import {Redirect} from "react-router-dom";
 import {isMobile} from 'react-device-detect';
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
-import {firestore, firebase} from "../../services/api/fbConfig";
+import {firestore} from "../../services/api/fbConfig";
+
+let __user__ = localStorage.getItem('name');
+__user__ = __user__ !== null ? __user__.toUpperCase() : '';
+
 
 function getLastSunday(d) {
   const t = new Date(d);
@@ -96,12 +100,10 @@ function getTotal(stats) {
 }
 
 function getUser() {
-  let user = localStorage.getItem('name');
-  user = user !== null ? user.toUpperCase() : '';
-  if (user === 'BANK') return 0;
-  else if (user === 'JEFF') return 1;
-  else if (user === 'VICTOR') return 2;
-  else if (user === 'BABRA') return 3;
+  if (__user__ === 'BANK') return 0;
+  else if (__user__ === 'JEFF') return 1;
+  else if (__user__ === 'VICTOR') return 2;
+  else if (__user__ === 'BABRA') return 3;
   else return 3;
 }
 
@@ -163,9 +165,7 @@ function Dashboard(props) {
   }
 
   useEffect(() => {
-    let name = firebase.auth().currentUser?.displayName;
-    name = name?.substring(0, name?.lastIndexOf(' '))?.toUpperCase();
-    setName(name);
+    setName(__user__);
     if (block) {
       let temp = block[0];
       const time = temp.time.map(x => x.toDate());
@@ -195,7 +195,7 @@ function Dashboard(props) {
         }
       }
     }
-  }, [block, pend]);
+  }, [name, block, pend]);
 
   // undo write events to database
   const rollBack = (state_) => {
@@ -386,9 +386,7 @@ function Dashboard(props) {
          if (profit[i].id === 'available') myProfit = profit[i];
        }
        if (myProfit === '0,0') return myProfit;
-       let user = localStorage.getItem('name');
-       user = user !== null ? user.toUpperCase() : '';
-       return myProfit[user]?.toString()+','+myProfit['prev'+user];
+       return myProfit[__user__]?.toString()+','+myProfit['prev'+__user__];
      }
     return '0,0'
    }
@@ -447,16 +445,25 @@ function Dashboard(props) {
                             delay={1}
                             onEnd={() => setDone4(true)}
                         />}{done4 && numeral(parseFloat(current[getUser()]?.balance)).format("0,0")}</h3>
-                        <p className={`text-success ml-2 mb-0 font-weight-medium`}>
-                          {'+'.concat(numeral().format("0.0"))}%
+                        <p className={`text-${riseDrop(parseFloat(current[getUser()]?.balance),
+                            parseFloat(current[4][__user__]))
+                        < 0 ? 'success' : 'danger'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(parseFloat(current[getUser()]?.balance),
+                              parseFloat(current[4][__user__])) < 0
+                              ? numeral(riseDrop(parseFloat(current[getUser()]?.balance),
+                                  parseFloat(current[4][__user__]))).format("0.0")
+                              : '+'.concat(numeral(riseDrop(parseFloat(current[getUser()]?.balance),
+                                  parseFloat(current[4][__user__]))).format("0.0"))}%
                         </p>
                       </div>
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-success`}>
+                          className={`icon icon-box-${riseDrop(parseFloat(current[getUser()]?.balance),
+                              parseFloat(current[4][__user__])) < 0 ? 'success' : 'danger'}`}>
                         <span
-                            className={`mdi mdi-arrow-top-right icon-item`}/>
+                            className={`mdi mdi-arrow-${riseDrop(parseFloat(current[getUser()]?.balance),
+                                parseFloat(current[4][__user__])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -464,7 +471,7 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
-            <div id="laying" className="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
                   {chick &&
@@ -541,20 +548,26 @@ function Dashboard(props) {
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">Ksh {numeral(current[0].balance).format("0,0.00")}</h3>
-                        <p className={`text-${riseDrop(current[0].balance, current[0].balance)
+                        <p className={`text-${riseDrop(parseFloat(current[0]?.balance),
+                            parseFloat(current[4]['BANK']))
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(current[0].balance, current[0].balance) < 0
-                              ? numeral(riseDrop(current[0].balance, current[0].balance)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(current[0].balance, current[0].balance)).format("0.0"))}%
+                          {riseDrop(parseFloat(current[0]?.balance),
+                              parseFloat(current[4]['BANK'])) < 0
+                              ? numeral(riseDrop(parseFloat(current[0]?.balance),
+                                  parseFloat(current[4]['BANK']))).format("0.0")
+                              : '+'.concat(numeral(riseDrop(parseFloat(current[0]?.balance),
+                                  parseFloat(current[4]['BANK']))).format("0.0"))}%
                         </p>
                       </div>
 
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(current[0].balance, current[0].balance) < 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(parseFloat(current[0]?.balance),
+                              parseFloat(current[4]['BANK'])) < 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(riseDrop(current[0].balance, current[0].balance)) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                            className={`mdi mdi-arrow-${riseDrop(parseFloat(current[0]?.balance),
+                                parseFloat(current[4]['BANK'])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
