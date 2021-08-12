@@ -394,7 +394,8 @@ function Dashboard(props) {
   return (
       <div>
           <div className="row">
-            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+            {parseFloat(availToWithdraw().split(',')[0]) > 0
+            && <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
                   {profit &&
@@ -403,11 +404,11 @@ function Dashboard(props) {
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">Ksh {!done &&
                         <CountUp
-                          start={Math.abs(parseFloat(availToWithdraw().split(',')[0]) - 1000)}
-                          end={parseFloat(availToWithdraw().split(',')[0])}
-                          duration={2.75}
-                          delay={1}
-                          onEnd={() => setDone(true)}
+                            start={Math.abs(parseFloat(availToWithdraw().split(',')[0]) - 1000)}
+                            end={parseFloat(availToWithdraw().split(',')[0])}
+                            duration={2.75}
+                            delay={1}
+                            onEnd={() => setDone(true)}
                         />}{done && numeral(availToWithdraw().split(',')[0]).format("0,0")}</h3>
                         <p className={`text-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
@@ -429,8 +430,9 @@ function Dashboard(props) {
                   <h6 className="text-muted font-weight-normal">Amount Available to Withdraw</h6>
                 </div>
               </div>
-            </div>
-            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+            </div>}
+            {parseFloat(current[getUser()]?.balance) > 0
+            && <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
                   {current &&
@@ -470,7 +472,7 @@ function Dashboard(props) {
                   <h6 className="text-muted font-weight-normal">Current Debt</h6>
                 </div>
               </div>
-            </div>
+            </div>}
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
