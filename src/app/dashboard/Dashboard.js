@@ -394,7 +394,7 @@ function Dashboard(props) {
   return (
       <div>
           <div className="row">
-            {parseFloat(availToWithdraw().split(',')[0]) > 0
+            {current && parseFloat(availToWithdraw().split(',')[0]) > 0
             && <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
@@ -431,7 +431,7 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>}
-            {parseFloat(current[getUser()]?.balance) > 0
+            {current && parseFloat(current[getUser()]?.balance) > 0
             && <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
