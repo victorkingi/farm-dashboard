@@ -431,7 +431,88 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>}
+            {current && parseFloat(availToWithdraw().split(',')[0]) <= 0
+            && !isMobile
+            && <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  {profit &&
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">Ksh {!done &&
+                        <CountUp
+                            start={Math.abs(parseFloat(availToWithdraw().split(',')[0]) - 1000)}
+                            end={parseFloat(availToWithdraw().split(',')[0])}
+                            duration={2.75}
+                            delay={1}
+                            onEnd={() => setDone(true)}
+                        />}{done && numeral(availToWithdraw().split(',')[0]).format("0,0")}</h3>
+                        <p className={`text-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0
+                              ? numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0.0")
+                              : '+'.concat(numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0.0"))}%
+                        </p>
+                      </div>
+
+                    </div>
+                    <div className="col-3">
+                      <div
+                          className={`icon icon-box-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                      </div>
+                    </div>
+                  </div>}
+                  <h6 className="text-muted font-weight-normal">Amount Available to Withdraw</h6>
+                </div>
+              </div>
+            </div>}
             {current && parseFloat(current[getUser()]?.balance) > 0
+            && <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  {current &&
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">Ksh {!done4 &&
+                        <CountUp
+                            start={Math.abs(parseFloat(current[getUser()]?.balance) - 1000)}
+                            end={parseFloat(current[getUser()]?.balance)}
+                            duration={2.75}
+                            delay={1}
+                            onEnd={() => setDone4(true)}
+                        />}{done4 && numeral(parseFloat(current[getUser()]?.balance)).format("0,0")}</h3>
+                        <p className={`text-${riseDrop(parseFloat(current[getUser()]?.balance),
+                            parseFloat(current[4][__user__]))
+                        < 0 ? 'success' : 'danger'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(parseFloat(current[getUser()]?.balance),
+                              parseFloat(current[4][__user__])) < 0
+                              ? numeral(riseDrop(parseFloat(current[getUser()]?.balance),
+                                  parseFloat(current[4][__user__]))).format("0.0")
+                              : '+'.concat(numeral(riseDrop(parseFloat(current[getUser()]?.balance),
+                                  parseFloat(current[4][__user__]))).format("0.0"))}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="col-3">
+                      <div
+                          className={`icon icon-box-${riseDrop(parseFloat(current[getUser()]?.balance),
+                              parseFloat(current[4][__user__])) < 0 ? 'success' : 'danger'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(parseFloat(current[getUser()]?.balance),
+                                parseFloat(current[4][__user__])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                      </div>
+                    </div>
+                  </div>}
+                  <h6 className="text-muted font-weight-normal">Current Debt</h6>
+                </div>
+              </div>
+            </div>}
+            {current && parseFloat(current[getUser()]?.balance) <= 0
+            && !isMobile
             && <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
