@@ -658,7 +658,7 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
-            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+            {isMobile && <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
                 <div className="card-body">
                   {current &&
@@ -692,7 +692,7 @@ function Dashboard(props) {
                   <h6 className="text-muted font-weight-normal">Thika Farmers Debt</h6>
                 </div>
               </div>
-            </div>
+            </div>}
             {!isMobile &&
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">

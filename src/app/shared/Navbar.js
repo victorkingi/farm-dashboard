@@ -53,7 +53,6 @@ function Navbar(props) {
   useEffect(() => {
     if (pending_upload?.length > 0) {
       allStorage().then(keyPair => {
-        let start = true;
         keyPair.forEach((value, key) => {
           function uploadFile() {
             const uploadImagesRef = storageRef.child(`dead_sick/${key.substring(5)}`);
@@ -137,17 +136,12 @@ function Navbar(props) {
                   })
                 });
           }
-          if (start) {
-            uploadFile();
-            start = false;
-          } else if (state.percent.get(key)?.toString() === "0") {
-            uploadFile();
-          }
+          uploadFile();
         });
       });
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pending_upload]);
+  }, []);
 
   const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
