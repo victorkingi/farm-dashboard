@@ -658,6 +658,41 @@ function Dashboard(props) {
                 </div>
               </div>
             </div>
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  {current &&
+                  <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">Ksh {numeral(current[6].balance - current[5].balance).format("0,0.00")}</h3>
+                        <p className={`text-${riseDrop(parseFloat(current[6].balance - current[5].balance),
+                            parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS']))
+                        > 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(parseFloat(current[6].balance - current[5].balance),
+                              parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])) < 0
+                              ? numeral(riseDrop(parseFloat(current[6].balance - current[5].balance),
+                                  parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS']))).format("0.0")
+                              : '+'.concat(numeral(riseDrop(parseFloat(current[6].balance - current[5].balance),
+                                  parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS']))).format("0.0"))}%
+                        </p>
+                      </div>
+
+                    </div>
+                    <div className="col-3">
+                      <div
+                          className={`icon icon-box-${riseDrop(parseFloat(current[6].balance - current[5].balance),
+                              parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])) > 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(parseFloat(current[6].balance - current[5].balance),
+                                parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                      </div>
+                    </div>
+                  </div>}
+                  <h6 className="text-muted font-weight-normal">Thika Farmers Debt</h6>
+                </div>
+              </div>
+            </div>
             {!isMobile &&
             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
               <div className="card">
