@@ -9,10 +9,13 @@ class Transaction {
         this.signature = '';
         this.replaced = replaced === undefined ? "" : replaced;
         this.timestamp = timestamp === undefined ? "" : timestamp;
+        this.hashTx = ''
     }
 
     calculateHash() {
-        return SHA512(this.fromAddress+this.toAddress+this.amount+this.reason).toString();
+        this.hashTx = SHA512(this.fromAddress + this.toAddress + this.amount
+            + this.reason + this.replaced + this.timestamp).toString();
+        return this.hashTx;
     }
 
     signTransaction(signingKey) {

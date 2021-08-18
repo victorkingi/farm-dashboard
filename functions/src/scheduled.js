@@ -200,7 +200,11 @@ async function calculateBalance() {
         query.forEach((doc) => {
             const data = doc.data();
             const calculateHash = (tx) => {
-                return SHA512(tx.fromAddress + tx.toAddress + tx.amount + tx.reason).toString();
+                const EPOCH_CHANGE = 1628888400000; // A big change occurred
+                // here hence verification will happen differently
+                return data.minedOn.toDate().getTime() > EPOCH_CHANGE ? SHA512(tx.fromAddress + tx.toAddress + tx.amount
+                    + tx.reason + tx.replaced + tx.timestamp).toString() : SHA512(tx.fromAddress + tx.toAddress + tx.amount
+                    + tx.reason).toString();
             }
             const blockCalculateHash = (block) => {
                 const flattenObject = function (ob) {
@@ -250,6 +254,7 @@ async function calculateBalance() {
                     const previousBlock = data.chain[i - 1];
 
                     if (!hasValidTransactions(currentBlock)) {
+                        console.log(currentBlock);
                         console.log("INVALID TRANS")
                         return false;
                     }
@@ -276,59 +281,13 @@ async function calculateBalance() {
             for (let i = 0; i < data.chain.length; i++) {
                 for (let p = 0; p <
                 data.chain[i].transactions.length; p++) {
-                    const timestamp = data.chain[i].transactions[p].timestamp;
-                    let lessAmount = 0;
-                    if (new Date(timestamp).getTime() > 1625432400000) {
-                        const reason = data.chain[i].transactions[p].reason?.split(';');
-
-                        for (let w = 0; w < data.chain.length; w++) {
-                            for (let s = 0; s <
-                            data.chain[w].transactions.length; s++) {
-                                if (data.chain[w].transactions[s].replaced === ''
-                                    || data.chain[w].transactions[s].replaced === 'null') continue;
-                                const replace = data.chain[w].transactions[s].replaced?.split(';');
-                                let purp = reason && reason[0];
-                                let section = reason && reason[1];
-                                const sameDate = timestamp === replace[0];
-                                const sameSection = section === replace[1];
-                                console.log("DATECOUNT:", sameDate);
-                                console.log(timestamp, replace[0]);
-                                console.log("SECTCOUNT:", sameSection);
-                                console.log(section, replace[1]);
-
-                                if (purp === "SELL") {
-                                    let buyerName = reason && reason[2];
-                                    const sameBuyer = buyerName === replace[3];
-                                    console.log("BUYERCOUNT:", sameBuyer);
-                                    console.log(buyerName, replace[3]);
-                                    if (sameDate && sameSection && sameBuyer) {
-                                        lessAmount += parseFloat(data.chain[w].transactions[s].amount);
-                                    }
-                                } else if (purp === "TRADE") {
-                                    if (replace[1].startsWith("BORROWED:")) {
-                                        if (sameDate) {
-                                            lessAmount += parseFloat(data.chain[w].transactions[s].amount);
-                                        }
-                                    }
-                                } else if (purp === "BUY") {
-                                    if (sameDate && sameSection) {
-                                        lessAmount += parseFloat(data.chain[w].transactions[s].amount);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    lessAmount = lessAmount * 2;
-                    console.log("LESS:", lessAmount);
                     if (data.chain[i].transactions[p]
                         .fromAddress === users.get(arr[k])) {
                         balance -= parseFloat(data.chain[i].transactions[p].amount);
-                        balance += lessAmount;
 
                     } else if (data.chain[i].transactions[p]
                         .toAddress === users.get(arr[k])) {
                         balance += parseFloat(data.chain[i].transactions[p].amount);
-                        balance -= lessAmount;
                     }
                 }
             }
@@ -345,37 +304,21 @@ async function calculateBalance() {
             console.log(err);
             throw err;
         } else {
-            if (arr[k] === "VICTOR" || arr[k] === "DUKA") {
-                balance -= 1500;
-                await admin.firestore().doc(`current/${arr[k]}`).update({
-                    name: arr[k],
-                    address: users.get(arr[k]),
-                    balance: parseFloat(balance),
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-                console.log(arr[k], "updated current", balance);
-            } else if (arr[k] === "THIKA_FARMERS") {
-                balance -= 63870;
-                await admin.firestore().doc(`current/${arr[k]}`).update({
-                    name: arr[k],
-                    address: users.get(arr[k]),
-                    balance: parseFloat(balance),
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-            } else {
-                await admin.firestore().doc(`current/${arr[k]}`).update({
-                    name: arr[k],
-                    address: users.get(arr[k]),
-                    balance: parseFloat(balance),
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-                console.log(arr[k], "updated current", balance);
-            }
+            await admin.firestore().doc(`current/${arr[k]}`).update({
+                name: arr[k],
+                address: users.get(arr[k]),
+                balance: parseFloat(balance),
+                submittedOn: admin.firestore.FieldValue.serverTimestamp()
+            });
+            console.log(arr[k], "updated current", balance);
         }
     }
 }
-
-/* exports.fix = functions.firestore.document('me/me')
+const runtm = {
+    timeoutSeconds: 540,
+    memory: '4GB'
+}
+ exports.fix = functions.runWith(runtm).firestore.document('me/me')
     .onCreate(((snapshot, context) => {
         async function mine() {
             console.log("Starting miner...");
@@ -383,13 +326,13 @@ async function calculateBalance() {
             let difficulty = await admin.firestore().doc('temp/difficulty').get();
             difficulty = parseInt(difficulty.data().diff);
             const viczcoin = new Blockchain(users.get(USERS.MINER),
-                999999999999999,
+                999999,
                 'genesis_block', difficulty);
-            const tx1 = new Transaction(users.get(USERS.MINER),
-                users.get('BANK'), 286.43, actions.TRADE
-                    .concat(";INTEREST"),
+            const tx1 = new Transaction(users.get('FEEDS'),
+                users.get(USERS.MINER),48700, actions.TRADE
+                    .concat(";FROM:", 'FEEDS', ";TO:", 'MINER'),
                 "null", new Date().toDateString());
-            tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
+            tx1.signTransaction(users.get(USERS.FEEDS.concat("_pr")));
             viczcoin.addTransaction(tx1);
             viczcoin.minePendingTransactions();
             console.log("Is blockchain valid: ", viczcoin.isChainValid());
@@ -404,7 +347,7 @@ async function calculateBalance() {
             }).then(() => { return console.log("DONE"); });
         }
         return mine();
-})); */
+}));
 
 const runtimeOptRecalc = {
     timeoutSeconds: 540,
@@ -616,6 +559,32 @@ async function updateEggs(values) {
             prev: data.current
         });
 }
+async function rollbackEggs(values) {
+    const trayNo = parseInt(values.values.trayNo);
+    const date = values.values.date;
+    const traysDoc = await admin.firestore()
+        .collection("trays").doc("current_trays").get();
+
+    const data = traysDoc.data();
+    let timeStamp = date.toDate();
+    timeStamp.setHours(0, 0, 0, 0);
+    timeStamp.setDate(timeStamp.getDate() + 1)
+    console.log("DATE:", timeStamp.toDateString())
+    if (timeStamp.getTime() < 1625691600000) return 0;
+    let list = data.linkedList;
+    let prevTE = list[timeStamp.getTime().toString()].split(',');
+    const prevT = parseInt(prevTE[0]);
+    const prevE = parseInt(prevTE[1]);
+    list[timeStamp.getTime().toString()] = `${trayNo+prevT},${prevE}`;
+    return admin.firestore().doc('trays/current_trays')
+        .update({
+            submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+            linkedList: list,
+            prevSubmittedOn: data.submittedOn,
+            prevSubmittedBy: data.submittedBy,
+            prev: data.current
+        });
+}
 
 async function saleParamCheck(values) {
     const pending = await admin.firestore().collection('pending_transactions')
@@ -656,6 +625,50 @@ async function saleParamCheck(values) {
     }
     //checks if some sales will not have enough eggs to burn
     await verifyEggs(values);
+}
+async function saleParamCheckReplaced(values) {
+    //Will check if an entry matches section, buyername, date,amount & price
+    const sales = await admin.firestore().collection('sales')
+        .orderBy("submittedOn", "desc").get();
+    let found = 0;
+
+    for (let i = 0; i < sales.size; i++) {
+        const doc = sales.docs[i];
+        const data = doc.data();
+        const buyerName = data.buyerName;
+        const category = data.category;
+        const date = data.date.toDate().getTime();
+        const section = data.section;
+        const trayNo = parseInt(data.trayNo);
+        const trayPrice = parseFloat(data.trayPrice);
+
+        const checkDate = date === values.values.date.toDate().getTime();
+        const checkCategory = category === values.values.category;
+        const checkSection = section === values.values.section;
+        const checkBuyerName = buyerName === values.values.buyerName;
+        const checkTrayPrice = trayPrice === parseFloat(values.values.trayPrice);
+        const checkTrayNo = trayNo === parseInt(values.values.trayNo);
+        const isAvailable = checkCategory && checkSection
+            && checkDate && checkBuyerName && checkTrayPrice && checkTrayNo;
+        if (isAvailable) {
+            console.log("SALES", "TO REPLACE FOUND");
+            console.log("DATE:", checkDate)
+            console.log("SECTION:", checkSection)
+            console.log("CATEGORY:", checkCategory)
+            console.log("BUYERNAME:", checkBuyerName)
+            found += 1;
+        }
+    }
+
+    if (found > 1) {
+        errorMessage("Duplicate data To Replace found alot: "+found,
+            values.values.name);
+    } else if (found === 1) {
+        await rollbackEggs(values);
+    } else if (found === 0) {
+        errorMessage("No entry to replace was found!",
+            values.values.name);
+    }
 }
 async function buyParamCheck(values, submittedOn) {
     const pending = await admin.firestore().collection('pending_transactions')
@@ -825,8 +838,16 @@ async function assertInputsAreCorrect(query) {
     for (let i = 0; i < query.size; i++) {
         const doc = query.docs[i];
         const data = doc.data();
+        if (data.values.replaced) throw new Error("Expected replaced to be false for: "+data);
         if (data.values.category === "sales") {
-            await saleParamCheck(data);
+            /**
+             *  if statement will check if replaced.
+             *  If replaced & sales -> check if section, buyerName,
+             *  date, trayNo & trayPrice is same; if so, add eggs burnt
+             *  on that timestamp
+             */
+            if (data.values.replaced) await saleParamCheckReplaced(data);
+            else await saleParamCheck(data);
         }
         else if (data.values.category === "buys") {
             await buyParamCheck(data.values, data.submittedOn);
@@ -841,7 +862,8 @@ async function assertInputsAreCorrect(query) {
     for (let i = 0; i < query.size; i++) {
         const doc = query.docs[i];
         const data = doc.data();
-        if (data.values.category === "sales") {
+        if (data.values.category === "sales"
+            && !data.values.replaced) {
             //burns eggs
             await updateEggs(data);
         }
@@ -1118,9 +1140,9 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
             .orderBy("submittedOn", "asc")
             .get()
             .then(async (query) => {
-                await assertInputsAreCorrect(query);
                 initializeMap();
                 await calculateBalance();
+                await assertInputsAreCorrect(query);
                 let counter = 0;
                 console.log("Balances correct, Starting miner...");
                 let difficulty = await admin.firestore().doc('temp/difficulty').get();
@@ -1170,7 +1192,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                                 viczcoin.addTransaction(tx2);
                             }
                         }
-                        else if (data.values.category === "buys") {
+                    else if (data.values.category === "buys") {
                             const total = parseFloat(data.values.objectNo) * parseFloat(data.values.objectPrice);
                             if (total <= 0) {
                                 const err = new Error("Less than zero / zero!");
@@ -1210,7 +1232,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                             }
 
                         }
-                        else if (data.values.category === "borrow") {
+                    else if (data.values.category === "borrow") {
                         let replaced = 'null';
                         if (data.values.replaced) {
                             replaced = JSON.parse(data.values.replaced) ? data.values.date.toDate()
@@ -1237,7 +1259,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                             tx1.signTransaction(users.get(data.values.borrower.concat("_pr")));
                             viczcoin.addTransaction(tx1);
                         }
-                        else if (data.values.category === "send") {
+                    else if (data.values.category === "send") {
                             if (parseFloat(data.values.amount) <= 0) {
                                 const err = new Error("Less than zero / zero!");
                                 let details = {
@@ -1256,7 +1278,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                             tx1.signTransaction(users.get(data.values.name.concat("_pr")));
                             viczcoin.addTransaction(tx1);
                         }
-                        if (counter === query.size) {
+                    if (counter === query.size) {
                             viczcoin.minePendingTransactions();
                             console.log("Is blockchain valid: ", viczcoin.isChainValid());
                             const hash = viczcoin.getLatestBlock().hash;
