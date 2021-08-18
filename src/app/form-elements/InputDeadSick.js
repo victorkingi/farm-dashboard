@@ -190,7 +190,7 @@ function InputDeadSick(props) {
                 <Online>
                     <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
                         <Alert onClose={handleClose} severity="success">
-                            Data Submitted, image will be uploaded
+                            Data Submitted, image will be uploaded on refresh
                         </Alert>
                     </Snackbar>
                 </Online>
