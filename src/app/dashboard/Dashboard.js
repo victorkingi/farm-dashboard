@@ -187,12 +187,24 @@ function Dashboard(props) {
     }
     if (pend) {
       if (pend.length > 0) {
+        let allDisable  = false;
         for (let k = 0; k < pend.length; k++) {
-          if (pend[k].values?.name !== name
-              && pend[k].values?.name !== "ANNE") {
-            setDisable(true);
+          //if we come across the first one where name isn't name break loop
+          if (pend[k].id === 'cleared') continue;
+          if (pend[k].values?.name) {
+            if (pend[k].values?.name !== name && pend[k].values?.name !== "ANNE") {
+              allDisable = true;
+              break;
+            }
+          }
+          if (pend[k].values?.from) {
+            if (pend[k].values?.from !== name) {
+              allDisable = true;
+              break;
+            }
           }
         }
+        setDisable(allDisable);
       }
     }
   }, [name, block, pend]);
@@ -1066,7 +1078,8 @@ function Dashboard(props) {
                       </thead>
                       <tbody>
                       {pend && pend.map((item) => {
-                        let disCheckBox = name !== item.values?.name
+                        let disCheckBox = name !== (item.values?.name
+                            || item.values?.from)
                             && item.values?.name !== "ANNE";
                         if (item.id === "cleared") return null;
 
@@ -1085,6 +1098,9 @@ function Dashboard(props) {
                                     <span className="pl-2">
                                       {item.values.category !== "send" && item.values.category !== "borrow" && 'Miner'}
                                       {item.values.category === "send" && sanitize_string(item?.values?.name)}
+                                      {item.values.category === "send"
+                                      && item?.values?.to?.startsWith('WITHDRAW_')
+                                      && sanitize_string(item?.values?.from)}
                                       {item.values.category === "borrow" && sanitize_string(item?.values?.borrower)}
                                     </span>
                                   </div>
@@ -1096,6 +1112,9 @@ function Dashboard(props) {
                                   {item.values.section === "THIKA_FARMERS" && "Thika Farmers"}
                                   {item.values.section === "DUKA" && "Jeff Duka"}
                                   {item.values.category === "send" && sanitize_string(item?.values?.receiver)}
+                                  {item.values.category === "send"
+                                  && item?.values?.to?.startsWith('WITHDRAW_')
+                                  && sanitize_string('WITHDRAWN')}
                                   {item.values.category === "borrow" && sanitize_string(item?.values?.get_from)}
                                 </td>
                                 <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
