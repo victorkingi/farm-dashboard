@@ -10,6 +10,7 @@ import rootReducer from "./services/reducers/rootReducer";
 import {firebase} from "./services/api/fbConfig";
 import { BrowserRouter } from 'react-router-dom';
 import reportWebVitals from "./reportWebVitals";
+import './index.css';
 
 const store = createStore(rootReducer,
     compose(

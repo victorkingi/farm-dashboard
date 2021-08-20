@@ -41,6 +41,7 @@
     "react-clipboard.js": "^2.0.16",
     "react-color": "^2.17.3",
     "react-countup": "^4.4.0",
+    "react-custom-scrollbars": "^4.2.1",
     "react-datepicker": "^2.9.6",
     "react-detect-offline": "^2.4.4",
     "react-device-detect": "^1.17.0",
