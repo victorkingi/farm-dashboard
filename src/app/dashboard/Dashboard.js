@@ -46,17 +46,6 @@ function truncate(str, length) {
   else return str;
 }
 
-function removeA(arr) {
-  let what, a = arguments, L = a.length, ax;
-  while (L > 1 && arr.length) {
-    what = a[--L];
-    while ((ax= arr.indexOf(what)) !== -1) {
-      arr.splice(ax, 1);
-    }
-  }
-  return arr;
-}
-
 export function getRanColor() {
   const randomColor = Math.floor(Math.random()*16777215).toString(16);
   return "#"+randomColor;
@@ -112,8 +101,6 @@ function Dashboard(props) {
       profit, bags, chick, trays,
       block, current, stats
   } = props;
-
-  const [state, setState] = useState({arr: []});
   const [open, setOpen] = useState(false);
   const [trans, setTrans] = useState({});
   const [done, setDone] = useState(false);
@@ -125,6 +112,8 @@ function Dashboard(props) {
   const [errM, setErrM] = useState('');
   const [disable, setDisable] = useState(false);
   const [name, setName] = useState('');
+  const [allChecked, setAllChecked] = useState(false);
+  const [pendChecked, setPendChecked] = useState({});
 
   const transactionHistoryData =  {
     labels: JSON.stringify(trans) !== '{}'
@@ -192,7 +181,8 @@ function Dashboard(props) {
           //if we come across the first one where name isn't name break loop
           if (pend[k].id === 'cleared') continue;
           if (pend[k].values?.name) {
-            if (pend[k].values?.name !== name && pend[k].values?.name !== "ANNE") {
+            if (pend[k].values?.name !== name
+                && pend[k].values?.name !== "ANNE") {
               allDisable = true;
               break;
             }
@@ -210,20 +200,22 @@ function Dashboard(props) {
   }, [name, block, pend]);
 
   // undo write events to database
-  const rollBack = (state_) => {
-      for (let i = 0; i < state_.length; i++) {
-        firestore.collection("pending_transactions").doc(state_[i])
-            .get().then((doc) => {
+  const rollBack = () => {
+    for (const [key, value] of Object.entries(pendChecked)) {
+      if (value) {
+        firestore.collection("pending_transactions").doc(key)
+            .get().then(async (doc) => {
           if (doc.exists) {
-            doc.ref.delete();
+            await doc.ref.delete();
           } else {
             const err = new Error("Invalid data!");
             setOpen(false);
-            setErrM("The reference no longer exists, it probably didn't have a clean exit delete instruction");
+            setErrM("The reference no longer exists, it probably didn't have a clean EXIT_DEL instruction");
             setError(true);
             throw err;
           }
-        })
+        });
+      }
     }
   }
 
@@ -282,36 +274,11 @@ function Dashboard(props) {
      else if (item?.values?.amount) return item?.values?.amount;
    }
 
-  const handleSelect = (e) => {
-     e.preventDefault();
-     let arr = state.arr;
-     if (e.target.id === "pending" && e.target.checked) {
-       for (let i = 0; i < pend.length; i++) {
-         if (pend[i].id === "cleared") continue;
-         const me  = document.getElementById(pend[i].id);
-         me.checked = true;
-         arr.push(pend[i].id);
-       }
-     } else if (e.target.id === "pending" && !e.target.checked) {
-       for (let i = 0; i < pend.length; i++) {
-         if (pend[i].id === "cleared") continue;
-         const me  = document.getElementById(pend[i].id);
-         me.checked = false;
-         arr = removeA(arr, pend[i].id);
-       }
-     } else if (!e.target.checked) {
-       arr = removeA(arr, e.target.id);
-     } else {
-       arr.push(e.target.id);
-     }
-     setState({arr});
-   }
-
   const display = (e) => {
      e.preventDefault();
      const submit = document.getElementById(`rewind`);
      submit.disabled = true;
-     rollBack(state.arr);
+     rollBack();
      setOpen(true);
    }
 
@@ -385,6 +352,16 @@ function Dashboard(props) {
        return myProfit[__user__]?.toString()+','+myProfit['prev'+__user__];
      }
     return '0,0'
+   }
+
+   const addAllEntries = (all) => {
+    if (!pend) return 0;
+    const allPend = {};
+    for (let i = 0; i < pend.length; i++) {
+      if (pend[i].id === 'cleared') continue;
+      allPend[pend[i].id] = all;
+    }
+    setPendChecked(allPend);
    }
 
   return (
@@ -662,26 +639,20 @@ function Dashboard(props) {
                     <div className="col-9">
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">Ksh {numeral(current[6].balance - current[5].balance).format("0,0.00")}</h3>
-                        <p className={`text-${riseDrop(parseFloat(current[6].balance - current[5].balance),
-                            parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS']))
+                        <p className={`text-${riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])
                         > 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(parseFloat(current[6].balance - current[5].balance),
-                              parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])) < 0
-                              ? numeral(riseDrop(parseFloat(current[6].balance - current[5].balance),
-                                  parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS']))).format("0.0")
-                              : '+'.concat(numeral(riseDrop(parseFloat(current[6].balance - current[5].balance),
-                                  parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS']))).format("0.0"))}%
+                          {riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS']) < 0
+                              ? numeral(riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])).format("0.0")
+                              : '+'.concat(numeral(riseDrop(current[6].balance - current[5].balance), current[4]['FEEDS'] - current[4]['THIKA_FARMERS']).format("0.0"))}%
                         </p>
                       </div>
 
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(parseFloat(current[6].balance - current[5].balance),
-                              parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])) > 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS']) > 0 ? 'danger' : 'success'}`}>
                         <span
-                            className={`mdi mdi-arrow-${riseDrop(parseFloat(current[6].balance - current[5].balance),
-                                parseFloat(current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                            className={`mdi mdi-arrow-${riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS']) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
@@ -1046,7 +1017,19 @@ function Dashboard(props) {
                         <th>
                           <div className="form-check form-check-muted m-0">
                             <label className="form-check-label">
-                              <input disabled={disable} type="checkbox" className="form-check-input" defaultValue={0} onChange={handleSelect} id="pending" name="pending" />
+                              <input
+                                  disabled={disable}
+                                  type="checkbox"
+                                  className="form-check-input"
+                                  defaultValue={0}
+                                  onChange={() => {
+                                    setAllChecked(!allChecked);
+                                    addAllEntries(!allChecked);
+                                  }}
+                                  checked={allChecked}
+                                  id="pending"
+                                  name="pending"
+                              />
                               <i className="input-helper"/>
                             </label>
                           </div>
@@ -1072,7 +1055,13 @@ function Dashboard(props) {
                                 <td>
                                   <div className="form-check form-check-muted m-0">
                                     <label className="form-check-label">
-                                      <input disabled={disCheckBox} type="checkbox" className="form-check-input" defaultValue={0} onChange={(e) => handleSelect(e, item?.id)} id={item.id} name={item.id}  />
+                                      <input disabled={disCheckBox} type="checkbox"
+                                             className="form-check-input" defaultValue={0}
+                                             checked={pendChecked[item.id]}
+                                             onChange={() => setPendChecked({...pendChecked,
+                                               [item.id]: !pendChecked[item.id]})}
+                                             id={item.id} name={item.id}
+                                      />
                                       <i className="input-helper"/>
                                     </label>
                                   </div>
