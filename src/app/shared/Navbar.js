@@ -14,6 +14,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import Localbase from "localbase";
 
 let itemCount = -1;
+let UPLOAD_LOCK = 0;
 const db = new Localbase('imageUpload');
 const storageRef = storage.ref();
 
@@ -51,7 +52,9 @@ function Navbar(props) {
   };
 
   useEffect(() => {
-    if (pending_upload?.length > 0) {
+    if (pending_upload?.length > 0 && UPLOAD_LOCK === 0) {
+      UPLOAD_LOCK = 1;
+      console.log("Lock acquired!");
       allStorage().then(keyPair => {
         keyPair.forEach((value, key) => {
           function uploadFile() {
@@ -141,7 +144,7 @@ function Navbar(props) {
       });
     }
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pending_upload]);
 
   const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
@@ -200,11 +203,11 @@ function Navbar(props) {
                             onClick={evt =>evt.preventDefault()}>
                           <div className="preview-thumbnail">
                             <div className="preview-icon bg-dark rounded-circle">
-                              <i className="mdi mdi-cloud-upload text-success"/>
+                              <i className={`mdi mdi-cloud-upload text-${(state.percent.get(item.file_name) === 0 || state.percent.get(item.file_name) === undefined) ? 'warning' : 'info' }`}/>
                             </div>
                           </div>
                           <div className="preview-item-content">
-                            <p className="preview-subject mb-1">Uploading image submitted {moment(item.submittedOn.toDate()).fromNow()}</p>
+                            <p className="preview-subject mb-1">Uploading {moment(item.submittedOn.toDate()).fromNow()} submission</p>
                             <p className="text-muted ellipsis mb-0">
                                 <Line
                                       percent={state.percent.get(item.file_name)} strokeWidth="4" strokeColor={state.color.get(item.file_name)} />
@@ -227,9 +230,9 @@ function Navbar(props) {
                       </div>
                     </div>
                     <div className="preview-item-content">
-                      <p className="preview-subject mb-1">You're all caught up!</p>
-                      <p className="text-muted ellipsis mb-0">
-                        No new Notifications
+                      <p className="preview-subject mb-1">All caught up!</p>
+                      <p className="text-muted mb-0">
+                        No notifications currently available
                       </p>
                     </div>
                   </Dropdown.Item>

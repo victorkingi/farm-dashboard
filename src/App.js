@@ -207,11 +207,11 @@ function App(props) {
           { sidebarComponent }
           <div className="container-fluid page-body-wrapper">
             { navbarComponent }
-            <div className="main-panel">
-              <div className="content-wrapper">
-                <AppRoutes />
+              <div className="main-panel">
+                <div className="content-wrapper">
+                  <AppRoutes />
+                </div>
               </div>
-            </div>
           </div>
           <Snackbar
               anchorOrigin={{
