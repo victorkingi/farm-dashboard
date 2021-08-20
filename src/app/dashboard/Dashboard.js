@@ -272,22 +272,6 @@ function Dashboard(props) {
      return obj?.split(',');
    }
 
-  const sanitize_string = (str) => {
-     if (!str) return;
-     let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
-     str_1 = str_1.includes('_')
-         ? str_1.replace('_', ' ') : str_1;
-     let str_2 = str_1.includes(' ')
-         ? str_1.substring(str_1.lastIndexOf(' ')+1) : null;
-     str_2 = str_2 !== null ? str_2.toUpperCase().charAt(0)
-         .concat(str_2.toLowerCase().slice(1)) : null;
-     if (str_2 !== null) {
-       str_1 = str_1.substring(0, str_1.lastIndexOf(" "))
-           .concat(" ").concat(str_2);
-     }
-     return str_1
-   }
-
   const getAmount = (item) => {
      if (item?.values?.trayNo)
        return parseInt(item?.values?.trayNo)
@@ -1097,10 +1081,7 @@ function Dashboard(props) {
                                   <div className="d-flex">
                                     <span className="pl-2">
                                       {item.values.category !== "send" && item.values.category !== "borrow" && 'Miner'}
-                                      {item.values.category === "send" && sanitize_string(item?.values?.name)}
-                                      {item.values.category === "send"
-                                      && item?.values?.to?.startsWith('WITHDRAW_')
-                                      && sanitize_string(item?.values?.from)}
+                                      {item.values.category === "send" && item?.values?.name && sanitize_string(item?.values?.name)}
                                       {item.values.category === "borrow" && sanitize_string(item?.values?.borrower)}
                                     </span>
                                   </div>
@@ -1111,10 +1092,7 @@ function Dashboard(props) {
                                   && sanitize_string(item?.values?.name)}
                                   {item.values.section === "THIKA_FARMERS" && "Thika Farmers"}
                                   {item.values.section === "DUKA" && "Jeff Duka"}
-                                  {item.values.category === "send" && sanitize_string(item?.values?.receiver)}
-                                  {item.values.category === "send"
-                                  && item?.values?.to?.startsWith('WITHDRAW_')
-                                  && sanitize_string('WITHDRAWN')}
+                                  {item.values.category === "send" && item?.values?.receiver && sanitize_string(item?.values?.receiver)}
                                   {item.values.category === "borrow" && sanitize_string(item?.values?.get_from)}
                                 </td>
                                 <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>

@@ -43,10 +43,12 @@ function Withdraw(props) {
         }
         firebase.auth().onAuthStateChanged((user_) => {
             if (user_) {
-                state.from = user_
+                state.name = user_
                     .displayName.substring(0,
                         user_.displayName.lastIndexOf(' ')).toUpperCase();
-                state.to = `WITHDRAW_${state.from}`;
+                state.receiver = `WITHDRAW_${state.name}`;
+                delete state.from;
+                delete state.to;
 
                 const user = firebase.auth().currentUser;
                 const credential = firebase.auth.AuthCredential
