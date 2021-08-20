@@ -203,7 +203,9 @@ function Navbar(props) {
                             onClick={evt =>evt.preventDefault()}>
                           <div className="preview-thumbnail">
                             <div className="preview-icon bg-dark rounded-circle">
-                              <i className={`mdi mdi-cloud-upload text-${(state.percent.get(item.file_name) === 0 || state.percent.get(item.file_name) === undefined) ? 'warning' : 'info' }`}/>
+                              {(state.percent.get(item.file_name) === 0 || state.percent.get(item.file_name) === undefined) && <i className={`mdi mdi-cloud-upload text-warning`}/>}
+                              {state.percent.get(item.file_name) === 100 && <i className={`mdi mdi-cloud-upload text-success`}/>}
+                              {state.percent.get(item.file_name) < 100 && state.percent.get(item.file_name) > 0 && <i className={`mdi mdi-cloud-upload text-info`}/>}
                             </div>
                           </div>
                           <div className="preview-item-content">
