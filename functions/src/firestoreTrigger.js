@@ -597,18 +597,17 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
             return 0;
         }
 
-        let BABRA = parseFloat(beforeData.split.BABRA) || 0;
+        let BABRA = beforeData ? parseFloat(beforeData.split.BABRA) : 0;
         BABRA = parseFloat(afterData.split.BABRA) - BABRA;
 
-        let VICTOR = parseFloat(beforeData.split.VICTOR) || 0;
+        let VICTOR = beforeData ? parseFloat(beforeData.split.VICTOR) : 0;
         VICTOR = parseFloat(afterData.split.VICTOR) - VICTOR;
 
-        let JEFF = parseFloat(beforeData.split.JEFF) || 0;
+        let JEFF = beforeData ? parseFloat(beforeData.split.JEFF) : 0;
         JEFF = parseFloat(afterData.split.JEFF) - JEFF;
 
-        let remain = parseFloat(beforeData.split.remain) || 0;
+        let remain = beforeData ? parseFloat(beforeData.split.remain) : 0;
         remain = parseFloat(afterData.split.remain) - remain;
-
         let totalLeaving = JEFF + VICTOR + BABRA;
         const availDocRef = admin.firestore().doc('profit/available');
         return admin.firestore().runTransaction((transaction) => {
