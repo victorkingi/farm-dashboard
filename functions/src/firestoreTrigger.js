@@ -594,21 +594,19 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
             throw new Error("PROFIT DOC DELETED!");
         }
 
-        if (writtenTo === "available") {
-            return 0;
-        }
+        if (writtenTo === "available") return 0;
 
         let BABRA = beforeData ? parseFloat(beforeData.split.BABRA) : 0;
         BABRA = parseFloat(afterData.split.BABRA) - BABRA;
-        if (afterData.docId.startsWith('WITHDRAWN_') && BABRA >= 0) throw new Error("Impossible value found: "+BABRA);
+        if (afterData.docId.startsWith('WITHDRAWN_') && BABRA > 0) throw new Error("Impossible value found: "+BABRA);
 
         let VICTOR = beforeData ? parseFloat(beforeData.split.VICTOR) : 0;
         VICTOR = parseFloat(afterData.split.VICTOR) - VICTOR;
-        if (afterData.docId.startsWith('WITHDRAWN_') && VICTOR >= 0) throw new Error("Impossible value found: "+VICTOR);
+        if (afterData.docId.startsWith('WITHDRAWN_') && VICTOR > 0) throw new Error("Impossible value found: "+VICTOR);
 
         let JEFF = beforeData ? parseFloat(beforeData.split.JEFF) : 0;
         JEFF = parseFloat(afterData.split.JEFF) - JEFF;
-        if (afterData.docId.startsWith('WITHDRAWN_') && JEFF >= 0) throw new Error("Impossible value found: "+JEFF);
+        if (afterData.docId.startsWith('WITHDRAWN_') && JEFF > 0) throw new Error("Impossible value found: "+JEFF);
 
         let remain = beforeData ? parseFloat(beforeData.split.remain) : 0;
         remain = parseFloat(afterData.split.remain) - remain;
