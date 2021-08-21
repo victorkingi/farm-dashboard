@@ -28,6 +28,7 @@ exports.updateWithdrawn = functions.firestore
         const user = docId.substring(9);
         let amount = parseFloat(data.balance) - parseFloat(beforeData.balance);
         amount = -1 * amount;
+        if (amount >= 0) throw new Error("Expected negative value got positive: "+amount);
         if (user === "BABRA") {
             return admin.firestore().collection('profit')
                 .add({
@@ -599,15 +600,19 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
 
         let BABRA = beforeData ? parseFloat(beforeData.split.BABRA) : 0;
         BABRA = parseFloat(afterData.split.BABRA) - BABRA;
+        if (afterData.docId.startsWith('WITHDRAWN_') && BABRA >= 0) throw new Error("Impossible value found: "+BABRA);
 
         let VICTOR = beforeData ? parseFloat(beforeData.split.VICTOR) : 0;
         VICTOR = parseFloat(afterData.split.VICTOR) - VICTOR;
+        if (afterData.docId.startsWith('WITHDRAWN_') && VICTOR >= 0) throw new Error("Impossible value found: "+VICTOR);
 
         let JEFF = beforeData ? parseFloat(beforeData.split.JEFF) : 0;
         JEFF = parseFloat(afterData.split.JEFF) - JEFF;
+        if (afterData.docId.startsWith('WITHDRAWN_') && JEFF >= 0) throw new Error("Impossible value found: "+JEFF);
 
         let remain = beforeData ? parseFloat(beforeData.split.remain) : 0;
         remain = parseFloat(afterData.split.remain) - remain;
+
         let totalLeaving = JEFF + VICTOR + BABRA;
         const availDocRef = admin.firestore().doc('profit/available');
         return admin.firestore().runTransaction((transaction) => {
