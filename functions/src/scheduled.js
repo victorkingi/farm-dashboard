@@ -82,7 +82,7 @@ async function dailyCurrentTraysCheck() {
     return trayRef.get().then((doc) => {
         if (doc.exists) {
             const data = doc.data();
-            const coll = data.current.split(',');
+            const coll = data.estimate.split(',');
             const num = parseInt(coll[0]);
 
             if (num <= 10) {
@@ -1119,11 +1119,234 @@ const runtimeOptsDaily = {
     memory: '256MB'
 }
 
+function predictBags() {
+    const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-bags";
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            console.log(xhr.status);
+            console.log("RESPONSE", xhr.responseText);
+            const resJson = JSON.parse(xhr.responseText);
+            let date1 = new Date(resJson['0'].ds);
+            date1.setHours(0, 0, 0, 0);
+            let date2 = new Date(resJson['1'].ds);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let selected = date1.getTime();
+            let i = 0;
+            while(selected < today.getTime()) {
+                if (resJson[`${i}`]) {
+                    selected = new Date(resJson[`${i}`].ds).getTime();
+                    i++;
+                } else {
+                    break;
+                }
+            }
+            const val1 = parseFloat(resJson[`${i}`].yhat);
+            date1 = new Date(resJson[`${i}`].ds);
+            date2 = date1;
+            let val2 = val1;
+            if (resJson[`${i+1}`]) {
+                val2 = parseFloat(resJson[`${i+1}`].yhat);
+                date2 = new Date(resJson[`${i+1}`].ds);
+            }
+            async function update() {
+                const predictDoc1 = admin.firestore().doc('bags/predicted_bags');
+                const batch = admin.firestore().batch();
+                batch.update(predictDoc1, {
+                    nextDay: val1,
+                    next2Day: val2,
+                    day1Date: date1,
+                    day2Date: date2,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+                await batch.commit();
+            }
+            update();
+        }};
+
+    admin.firestore().doc('bags/predicted_bags')
+        .get().then((doc) => {
+        const data = doc.data();
+        const toSend = `{"message":"${data.trend}"}`
+        console.log("DATA:", toSend);
+        xhr.send(toSend);
+    });
+}
+
+function predictEggs() {
+    const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-eggs";
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            console.log(xhr.status);
+            if (parseInt(xhr.status) !== 200) throw new Error("Request wasn't successful: "+xhr.status);
+            console.log("RESPONSE", xhr.responseText);
+            const resJson = JSON.parse(xhr.responseText);
+            const length = Object.keys(resJson).length;
+            if (length < 1) throw new Error("Invalid length returned: "+length);
+            let date_ = new Date(resJson[`${length-1}`].ds);
+            console.log("DATE SELECTED:", date_.toDateString());
+            date_.setHours(0, 0, 0, 0);
+            const val = parseFloat(resJson[`${length-1}`].yhat);
+            console.log("YHAT SELECTED:", val);
+            if (!val || !date) throw new Error("Value or date is undefined; date: "+date_+" val: "+val);
+            return admin.firestore().doc('trays/current_trays')
+                .update({
+                    today: date_,
+                    response: resJson,
+                    predicted: val,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+        }
+    };
+
+    admin.firestore().doc('trays/current_trays')
+        .get().then((doc) => {
+        const data = doc.data();
+        const toSend = `{"message":"${data.trend}"}`
+        console.log("DATA:", toSend);
+        xhr.send(toSend);
+    });
+    return 0;
+}
+
+function predictProfit() {
+    const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-profit";
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            console.log(xhr.status);
+            console.log("RESPONSE", xhr.responseText);
+            const resJson = JSON.parse(xhr.responseText);
+            const date1 = new Date(resJson['0'].ds);
+            const date2 = new Date(resJson['1'].ds);
+            const profit1 = parseFloat(resJson['0'].yhat);
+            const profit2 = parseFloat(resJson['1'].yhat);
+            async function update() {
+                const predictDoc1 = admin.firestore().doc('predict_week/predict_profit1');
+                const predictDoc2 = admin.firestore().doc('predict_week/predict_profit2');
+                const batch = admin.firestore().batch();
+                batch.update(predictDoc1, {
+                    profit: profit1,
+                    date: date1,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+                batch.update(predictDoc2, {
+                    profit: profit2,
+                    date: date2,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+                await batch.commit();
+            }
+            update();
+        }};
+
+    admin.firestore().collection('profit').orderBy("profit", "asc")
+        .get().then((query) => {
+        const dates = [];
+        const profits = [];
+        for (let i = 0; i < query.size; i++) {
+            const doc = query.docs[i];
+            const data = doc.data();
+            profits.push(parseFloat(data.profit));
+            const myDate = new Date(data.docId);
+            const myDateString = ('0' + myDate.getDate()).slice(-2) + '/'
+                + ('0' + (myDate.getMonth()+1)).slice(-2) + '/'
+                + myDate.getFullYear();
+            dates.push(myDateString);
+        }
+        const data = `{"message":"${dates.toString()};${profits.toString()}"}`
+        console.log("DATA:", data);
+        xhr.send(data);
+    });
+}
+
+function getEggs(current) {
+    if (!current) throw new Error("Eggs current doesn't exist");
+    let temp = current.split(',');
+    return (parseInt(temp[0]) * 30) + parseInt(temp[1]);
+}
+
+async function estimatedTrays() {
+    const doc = await admin.firestore().doc('trays/current_trays').get();
+    const data = doc.data();
+    const response = data.response;
+    const current = data.current;
+    const curEggs = getEggs(current);
+    if (!response) return -1;
+    let totalEggs = curEggs;
+    for (const [key, value] of Object.entries(response)) {
+        let eggs  = parseFloat(value['yhat']);
+        totalEggs += eggs;
+    }
+    let trays = Math.round(totalEggs / 30);
+    let rem = Math.round(((totalEggs / 30) - trays) * 30);
+    await admin.firestore().doc('trays/current_trays')
+        .update({
+            estimate: `${trays},${rem}`,
+            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+        });
+    return 0;
+}
+
+const runtimeOptWeekly = {
+    timeoutSeconds: 120,
+}
+
+async function updateEggsTrend() {
+    const query = await admin.firestore().collection('eggs_collected')
+        .orderBy('date_', 'desc').get();
+    const dates = [];
+    const values = [];
+    let firstDate;
+    let i = 0;
+    query.forEach((doc) => {
+        const data = doc.data();
+        const date_ = new Date(parseInt(data.date_));
+        const traysEggs = data.trays_store.split(',');
+        const value = parseInt(traysEggs[1]) + (parseInt(traysEggs[0]) * 30);
+        values.push(value);
+        dates.push(getDateString(date_));
+        if (!firstDate && i === 0) firstDate = date_.getTime();
+        i++;
+    });
+    if (dates.length !== values.length) throw new Error("Dates and values not equal");
+    if (!firstDate) throw new Error("First date undefined");
+    let period = new Date().getTime() - firstDate;
+    period = Math.floor(period / 86400000);
+    const trend = `${dates.toString()};${values.toString()}$$${period}`;
+    return admin.firestore().doc('trays/current_trays').update({
+        trend,
+        submittedOn: admin.firestore.FieldValue.serverTimestamp()
+    });
+}
+
+exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
+    .schedule('every 1 hours from 17:00 to 18:00')
+    .timeZone('Africa/Nairobi').onRun(async () => {
+        const val = await estimatedTrays();
+        if (val !== 0) throw new Error("estimatedTrays never finished execution");
+        return dailyCurrentTraysCheck();
+    });
+
 exports.dailyChanges = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
     .schedule('every 24 hours')
     .timeZone('Africa/Nairobi').onRun(async () => {
         await dailyUpdateBags();
-        await dailyCurrentTraysCheck();
+        await updateEggsTrend();
+        predictEggs();
         return updateTxList();
     });
 
@@ -1413,124 +1636,6 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
         });
 });
 
-function predictBags() {
-    const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-bags";
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            console.log(xhr.status);
-            console.log("RESPONSE", xhr.responseText);
-            const resJson = JSON.parse(xhr.responseText);
-            let date1 = new Date(resJson['0'].ds);
-            date1.setHours(0, 0, 0, 0);
-            let date2 = new Date(resJson['1'].ds);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            let selected = date1.getTime();
-            let i = 0;
-            while(selected < today.getTime()) {
-                if (resJson[`${i}`]) {
-                    selected = new Date(resJson[`${i}`].ds).getTime();
-                    i++;
-                } else {
-                    break;
-                }
-            }
-            const val1 = parseFloat(resJson[`${i}`].yhat);
-            date1 = new Date(resJson[`${i}`].ds);
-            date2 = date1;
-            let val2 = val1;
-            if (resJson[`${i+1}`]) {
-                val2 = parseFloat(resJson[`${i+1}`].yhat);
-                date2 = new Date(resJson[`${i+1}`].ds);
-            }
-            async function update() {
-                const predictDoc1 = admin.firestore().doc('bags/predicted_bags');
-                const batch = admin.firestore().batch();
-                batch.update(predictDoc1, {
-                    nextDay: val1,
-                    next2Day: val2,
-                    day1Date: date1,
-                    day2Date: date2,
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-                await batch.commit();
-            }
-            update();
-        }};
-
-    admin.firestore().doc('bags/predicted_bags')
-        .get().then((doc) => {
-        const data = doc.data();
-        const toSend = `{"message":"${data.trend}"}`
-        console.log("DATA:", toSend);
-        xhr.send(toSend);
-    });
-}
-
-function predictProfit() {
-    const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-profit";
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url);
-
-    xhr.setRequestHeader("Content-Type", "application/json");
-
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            console.log(xhr.status);
-            console.log("RESPONSE", xhr.responseText);
-            const resJson = JSON.parse(xhr.responseText);
-            const date1 = new Date(resJson['0'].ds);
-            const date2 = new Date(resJson['1'].ds);
-            const profit1 = parseFloat(resJson['0'].yhat);
-            const profit2 = parseFloat(resJson['1'].yhat);
-            async function update() {
-                const predictDoc1 = admin.firestore().doc('predict_week/predict_profit1');
-                const predictDoc2 = admin.firestore().doc('predict_week/predict_profit2');
-                const batch = admin.firestore().batch();
-                batch.update(predictDoc1, {
-                    profit: profit1,
-                    date: date1,
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-                batch.update(predictDoc2, {
-                    profit: profit2,
-                    date: date2,
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-                await batch.commit();
-            }
-            update();
-        }};
-
-    admin.firestore().collection('profit').orderBy("profit", "asc")
-        .get().then((query) => {
-            const dates = [];
-            const profits = [];
-            for (let i = 0; i < query.size; i++) {
-                const doc = query.docs[i];
-                const data = doc.data();
-                profits.push(parseFloat(data.profit));
-                const myDate = new Date(data.docId);
-                const myDateString = ('0' + myDate.getDate()).slice(-2) + '/'
-                    + ('0' + (myDate.getMonth()+1)).slice(-2) + '/'
-                    + myDate.getFullYear();
-                dates.push(myDateString);
-            }
-            const data = `{"message":"${dates.toString()};${profits.toString()}"}`
-        console.log("DATA:", data);
-        xhr.send(data);
-    });
-}
-
-const runtimeOptWeekly = {
-    timeoutSeconds: 120,
-}
-
 exports.weeklyChanges = functions.runWith(runtimeOptWeekly)
     .pubsub.schedule('every sunday 01:00').onRun((async () => {
     await weeklyChickenAgeUpdate();
@@ -1580,6 +1685,44 @@ exports.monthlyChanges = functions.pubsub
     await updateMonthlyRev();
     return 0;
 }));
+
+function predictEggsCumulate() {
+    const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-eggs-cumulate";
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            console.log(xhr.status);
+            if (parseInt(xhr.status) !== 200) throw new Error("Request wasn't successful: "+xhr.status);
+            console.log("RESPONSE", xhr.responseText);
+            const resJson = JSON.parse(xhr.responseText);
+            const length = Object.keys(resJson).length;
+            if (length < 1) throw new Error("Invalid length returned: "+length);
+            return admin.firestore().doc('trays/current_trays')
+                .update({
+                    cumulative: resJson,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+        }
+    };
+
+    admin.firestore().doc('trays/current_trays')
+        .get().then((doc) => {
+        const data = doc.data();
+        const toSend = `{"message":"${data.trend}"}`
+        console.log("DATA:", toSend);
+        xhr.send(toSend);
+    });
+    return 0;
+}
+
+exports.eggsFurther = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
+    .schedule('every 24 hours')
+    .timeZone('Africa/Nairobi').onRun(async () => {
+        return predictEggsCumulate();
+    });
 
 /**
  *
