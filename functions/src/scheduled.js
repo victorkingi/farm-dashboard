@@ -1300,8 +1300,9 @@ async function estimatedTrays() {
                 const trayNo = parseInt(data__.trayNo);
                 totalTrays += trayNo;
             });
-            let trays = Math.round(totalEggs / 30) - totalTrays;
+            let trays = Math.round(totalEggs / 30);
             let rem = Math.round(((totalEggs / 30) - trays) * 30);
+            trays -= totalTrays;
             return admin.firestore().doc('trays/current_trays')
                 .update({
                     estimate: `${trays},${rem}`,
