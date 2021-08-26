@@ -567,8 +567,9 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
                     const trayNo = parseInt(data__.trayNo);
                     totalTrays += trayNo;
                 });
-                let trays = Math.round(allEggs / 30) - totalTrays;
+                let trays = Math.round(allEggs / 30);
                 let rem = Math.round(((allEggs / 30) - trays) * 30);
+                trays -= totalTrays;
                 let ans = `${trays},${rem}`;
                 if (ans === data.current) return 0;
                 return admin.firestore().doc('trays/current_trays').update({
