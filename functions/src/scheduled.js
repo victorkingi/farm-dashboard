@@ -1346,8 +1346,7 @@ async function updateEggsTrend() {
 exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
     .schedule('every 1 hours from 17:00 to 18:00')
     .timeZone('Africa/Nairobi').onRun(async () => {
-        const val = await estimatedTrays();
-        if (val !== 0) throw new Error("estimatedTrays never finished execution");
+        await estimatedTrays();
         return dailyCurrentTraysCheck();
     });
 
