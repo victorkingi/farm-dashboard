@@ -551,19 +551,31 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
         if (totalEntries > 100) {
             if (list[oldestKey.toString()] === '0,0') {
                 delete list[oldestKey.toString()];
+                console.log("OLDEST KEY DELETED: ", oldestKey);
                 return admin.firestore().doc('trays/current_trays').update({
                     linkedList: list,
                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
                 });
             }
         }
-        const trays = allEggs / 30;
-        let ans = parseInt(trays).toString().concat(',', (allEggs % 30).toString());
-        if (ans === data.current) return 0;
-        return admin.firestore().doc('trays/current_trays').update({
-            current: ans,
-            submittedOn: admin.firestore.FieldValue.serverTimestamp()
-        });
+        return admin.firestore().collection('late_payment')
+            .orderBy('submittedOn', 'desc').get()
+            .then((query) => {
+                let totalTrays = 0;
+                query.forEach((doc) => {
+                    const data__ = doc.data().values;
+                    const trayNo = parseInt(data__.trayNo);
+                    totalTrays += trayNo;
+                });
+                let trays = Math.round(allEggs / 30) - totalTrays;
+                let rem = Math.round(((allEggs / 30) - trays) * 30);
+                let ans = `${trays},${rem}`;
+                if (ans === data.current) return 0;
+                return admin.firestore().doc('trays/current_trays').update({
+                    current: ans,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+            })
     }));
 
 exports.prevBalance = functions.firestore.document('current/{curId}')
