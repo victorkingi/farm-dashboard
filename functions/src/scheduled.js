@@ -1291,14 +1291,23 @@ async function estimatedTrays() {
         let eggs  = parseFloat(value['yhat']);
         totalEggs += eggs;
     }
-    let trays = Math.round(totalEggs / 30);
-    let rem = Math.round(((totalEggs / 30) - trays) * 30);
-    await admin.firestore().doc('trays/current_trays')
-        .update({
-            estimate: `${trays},${rem}`,
-            submittedOn: admin.firestore.FieldValue.serverTimestamp()
-        });
-    return 0;
+    return admin.firestore().collection('late_payment')
+        .orderBy('submittedOn', 'desc')
+        .get().then((query) => {
+            let totalTrays = 0;
+            query.forEach((doc) => {
+                const data__ = doc.data().values;
+                const trayNo = parseInt(data__.trayNo);
+                totalTrays += trayNo;
+            });
+            let trays = Math.round(totalEggs / 30) - totalTrays;
+            let rem = Math.round(((totalEggs / 30) - trays) * 30);
+            return admin.firestore().doc('trays/current_trays')
+                .update({
+                    estimate: `${trays},${rem}`,
+                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                });
+    });
 }
 
 const runtimeOptWeekly = {
