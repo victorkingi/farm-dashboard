@@ -386,8 +386,8 @@ function Dashboard(props) {
                         <p className={`text-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0
-                              ? numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0.0")
-                              : '+'.concat(numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0.0"))}%
+                              ? numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0,0.0"))}%
                         </p>
                       </div>
 
@@ -424,8 +424,8 @@ function Dashboard(props) {
                         <p className={`text-${riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1]) < 0
-                              ? numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0.0")
-                              : '+'.concat(numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0.0"))}%
+                              ? numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(availToWithdraw().split(',')[0], availToWithdraw().split(',')[1])).format("0,0.0"))}%
                         </p>
                       </div>
 
@@ -464,9 +464,9 @@ function Dashboard(props) {
                           {riseDrop(parseFloat(current[getUser()]?.balance),
                               parseFloat(current[4][__user__])) < 0
                               ? numeral(riseDrop(parseFloat(current[getUser()]?.balance),
-                                  parseFloat(current[4][__user__]))).format("0.0")
+                                  parseFloat(current[4][__user__]))).format("0,0.0")
                               : '+'.concat(numeral(riseDrop(parseFloat(current[getUser()]?.balance),
-                                  parseFloat(current[4][__user__]))).format("0.0"))}%
+                                  parseFloat(current[4][__user__]))).format("0,0.0"))}%
                         </p>
                       </div>
                     </div>
@@ -507,9 +507,9 @@ function Dashboard(props) {
                           {riseDrop(parseFloat(current[getUser()]?.balance),
                               parseFloat(current[4][__user__])) < 0
                               ? numeral(riseDrop(parseFloat(current[getUser()]?.balance),
-                                  parseFloat(current[4][__user__]))).format("0.0")
+                                  parseFloat(current[4][__user__]))).format("0,0.0")
                               : '+'.concat(numeral(riseDrop(parseFloat(current[getUser()]?.balance),
-                                  parseFloat(current[4][__user__]))).format("0.0"))}%
+                                  parseFloat(current[4][__user__]))).format("0,0.0"))}%
                         </p>
                       </div>
                     </div>
@@ -545,8 +545,8 @@ function Dashboard(props) {
                         <p className={`text-${riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent) < 0
-                              ? numeral(riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent)).format("0.0"))}%
+                              ? numeral(riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent)).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(chick[0].weekPercent, chick[0].prevWeekPercent)).format("0,0.0"))}%
                         </p>
                       </div>
 
@@ -580,8 +580,8 @@ function Dashboard(props) {
                         <p className={`text-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0
-                              ? numeral(riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)).format("0.0"))}%
+                              ? numeral(riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)).format("0,0.0"))}%
                         </p></div>
                     </div>
                     <div className="col-3">
@@ -610,9 +610,9 @@ function Dashboard(props) {
                           {riseDrop(parseFloat(current[0]?.balance),
                               parseFloat(current[4]['BANK'])) < 0
                               ? numeral(riseDrop(parseFloat(current[0]?.balance),
-                                  parseFloat(current[4]['BANK']))).format("0.0")
+                                  parseFloat(current[4]['BANK']))).format("0,0.0")
                               : '+'.concat(numeral(riseDrop(parseFloat(current[0]?.balance),
-                                  parseFloat(current[4]['BANK']))).format("0.0"))}%
+                                  parseFloat(current[4]['BANK']))).format("0,0.0"))}%
                         </p>
                       </div>
 
@@ -642,8 +642,8 @@ function Dashboard(props) {
                         <p className={`text-${riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])
                         > 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS']) < 0
-                              ? numeral(riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])).format("0.0")
-                              : '+'.concat(numeral(riseDrop(current[6].balance - current[5].balance), current[4]['FEEDS'] - current[4]['THIKA_FARMERS']).format("0.0"))}%
+                              ? numeral(riseDrop(current[6].balance - current[5].balance, current[4]['FEEDS'] - current[4]['THIKA_FARMERS'])).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(current[6].balance - current[5].balance), current[4]['FEEDS'] - current[4]['THIKA_FARMERS']).format("0,0.0"))}%
                         </p>
                       </div>
 
@@ -672,8 +672,8 @@ function Dashboard(props) {
                         <p className={`text-${riseDrop(forProfit[1].profit, profit[0].profit)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(forProfit[1].profit, profit[0].profit) < 0
-                              ? numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0.0"))}%
+                              ? numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0,0.0"))}%
                         </p>
                       </div>
                     </div>
@@ -721,11 +721,11 @@ function Dashboard(props) {
                               ? numeral(riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
                                   decodeTrayEgg(trays[0].current)[1]),
                                   getEggs(decodeTrayEgg(trays[0].prev)[0],
-                                      decodeTrayEgg(trays[0].prev)[1]))).format("0.0")
+                                      decodeTrayEgg(trays[0].prev)[1]))).format("0,0.0")
                               : '+'.concat(numeral(riseDrop(getEggs(decodeTrayEgg(trays[0].current)[0],
                                   decodeTrayEgg(trays[0].current)[1]),
                                   getEggs(decodeTrayEgg(trays[0].prev)[0],
-                                      decodeTrayEgg(trays[0].prev)[1]))).format("0.0"))}%
+                                      decodeTrayEgg(trays[0].prev)[1]))).format("0,0.0"))}%
                         </p>
                       </div>
                     </div>
@@ -757,8 +757,8 @@ function Dashboard(props) {
                         <p className={`text-${riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                           {riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2) < 0
-                              ? numeral(riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2)).format("0.0")
-                              : '+'.concat(numeral(riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2)).format("0.0"))}%
+                              ? numeral(riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2)).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(getLatestWeekProfit().sun1, getLatestWeekProfit().sun2)).format("0,0.0"))}%
                         </p>
                       </div>
                     </div>
@@ -899,11 +899,11 @@ function Dashboard(props) {
                             ? numeral(riseDrop(
                                 getRevenue(getTotal(stats).sales,
                                     getTotal(stats).buys), getRevenue(getTotal(stats).prevAmountSale,
-                                    getTotal(stats).prevAmountBuy))).format("0.0")
+                                    getTotal(stats).prevAmountBuy))).format("0,0.0")
                             : '+'.concat(numeral(riseDrop(
                                 getRevenue(getTotal(stats).sales,
                                     getTotal(stats).buys), getRevenue(getTotal(stats).prevAmountSale,
-                                    getTotal(stats).prevAmountBuy))).format("0.0"))}%
+                                    getTotal(stats).prevAmountBuy))).format("0,0.0"))}%
                         </p>
                       </div>
                       <h6 className="text-muted font-weight-normal">{riseDrop(
@@ -913,11 +913,11 @@ function Dashboard(props) {
                           ? numeral(riseDrop(
                               getRevenue(getTotal(stats).sales,
                                   getTotal(stats).buys), getRevenue(getTotal(stats).prevMonthSale,
-                                  getTotal(stats).prevMonthBuy))).format("0.0")
+                                  getTotal(stats).prevMonthBuy))).format("0,0.0")
                           : '+'.concat(numeral(riseDrop(
                               getRevenue(getTotal(stats).sales,
                                   getTotal(stats).buys), getRevenue(getTotal(stats).prevMonthSale,
-                                  getTotal(stats).prevMonthBuy))).format("0.0"))}% Since last month</h6>
+                                  getTotal(stats).prevMonthBuy))).format("0,0.0"))}% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
                       <i className="icon-md mdi mdi-codepen text-primary ml-auto"/>
@@ -941,20 +941,20 @@ function Dashboard(props) {
                                 getTotal(stats).prevAmountSale) < 0
                             ? numeral(riseDrop(
                                 getTotal(stats).sales,
-                                getTotal(stats).prevAmountSale)).format("0.0")
+                                getTotal(stats).prevAmountSale)).format("0,0.0")
                             : '+'.concat(numeral(riseDrop(
                                 getTotal(stats).sales,
-                                getTotal(stats).prevAmountSale)).format("0.0"))}%</p>
+                                getTotal(stats).prevAmountSale)).format("0,0.0"))}%</p>
                       </div>
                       <h6 className="text-muted font-weight-normal">{riseDrop(
                           getTotal(stats).sales,
                           getTotal(stats).prevMonthSale) < 0
                           ? numeral(riseDrop(
                               getTotal(stats).sales,
-                              getTotal(stats).prevMonthSale)).format("0.0")
+                              getTotal(stats).prevMonthSale)).format("0,0.0")
                           : '+'.concat(numeral(riseDrop(
                               getTotal(stats).sales,
-                              getTotal(stats).prevMonthSale)).format("0.0"))}% Since last month</h6>
+                              getTotal(stats).prevMonthSale)).format("0,0.0"))}% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
                       <i className={`icon-md mdi mdi-wallet-travel text-${riseDrop(
@@ -980,20 +980,20 @@ function Dashboard(props) {
                             getTotal(stats).prevAmountBuy) < 0
                             ? numeral(riseDrop(
                                 getTotal(stats).buys,
-                                getTotal(stats).prevAmountBuy)).format("0.0")
+                                getTotal(stats).prevAmountBuy)).format("0,0.0")
                             : '+'.concat(numeral(riseDrop(
                                 getTotal(stats).buys,
-                                getTotal(stats).prevAmountBuy)).format("0.0"))}%</p>
+                                getTotal(stats).prevAmountBuy)).format("0,0.0"))}%</p>
                       </div>
                       <h6 className="text-muted font-weight-normal">{riseDrop(
                           getTotal(stats).buys,
                           getTotal(stats).prevMonthBuy) < 0
                           ? numeral(riseDrop(
                               getTotal(stats).buys,
-                              getTotal(stats).prevMonthBuy)).format("0.0")
+                              getTotal(stats).prevMonthBuy)).format("0,0.0")
                           : '+'.concat(numeral(riseDrop(
                               getTotal(stats).buys,
-                              getTotal(stats).prevMonthBuy)).format("0.0"))}% Since last month</h6>
+                              getTotal(stats).prevMonthBuy)).format("0,0.0"))}% Since last month</h6>
                     </div>
                     <div className="col-4 col-sm-12 col-xl-4 text-center text-xl-right">
                       <i className={`icon-md mdi mdi-monitor text-${riseDrop(

@@ -10,7 +10,7 @@ const {
     makeANotificationToOneUser,
     makeANotification,
     createNotification,
-    errorMessage
+    errorMessage, safeTrayEggConvert
 } = require("./helper");
 const date = new Date();
 const chickenDocRef = admin.firestore().collection("chicken_details")
@@ -431,10 +431,7 @@ async function verifyEggs(values) {
     lessThanValues.forEach(item => {
         if (done) return 0;
         console.log("AT:", new Date(parseInt(item[0])).toDateString(), item[1]);
-        const eggStr = item[1].split(',');
-        let trays = parseInt(eggStr[0]);
-        let eggs = parseInt(eggStr[1]);
-        const totalEggs = (trays * 30) + eggs;
+        const totalEggs = safeTrayEggConvert(item[1], true);
         if (toSellEggs - totalEggs < 0) {
             const temp = totalEggs - toSellEggs;
             toSellEggs = 0;
@@ -499,10 +496,7 @@ async function updateEggs(values) {
     lessThanValues.forEach(item => {
         if (done) return 0;
         console.log("AT:", new Date(parseInt(item[0])).toDateString(), item[1]);
-        const eggStr = item[1].split(',');
-        let trays = parseInt(eggStr[0]);
-        let eggs = parseInt(eggStr[1]);
-        const totalEggs = (trays * 30) + eggs;
+        const totalEggs = safeTrayEggConvert(item[1], true);
         if (toSellEggs - totalEggs < 0) {
             const temp = totalEggs - toSellEggs;
             toSellEggs = 0;
@@ -529,7 +523,7 @@ async function updateEggs(values) {
     }
 
     if (remainder) {
-        let eggStr = `${parseInt(remainder.eggs / 30)},${remainder.eggs % 30}`;
+        let eggStr = safeTrayEggConvert(remainder.eggs, false);
         console.log(eggStr, new Date(remainder.date).toDateString());
         //get all items between justabove and remainder date replace with 0,0
         //if val === remainder date then replace with num
@@ -1111,18 +1105,12 @@ function predictProfit() {
     });
 }
 
-function getEggs(current) {
-    if (!current) throw new Error("Eggs current doesn't exist");
-    let temp = current.split(',');
-    return (parseInt(temp[0]) * 30) + parseInt(temp[1]);
-}
-
 async function estimatedTrays() {
     const doc = await admin.firestore().doc('trays/current_trays').get();
     const data = doc.data();
     const response = data.response;
     const current = data.current;
-    const curEggs = getEggs(current);
+    const curEggs = safeTrayEggConvert(current, true);
     if (!response) return -1;
     let totalEggs = curEggs;
     for (const [, value] of Object.entries(response)) {
@@ -1138,13 +1126,11 @@ async function estimatedTrays() {
                 const trayNo = parseInt(data__.trayNo);
                 totalTrays += trayNo;
             });
-            let trays = Math.round(totalEggs / 30);
-            let rem = totalEggs % 30;
-            console.log("BEFORE TRAYS:", trays);
-            trays -= totalTrays;
+            console.log("Late trays :", totalTrays);
+            const estimate = safeTrayEggConvert(totalEggs, false, true, totalTrays);
             return admin.firestore().doc('trays/current_trays')
                 .update({
-                    estimate: `${trays},${rem}`,
+                    estimate,
                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
                 });
     });
@@ -1164,8 +1150,7 @@ async function updateEggsTrend() {
     query.forEach((doc) => {
         const data = doc.data();
         const date_ = new Date(parseInt(data.date_));
-        const traysEggs = data.trays_store.split(',');
-        const value = parseInt(traysEggs[1]) + (parseInt(traysEggs[0]) * 30);
+        const value = safeTrayEggConvert(data.trays_store, true);
         values.push(value);
         dates.push(getDateString(date_));
         if (!firstDate && i === 0) firstDate = date_.getTime();
