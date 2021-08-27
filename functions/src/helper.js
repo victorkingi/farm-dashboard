@@ -204,9 +204,10 @@ module.exports = {
             if (typeof data !== 'number') throw new Error("Data wasn't a number");
             if (typeof amount !== 'number' && reduce) throw new Error("trays to remove were not specified");
             else if (data < 0) throw new Error("Invalid negative number");
-            const trays = Math.round(data / 30);
+            const trays = Math.floor(data / 30);
             const eggs = data % 30;
             const correctConvert = ((trays * 30) + eggs) === data;
+            console.log("Eggs", data, "trays:", trays, "eggs", eggs);
             if (!correctConvert) throw new Error("Conversion failed, expected: "+data+" but got: "+(trays * 30) + eggs);
             console.log("Before trays:", trays);
             return `${reduce ? (trays - amount) : trays},${eggs}`;

@@ -1114,7 +1114,7 @@ async function estimatedTrays() {
     if (!response) return -1;
     let totalEggs = curEggs;
     for (const [, value] of Object.entries(response)) {
-        let eggs  = parseFloat(value['yhat']);
+        let eggs  = parseInt(value['yhat']);
         totalEggs += eggs;
     }
     return admin.firestore().collection('late_payment')
