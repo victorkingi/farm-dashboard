@@ -1,6 +1,6 @@
 {
   "name": "poultry101",
-  "version": "1.1.0",
+  "version": "1.4.0",
   "private": true,
   "dependencies": {
     "@lourenci/react-kanban": "^0.13.0",
