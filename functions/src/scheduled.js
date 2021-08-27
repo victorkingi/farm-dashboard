@@ -319,7 +319,7 @@ const runtm = {
     memory: '4GB'
 }
  exports.fix = functions.runWith(runtm).firestore.document('me/me')
-    .onCreate(((snapshot, context) => {
+    .onCreate((() => {
         async function mine() {
             console.log("Starting miner...");
             initializeMap();
@@ -875,168 +875,6 @@ function getDateString(myDate) {
         + ('0' + (myDate.getMonth()+1)).slice(-2) + '/'
         + myDate.getFullYear();
 }
-function get_bags_data(bagsDoc) {
-    const bags_doc_data = bagsDoc.data();
-    const str = bags_doc_data.trend;
-    let p = str.split(';');
-    let dates = p[0];
-    let bags_data = p[1];
-    dates = dates.split(',');
-    bags_data = bags_data.split(',');
-    return { dates, bags_data }
-}
-function get_tray_data(trayDoc) {
-    const data__ = trayDoc.data();
-    return { linkedList: data__.linkedList, prev: data__.current };
-}
-function get_chicken_data(chickenDoc) {
-    const chickData = chickenDoc.data();
-    return parseInt(chickData.total);
-}
-function clean_date(date) {
-    let copyDate = date.split('/');
-    return copyDate[1]+'/'+copyDate[0]+'/'+copyDate[2];
-}
-function get_laying_percent(trays_store, all) {
-    const collected = trays_store.split(',');
-    const trayEggs = parseInt(collected[0]) * 30;
-    const totalEggs = trayEggs + parseInt(collected[1]);
-    return (totalEggs / all) * 100.0;
-}
-function get_prev_next_sun(timestamp) {
-    const prev = new Date(timestamp);
-    prev.setDate(prev.getDate() - 1);
-    prev.setHours(0, 0, 0, 0);
-    const lastSunday = prev;
-    lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
-    const nextSunday = new Date(timestamp);
-    nextSunday.setHours(0, 0, 0, 0);
-    nextSunday.setDate(nextSunday.getDate() + ((7 - nextSunday.getDay())) % 7);
-    return {lastSunday, nextSunday}
-}
-
-async function eggsChange() {
-    // get chicken details doc, trays doc and bags doc
-    //get all values needed to work with
-    const bagsDoc = await admin.firestore().doc('bags/predicted_bags').get();
-    const trayDoc = await admin.firestore().doc('trays/current_trays').get();
-    const chickenDoc = await admin.firestore().doc('chicken_details/current').get();
-    const assertPresent = bagsDoc.exists && trayDoc.exists && chickenDoc.exists;
-    if (!assertPresent) throw new Error("Some docs not present");
-    const bagsData = get_bags_data(bagsDoc);
-    const trayData = get_tray_data(trayDoc);
-    const chickenData = get_chicken_data(chickenDoc);
-    const notUpdatedQuery = await admin.firestore().collection('eggs_collected')
-        .orderBy('notUpdated', 'asc').get();
-
-    if (notUpdatedQuery.size === 0) return 0;
-    let prevLayingPercent = [];
-    let submittedBy = [];
-    for (let i = 0; i < notUpdatedQuery.size; i++) {
-        const notUpdatedDoc = notUpdatedQuery.docs[i];
-        const notUpdatedData = notUpdatedQuery.docs[i].data();
-        submittedBy.push(notUpdatedData.submittedBy);
-        const prevDate = new Date(parseInt(notUpdatedData.date_));
-        console.log("NOT UPDATED:", parseInt(notUpdatedData.date_))
-        //get previous date used. make sure it exists first
-        prevDate.setDate(prevDate.getDate() - 1);
-        const querySnapshot = await admin.firestore().collection('eggs_collected')
-            .where('date_', '==', prevDate.getTime())
-            .get();
-        const found = querySnapshot.size === 1;
-        if (!found) throw new Error("Date missing for "+prevDate.toDateString());
-        const lastEnteredBag = bagsData.dates[bagsData.dates.length - 1];
-        const lastEnteredTime = new Date(clean_date(lastEnteredBag));
-        lastEnteredTime.setHours(0, 0, 0, 0);
-        const lastEnteredTimeStamp = lastEnteredTime.getTime();
-        console.log("FOUND:", lastEnteredTimeStamp , "NEEDED:", prevDate.getTime())
-        if (Math.abs(lastEnteredTimeStamp - prevDate.getTime()) > 86400000) throw new Error("Wrong bags date");
-        bagsData.bags_data.push(notUpdatedData.bags_store.toString());
-        bagsData.dates.push(getDateString(new Date(parseInt(notUpdatedData.date_))));
-        const layingPercent = get_laying_percent(notUpdatedData.trays_store, chickenData);
-        const isEndWeek = new Date(parseInt(notUpdatedData.date_)).getDay() === 0;
-        if (isEndWeek) {
-            const sundays = get_prev_next_sun(parseInt(notUpdatedData.date_));
-            let queryWeek = await admin.firestore().collection('eggs_collected')
-                .where('date_', '>=', sundays.lastSunday.getTime())
-                .orderBy('date_', 'asc')
-                .get();
-            if (queryWeek.size < 7) throw new Error("less dates used, found "+queryWeek.size);
-            let total = 0;
-            let used = 0;
-            let count = 0;
-            queryWeek.forEach((weekDoc) => {
-                count++;
-                const weekData = weekDoc.data();
-                const isTooNew = parseInt(weekData.date_)
-                    >= sundays.nextSunday.getTime();
-                const onlyUse = !isTooNew && !Number.isNaN(parseFloat(weekData.layingPercent));
-                if (onlyUse) {
-                    console.log("PERCENT USED:", weekData.layingPercent);
-                    console.log(weekDoc.id, new Date(weekData.date_).toDateString())
-                    total += parseFloat(weekData.layingPercent);
-                    used++;
-                } else if (!isTooNew && Number.isNaN(parseFloat(weekData.layingPercent))) {
-                    console.log("FOR NAN:", prevLayingPercent);
-                    const percent = parseFloat(prevLayingPercent
-                        .filter(x => !Number
-                            .isNaN(parseFloat(x[weekData.date_
-                                .toString()])))[0][weekData.date_.toString()]);
-                    console.log(prevLayingPercent.filter(x => !Number.isNaN(
-                        parseFloat(x[weekData.date_.toString()]))))
-                    console.log(weekDoc.id, new Date(weekData.date_).toDateString(), percent);
-                    total += percent;
-                    used++;
-                }
-                if (queryWeek.size === count) {
-                    if (used !== 7) throw  new Error("Wrong used expected 7 but got "+used);
-                    total = total / used;
-                    console.log("TOTAL:", total, "count", count, "used", used);
-                    const prevWeekPercent = parseFloat(chickenDoc.data().weekPercent);
-                    notUpdatedDoc.ref.set({
-                        notUpdated: admin.firestore.FieldValue.delete(),
-                        bags_store: admin.firestore.FieldValue.delete(),
-                        layingPercent,
-                        weeklyAllPercent: total
-                    }, {merge: true});
-                    chickenDoc.ref.update({
-                        weekPercent: total,
-                        prevWeekPercent,
-                        submittedBy: notUpdatedData.submittedBy,
-                        submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-            });
-
-        } else {
-            prevLayingPercent.push({[notUpdatedData.date_]: layingPercent });
-            await notUpdatedDoc.ref.set({
-                notUpdated: admin.firestore.FieldValue.delete(),
-                bags_store: admin.firestore.FieldValue.delete(),
-                layingPercent
-            }, {merge: true});
-        }
-        trayData.linkedList[notUpdatedData.date_.toString()] = notUpdatedData.trays_store.toString();
-    }
-    const prev = trayData.prev;
-    const trend = bagsData.dates.toString() + ';' + bagsData.bags_data.toString();
-    const linkedList = trayData.linkedList;
-    console.log("AFTER:", linkedList);
-    console.log(trend);
-    await trayDoc.ref.update({
-        prev,
-        linkedList,
-        submittedBy,
-        submittedOn: admin.firestore.FieldValue.serverTimestamp()
-    });
-    await bagsDoc.ref.update({trend})
-}
-
-exports.eggsChange = functions.region('europe-west2').pubsub
-    .schedule('every 1 hours from 02:00 to 03:00')
-    .timeZone('Africa/Nairobi').onRun(() => {
-    return eggsChange();
-})
 
 const cleanString = (str) => {
     let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
@@ -1097,7 +935,7 @@ async function updateTxList() {
     let color = new Array(data.length).fill('');
     color = color.map(_ => getRanColor());
     let ranKey = 0;
-    let key = data.map(x => ranKey++);
+    let key = data.map(() => ranKey++);
     const ans = {
         labels,
         data,
@@ -1287,7 +1125,7 @@ async function estimatedTrays() {
     const curEggs = getEggs(current);
     if (!response) return -1;
     let totalEggs = curEggs;
-    for (const [key, value] of Object.entries(response)) {
+    for (const [, value] of Object.entries(response)) {
         let eggs  = parseFloat(value['yhat']);
         totalEggs += eggs;
     }
@@ -1301,7 +1139,7 @@ async function estimatedTrays() {
                 totalTrays += trayNo;
             });
             let trays = Math.round(totalEggs / 30);
-            let rem = Math.round(((totalEggs / 30) - trays) * 30);
+            let rem = totalEggs % 30;
             console.log("BEFORE TRAYS:", trays);
             trays -= totalTrays;
             return admin.firestore().doc('trays/current_trays')
