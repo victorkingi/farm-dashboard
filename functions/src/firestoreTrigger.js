@@ -9,7 +9,7 @@ const {
     makeANotificationToOneUser,
     createNotification,
     borrowInput, buyInput, saleInput,
-    errorMessage
+    errorMessage, safeTrayEggConvert
 } = require('./helper');
 const numeral = require('numeral');
 
@@ -554,9 +554,7 @@ function clean_date(date) {
     return copyDate[1]+'/'+copyDate[0]+'/'+copyDate[2];
 }
 function get_laying_percent(trays_store, all) {
-    const collected = trays_store.split(',');
-    const trayEggs = parseInt(collected[0]) * 30;
-    const totalEggs = trayEggs + parseInt(collected[1]);
+    const totalEggs = safeTrayEggConvert(trays_store, true);
     return (totalEggs / all) * 100.0;
 }
 function get_prev_next_sun(timestamp) {
@@ -710,9 +708,7 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
         for (const [key, value] of Object.entries(list)) {
             totalEntries++;
             if (parseInt(key) < oldestKey) oldestKey = key;
-            const collected = value.split(',');
-            const trayEggs = parseInt(collected[0]) * 30;
-            const total = trayEggs + parseInt(collected[1]);
+            const total = safeTrayEggConvert(value, true);
             allEggs += total;
         }
         if (totalEntries > 100) {
@@ -734,11 +730,8 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
                     const trayNo = parseInt(data__.trayNo);
                     totalTrays += trayNo;
                 });
-                let trays = Math.round(allEggs / 30);
-                let rem = allEggs % 30;
                 console.log("Late Trays:", totalTrays);
-                trays -= totalTrays;
-                let ans = `${trays},${rem}`;
+                let ans = safeTrayEggConvert(allEggs, false, true, totalTrays);
                 if (ans === data.current) return 0;
                 return admin.firestore().doc('trays/current_trays').update({
                     current: ans,
