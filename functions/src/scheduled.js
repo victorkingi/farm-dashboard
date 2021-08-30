@@ -39,19 +39,18 @@ function initializeMap() {
 
 async function dailyUpdateBags() {
     predictBags();
-    setTimeout(() => {
-        admin.firestore().doc("bags/current_bags")
-            .get().then((bagDoc) => {
+    return admin.firestore().doc("bags/current_bags")
+        .get().then((bagDoc) => {
             admin.firestore().doc('bags/predicted_bags')
                 .get().then((predDoc) => {
                     const predData = predDoc.data();
                     const next = parseInt(predData.nextDay);
-                if (bagDoc.exists) {
-                    let bagNum = next;
-                    bagDoc.ref.update({
-                        number: bagNum,
-                        submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                    });
+                    if (bagDoc.exists) {
+                        let bagNum = next;
+                        bagDoc.ref.update({
+                            number: bagNum,
+                            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                        });
 
                     if (bagNum === 0) {
                         const details = {
@@ -71,10 +70,10 @@ async function dailyUpdateBags() {
                 }
             })
             return 0;
-        }).catch((err) => {
+        })
+        .catch((err) => {
             return console.error("Error at bags, ", err);
         });
-    }, 13000);
 }
 async function dailyCurrentTraysCheck() {
     const trayRef = admin.firestore().collection("trays").doc("current_trays");
@@ -1113,27 +1112,19 @@ async function estimatedTrays() {
     const curEggs = safeTrayEggConvert(current, true);
     if (!response) return -1;
     let totalEggs = curEggs;
+    console.log("initial eggs", totalEggs);
     for (const [, value] of Object.entries(response)) {
         let eggs  = parseInt(value['yhat']);
+        console.log("adding", eggs);
         totalEggs += eggs;
     }
-    return admin.firestore().collection('late_payment')
-        .orderBy('submittedOn', 'desc')
-        .get().then((query) => {
-            let totalTrays = 0;
-            query.forEach((doc) => {
-                const data__ = doc.data().values;
-                const trayNo = parseInt(data__.trayNo);
-                totalTrays += trayNo;
-            });
-            console.log("Late trays :", totalTrays);
-            const estimate = safeTrayEggConvert(totalEggs, false, true, totalTrays);
-            return admin.firestore().doc('trays/current_trays')
-                .update({
-                    estimate,
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-    });
+    console.log("final eggs", totalEggs);
+    const estimate = safeTrayEggConvert(totalEggs, false);
+    return admin.firestore().doc('trays/current_trays')
+        .update({
+            estimate,
+            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+        });
 }
 
 const runtimeOptWeekly = {
@@ -1169,16 +1160,16 @@ async function updateEggsTrend() {
 
 exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
     .schedule('every 1 hours from 17:00 to 18:00')
-    .timeZone('Africa/Nairobi').onRun(async () => {
-        await estimatedTrays();
+    .timeZone('Africa/Nairobi').onRun(() => {
+        estimatedTrays();
         return dailyCurrentTraysCheck();
     });
 
 exports.dailyChanges = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
     .schedule('every 24 hours')
-    .timeZone('Africa/Nairobi').onRun(async () => {
-        await dailyUpdateBags();
-        await updateEggsTrend();
+    .timeZone('Africa/Nairobi').onRun(() => {
+        dailyUpdateBags();
+        updateEggsTrend();
         predictEggs();
         return updateTxList();
     });
@@ -1465,18 +1456,19 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                             });
                         }
                 });
-                return console.log("mining done!");
+                console.log("mining done!");
+                return 0;
         });
 });
 
 exports.weeklyChanges = functions.runWith(runtimeOptWeekly)
-    .pubsub.schedule('every sunday 01:00').onRun((async () => {
-    await weeklyChickenAgeUpdate();
-    await weeklyExportFirestore();
+    .pubsub.schedule('every sunday 01:00').onRun((() => {
+    weeklyChickenAgeUpdate();
+    weeklyExportFirestore();
     predictProfit();
     const sunday = new Date();
     sunday.setHours(0, 0, 0, 0);
-    await admin.firestore().collection('profit')
+    return admin.firestore().collection('profit')
         .add({
             docId: date.toDateString(),
             date: sunday,
@@ -1489,7 +1481,6 @@ exports.weeklyChanges = functions.runWith(runtimeOptWeekly)
             },
             submittedOn: admin.firestore.FieldValue.serverTimestamp()
         });
-    return 0;
 }));
 
 async function updateMonthlyRev() {
@@ -1513,10 +1504,9 @@ async function updateMonthlyRev() {
 }
 
 exports.monthlyChanges = functions.pubsub
-    .schedule('1 of month 01:00').onRun(( async () => {
-    await monthlyJeffDebt();
-    await updateMonthlyRev();
-    return 0;
+    .schedule('1 of month 01:00').onRun((() => {
+    monthlyJeffDebt();
+    return updateMonthlyRev();
 }));
 
 function predictEggsCumulate() {
@@ -1541,19 +1531,18 @@ function predictEggsCumulate() {
         }
     };
 
-    admin.firestore().doc('trays/current_trays')
+    return admin.firestore().doc('trays/current_trays')
         .get().then((doc) => {
         const data = doc.data();
         const toSend = `{"message":"${data.trend}"}`
         console.log("DATA:", toSend);
         xhr.send(toSend);
     });
-    return 0;
 }
 
 exports.eggsFurther = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
     .schedule('every 24 hours')
-    .timeZone('Africa/Nairobi').onRun(async () => {
+    .timeZone('Africa/Nairobi').onRun(() => {
         return predictEggsCumulate();
     });
 
