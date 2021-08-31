@@ -284,11 +284,14 @@ function Dashboard(props) {
 
   const isRejected = (date) => {
      if (date) {
-       let today = new Date().getTime();
-       const mineTime = date;
-       mineTime.setDate(mineTime.getDate()+1);
-       mineTime.setHours(3, 0, 0, 0);
-       return mineTime.getTime() < today; //if expected mining date is long ago then it failed
+       const today = new Date().getTime();
+       let toMine = new Date(date);
+       toMine.setHours(3, 0, 0, 0);
+       // if mine time is < submittedOn then choose next date, else choose today
+       if (toMine.getTime() < date.getTime()) {
+         toMine.setDate(toMine.getDate()+1);
+       }
+       return toMine.getTime() < today;
      } else {
        return false;
      }
