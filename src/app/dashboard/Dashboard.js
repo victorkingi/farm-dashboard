@@ -1079,13 +1079,14 @@ function Dashboard(props) {
                                   </div>
                                 </td>
                                 <td>
-                                  {item.values.category !== "send" && item.values.category !== "borrow"
+                                  {item.values.category !== "send" && item.values.category !== "buys" && item.values.category !== "borrow"
                                   && item.values.section !== "THIKA_FARMERS" && item.values.section !== "DUKA"
                                   && sanitize_string(item?.values?.name)}
                                   {item.values.section === "THIKA_FARMERS" && "Thika Farmers"}
                                   {item.values.section === "DUKA" && "Jeff Duka"}
                                   {item.values.category === "send" && item?.values?.receiver && sanitize_string(item?.values?.receiver)}
                                   {item.values.category === "borrow" && sanitize_string(item?.values?.get_from)}
+                                  {item.values.category === "buys" && sanitize_string(item?.values?.section)}
                                 </td>
                                 <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
                                 <td> {sanitize_string(item.values?.category)} </td>

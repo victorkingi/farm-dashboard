@@ -801,6 +801,8 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
         remain = parseFloat(afterData.split.remain) - remain;
 
         let totalLeaving = JEFF + VICTOR + BABRA;
+        const incrementZero = JEFF - VICTOR - BABRA;
+        if (incrementZero === 0) return 0;
         const availDocRef = admin.firestore().doc('profit/available');
         return admin.firestore().runTransaction((transaction) => {
             return transaction.get(availDocRef).then((_availDoc) => {
