@@ -700,24 +700,8 @@ exports.onCollect = functions.firestore.document('eggs_collected/{eggId}')
 exports.updateTrays = functions.firestore.document('trays/current_trays')
     .onUpdate(((change) => {
         const data = change.after.data();
-        const beforeData = change.before.exists ? change.before.data() : null;
         const list = data.linkedList;
         let allEggs = 0;
-        let changeDetected = false;
-        for (const [key, value] of Object.entries(data.linkedList)) {
-            if (!beforeData.linkedList) break;
-            if (beforeData.linkedList.hasOwnProperty(key)) {
-                const temp = beforeData.linkedList[key];
-                if (temp !== value) {
-                    changeDetected = true;
-                    break;
-                }
-            } else {
-                changeDetected = true;
-                break;
-            }
-        }
-        if (!changeDetected) return -1;
         let totalEntries = 0;
         let oldestKey = Infinity;
         for (const [key, value] of Object.entries(list)) {

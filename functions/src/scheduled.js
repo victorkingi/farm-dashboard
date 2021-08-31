@@ -350,7 +350,7 @@ const runtm = {
 
 const runtimeOptRecalc = {
     timeoutSeconds: 540,
-    memory: '256MB'
+    memory: '8GB'
 }
 
 exports.recalc = functions.runWith(runtimeOptRecalc).pubsub.schedule('every 2 hours')
@@ -947,7 +947,7 @@ async function updateTxList() {
 
 const runtimeOptsDaily = {
     timeoutSeconds: 540,
-    memory: '256MB'
+    memory: '8GB'
 }
 
 function predictBags() {
@@ -1128,7 +1128,8 @@ async function estimatedTrays() {
 }
 
 const runtimeOptWeekly = {
-    timeoutSeconds: 120,
+    timeoutSeconds: 540,
+    memory: '8GB'
 }
 
 async function updateEggsTrend() {
