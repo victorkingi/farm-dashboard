@@ -712,6 +712,9 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
                     changeDetected = true;
                     break;
                 }
+            } else {
+                changeDetected = true;
+                break;
             }
         }
         if (!changeDetected) return -1;
