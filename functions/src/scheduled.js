@@ -320,7 +320,7 @@ const runtm = {
  exports.fix = functions.runWith(runtm).firestore.document('me/me')
     .onCreate((() => {
         async function mine() {
-            console.log("Starting miner...");
+            /*console.log("Starting miner...");
             initializeMap();
             let difficulty = await admin.firestore().doc('temp/difficulty').get();
             difficulty = parseInt(difficulty.data().diff);
@@ -343,7 +343,7 @@ const runtm = {
             admin.firestore().collection("blockchain").add({
                 ...all,
                 minedOn: admin.firestore.FieldValue.serverTimestamp()
-            }).then(() => { return console.log("DONE"); });
+            }).then(() => { return console.log("DONE"); }); */
         }
         return mine();
 }));
@@ -1159,14 +1159,14 @@ async function updateEggsTrend() {
 }
 
 exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
-    .schedule('every 1 hours from 17:00 to 18:00')
+    .schedule('every 1 hours from 02:00 to 03:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         estimatedTrays();
         return dailyCurrentTraysCheck();
     });
 
 exports.dailyChanges = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
-    .schedule('every 24 hours')
+    .schedule('every 1 hours from 02:00 to 03:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         dailyUpdateBags();
         updateEggsTrend();
@@ -1541,7 +1541,7 @@ function predictEggsCumulate() {
 }
 
 exports.eggsFurther = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
-    .schedule('every 24 hours')
+    .schedule('every 1 hours from 02:00 to 03:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         return predictEggsCumulate();
     });
