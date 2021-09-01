@@ -10,7 +10,8 @@ const {
     makeANotificationToOneUser,
     makeANotification,
     createNotification,
-    errorMessage, safeTrayEggConvert
+    errorMessage,
+    safeTrayEggConvert
 } = require("./helper");
 const date = new Date();
 const chickenDocRef = admin.firestore().collection("chicken_details")
@@ -130,32 +131,6 @@ async function weeklyChickenAgeUpdate() {
 
     });
 }
-
-async function monthlyJeffDebt() {
-    const jeffDocRef = admin.firestore().collection('current').doc('JEFF');
-
-    return admin.firestore().runTransaction((transaction => {
-        return transaction.get(jeffDocRef).then((jeffDoc) => {
-            if (jeffDoc.exists) {
-                const data = jeffDoc.data();
-                const amount = parseFloat(data.balance);
-                const details = {
-                    title: `Your Monthly Debt Ksh.${numeral(amount).format("0,0")}`,
-                    body: `Dear Jeff, your owe the bank Ksh.${numeral(amount).format("0,0")}`,
-                    name: 'JEFF'
-                }
-                return makeANotificationToOneUser(details);
-
-            }
-            return 0;
-        });
-
-    })).then(() => {
-        return console.log("jeff got his monthly debt");
-    }).catch((err) => {
-        return console.error("Error jeff monthly debt, ", err);
-    });
-}
 async function weeklyExportFirestore() {
     const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
     const databaseName = client.databasePath(projectId, '(default)');
@@ -187,6 +162,32 @@ async function weeklyExportFirestore() {
         }
         makeANotificationToOneUser(details)
         throw new Error(`Export operation failed: ${err.message}`);
+    });
+}
+
+async function monthlyJeffDebt() {
+    const jeffDocRef = admin.firestore().collection('current').doc('JEFF');
+
+    return admin.firestore().runTransaction((transaction => {
+        return transaction.get(jeffDocRef).then((jeffDoc) => {
+            if (jeffDoc.exists) {
+                const data = jeffDoc.data();
+                const amount = parseFloat(data.balance);
+                const details = {
+                    title: `Your Monthly Debt Ksh.${numeral(amount).format("0,0")}`,
+                    body: `Dear Jeff, your owe the bank Ksh.${numeral(amount).format("0,0")}`,
+                    name: 'JEFF'
+                }
+                return makeANotificationToOneUser(details);
+
+            }
+            return 0;
+        });
+
+    })).then(() => {
+        return console.log("jeff got his monthly debt");
+    }).catch((err) => {
+        return console.error("Error jeff monthly debt, ", err);
     });
 }
 
@@ -317,7 +318,8 @@ const runtm = {
     timeoutSeconds: 540,
     memory: '4GB'
 }
- exports.fix = functions.runWith(runtm).firestore.document('me/me')
+
+exports.fix = functions.runWith(runtm).firestore.document('me/me')
     .onCreate((() => {
         async function mine() {
             /*console.log("Starting miner...");
@@ -519,6 +521,7 @@ async function updateEggs(values) {
     if (toSellEggs !== 0) {
         errorMessage("Previous check got passed, not enough trays!",
             values.values.name);
+        return false;
     }
 
     if (remainder) {
@@ -543,7 +546,7 @@ async function updateEggs(values) {
             list[item[0]] = '0,0';
         }))
     }
-    return admin.firestore().doc('trays/current_trays')
+    admin.firestore().doc('trays/current_trays')
         .update({
             submittedOn: admin.firestore.FieldValue.serverTimestamp(),
             linkedList: list,
@@ -551,32 +554,7 @@ async function updateEggs(values) {
             prevSubmittedBy: data.submittedBy,
             prev: data.current
         });
-}
-async function rollbackEggs(values) {
-    const trayNo = parseInt(values.values.trayNo);
-    const date = values.values.date;
-    const traysDoc = await admin.firestore()
-        .collection("trays").doc("current_trays").get();
-
-    const data = traysDoc.data();
-    let timeStamp = date.toDate();
-    timeStamp.setHours(0, 0, 0, 0);
-    timeStamp.setDate(timeStamp.getDate() + 1)
-    console.log("DATE:", timeStamp.toDateString())
-    if (timeStamp.getTime() < 1625691600000) return 0;
-    let list = data.linkedList;
-    let prevTE = list[timeStamp.getTime().toString()].split(',');
-    const prevT = parseInt(prevTE[0]);
-    const prevE = parseInt(prevTE[1]);
-    list[timeStamp.getTime().toString()] = `${trayNo+prevT},${prevE}`;
-    return admin.firestore().doc('trays/current_trays')
-        .update({
-            submittedOn: admin.firestore.FieldValue.serverTimestamp(),
-            linkedList: list,
-            prevSubmittedOn: data.submittedOn,
-            prevSubmittedBy: data.submittedBy,
-            prev: data.current
-        });
+    return true;
 }
 
 async function saleParamCheck(values) {
@@ -619,50 +597,7 @@ async function saleParamCheck(values) {
     //checks if some sales will not have enough eggs to burn
     await verifyEggs(values);
 }
-async function saleParamCheckReplaced(values) {
-    //Will check if an entry matches section, buyername, date,amount & price
-    const sales = await admin.firestore().collection('sales')
-        .orderBy("submittedOn", "desc").get();
-    let found = 0;
 
-    for (let i = 0; i < sales.size; i++) {
-        const doc = sales.docs[i];
-        const data = doc.data();
-        const buyerName = data.buyerName;
-        const category = data.category;
-        const date = data.date.toDate().getTime();
-        const section = data.section;
-        const trayNo = parseInt(data.trayNo);
-        const trayPrice = parseFloat(data.trayPrice);
-
-        const checkDate = date === values.values.date.toDate().getTime();
-        const checkCategory = category === values.values.category;
-        const checkSection = section === values.values.section;
-        const checkBuyerName = buyerName === values.values.buyerName;
-        const checkTrayPrice = trayPrice === parseFloat(values.values.trayPrice);
-        const checkTrayNo = trayNo === parseInt(values.values.trayNo);
-        const isAvailable = checkCategory && checkSection
-            && checkDate && checkBuyerName && checkTrayPrice && checkTrayNo;
-        if (isAvailable) {
-            console.log("SALES", "TO REPLACE FOUND");
-            console.log("DATE:", checkDate)
-            console.log("SECTION:", checkSection)
-            console.log("CATEGORY:", checkCategory)
-            console.log("BUYERNAME:", checkBuyerName)
-            found += 1;
-        }
-    }
-
-    if (found > 1) {
-        errorMessage("Duplicate data To Replace found alot: "+found,
-            values.values.name);
-    } else if (found === 1) {
-        await rollbackEggs(values);
-    } else if (found === 0) {
-        errorMessage("No entry to replace was found!",
-            values.values.name);
-    }
-}
 async function buyParamCheck(values, submittedOn) {
     const pending = await admin.firestore().collection('pending_transactions')
         .orderBy("submittedOn", "desc").get();
@@ -831,26 +766,11 @@ async function assertInputsAreCorrect(query) {
     for (let i = 0; i < query.size; i++) {
         const doc = query.docs[i];
         const data = doc.data();
-        if (data.values.replaced) throw new Error("Expected replaced to be false for: "+data);
-        if (data.values.category === "sales") {
-            /**
-             *  if statement will check if replaced.
-             *  If replaced & sales -> check if section, buyerName,
-             *  date, trayNo & trayPrice is same; if so, add eggs burnt
-             *  on that timestamp
-             */
-            if (data.values.replaced) await saleParamCheckReplaced(data);
-            else await saleParamCheck(data);
-        }
-        else if (data.values.category === "buys") {
-            await buyParamCheck(data.values, data.submittedOn);
-        }
-        else if (data.values.category === "borrow") {
-            await borrowParamCheck(data.values, data.submittedOn);
-        }
-        else if (data.values.category === "send") {
-            await sendParamCheck(data.values, data.submittedOn);
-        }
+        if (data.values.replaced) throw new Error("Expected replaced to be false for: " + data);
+        if (data.values.category === "sales") await saleParamCheck(data);
+        else if (data.values.category === "buys") await buyParamCheck(data.values, data.submittedOn);
+        else if (data.values.category === "borrow") await borrowParamCheck(data.values, data.submittedOn);
+        else if (data.values.category === "send") await sendParamCheck(data.values, data.submittedOn);
     }
     for (let i = 0; i < query.size; i++) {
         const doc = query.docs[i];
@@ -858,7 +778,8 @@ async function assertInputsAreCorrect(query) {
         if (data.values.category === "sales"
             && !data.values.replaced) {
             //burns eggs
-            await updateEggs(data);
+            const done = await updateEggs(data);
+            if (!done) throw new Error("Burning eggs failed");
         }
     }
 }
@@ -1025,14 +946,11 @@ function predictEggs() {
             let date_ = new Date(resJson[`${length-1}`].ds);
             console.log("DATE SELECTED:", date_.toDateString());
             date_.setHours(0, 0, 0, 0);
-            const val = parseFloat(resJson[`${length-1}`].yhat);
-            console.log("YHAT SELECTED:", val);
-            if (!val || !date) throw new Error("Value or date is undefined; date: "+date_+" val: "+val);
+            if (!date) throw new Error("date is undefined; date: " + date_);
             return admin.firestore().doc('trays/current_trays')
                 .update({
                     today: date_,
                     response: resJson,
-                    predicted: val,
                     submittedOn: admin.firestore.FieldValue.serverTimestamp()
                 });
         }
@@ -1160,7 +1078,7 @@ async function updateEggsTrend() {
 }
 
 exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
-    .schedule('every 1 hours from 02:00 to 03:00')
+    .schedule('every 1 hours from 03:00 to 04:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         estimatedTrays();
         return dailyCurrentTraysCheck();
