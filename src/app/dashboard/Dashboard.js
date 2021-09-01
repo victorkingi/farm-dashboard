@@ -75,7 +75,8 @@ function getTotal(stats) {
         prevAmountSale = stats[i].prevAmount;
       }
     }
-    if (sales && buys) return {
+    if (typeof sales === 'number'
+        && typeof buys === 'number') return {
       sales,
       prevMonthSale,
       prevAmountSale,
@@ -83,7 +84,7 @@ function getTotal(stats) {
       prevMonthBuy,
       prevAmountBuy
     }
-    else console.error("Sales or Buys returned undefined", stats);
+    else console.error("Sales or Buys returned undefined", sales, buys);
   }
   return { sales: 0, buys: 0 }
 }
