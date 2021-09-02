@@ -41,7 +41,7 @@ function initializeMap() {
 async function dailyUpdateBags() {
     predictBags();
     const today = new Date();
-    const bagDoc = await admin.firestore().doc('bags/predicted_bags');
+    const bagDoc = await admin.firestore().doc('bags/predicted_bags').get();
     const trend = bagDoc.data().trend.split(';');
     let dates = trend[0].split(',');
     let values = trend[1].split(',');
