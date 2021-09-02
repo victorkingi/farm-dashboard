@@ -98,15 +98,15 @@ function getUser() {
 }
 
 function Dashboard(props) {
-  const { notifications, pend, forProfit,
-      profit, bags, chick, trays,
-      block, current, stats
+  const {
+    notifications, pend, forProfit,
+    profit, chick, trays,
+    block, current, stats
   } = props;
   const [open, setOpen] = useState(false);
   const [trans, setTrans] = useState({});
   const [done, setDone] = useState(false);
   const [done1, setDone1] = useState(false);
-  const [done2, setDone2] = useState(false);
   const [done3, setDone3] = useState(false);
   const [done4, setDone4] = useState(false);
   const [error, setError] = useState(false);
@@ -564,39 +564,6 @@ function Dashboard(props) {
                     </div>
                   </div>}
                   <h6 className="text-muted font-weight-normal">Last Week Laying Percentage</h6>
-                </div>
-              </div>
-            </div>
-            <div id="feeds" className="col-xl-3 col-sm-6 grid-margin stretch-card">
-              <div className="card">
-                <div className="card-body">
-                  {bags && <div className="row">
-                    <div className="col-9">
-                      <div className="d-flex align-items-center align-self-start">
-                        <h3 className="mb-0">{!done2 &&
-                        <CountUp
-                            start={0}
-                            end={parseFloat(bags[1].number || bags[0].number)}
-                            duration={2.75}
-                            delay={1}
-                            onEnd={() => setDone2(true)}
-                        />}{done2 && (bags[1].number || bags[0].number)}</h3>
-                        <p className={`text-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)
-                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0
-                              ? numeral(riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)).format("0,0.0")
-                              : '+'.concat(numeral(riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay)).format("0,0.0"))}%
-                        </p></div>
-                    </div>
-                    <div className="col-3">
-                      <div
-                          className={`icon icon-box-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0 ? 'danger' : 'success'}`}>
-                        <span
-    className={`mdi mdi-arrow-${riseDrop(bags[1].number || bags[0].number, bags[0].nextDay || bags[1].nextDay) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
-                      </div>
-                    </div>
-                  </div>}
-                  <h6 className="text-muted font-weight-normal">Next Day Feeds in Store</h6>
                 </div>
               </div>
             </div>
@@ -1094,10 +1061,9 @@ function Dashboard(props) {
                                 <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                 <td>
-                                  {isRejected(item?.submittedOn?.toDate()) ? <div className="badge badge-outline-danger">Rejected</div>
-                                      : <div className="badge badge-outline-warning">Pending</div>
-                                  }
-
+                                  {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
+                                  {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
+                                  {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
                                 </td>
                               </tr>
                             )
@@ -1141,7 +1107,6 @@ const mapStateToProps = function(state) {
     pend: state.firestore.ordered.pending_transactions,
     forProfit: state.firestore.ordered.predict_week,
     profit: state.firestore.ordered.profit,
-    bags: state.firestore.ordered.bags,
     chick: state.firestore.ordered.chicken_details,
     trays: state.firestore.ordered.trays,
     block: state.firestore.ordered.transactions,
@@ -1157,7 +1122,6 @@ export default compose(
       {collection: 'pending_transactions' },
       {collection: 'predict_week', orderBy: ['date', 'desc']},
       {collection: 'profit', limit: 3, orderBy: ['date', 'desc']},
-      {collection: 'bags', orderBy: ['submittedOn', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
       {collection: 'current', orderBy: ['important', 'asc'] },
