@@ -788,23 +788,67 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
         const incrementZero = JEFF - VICTOR - BABRA;
         if (incrementZero === 0) return 0;
         const availDocRef = admin.firestore().doc('profit/available');
-        return admin.firestore().runTransaction((transaction) => {
-            return transaction.get(availDocRef).then((_availDoc) => {
-                const data__ = _availDoc.data();
-                transaction.update(availDocRef, {
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp(),
-                    date: admin.firestore.FieldValue.serverTimestamp(),
-                    VICTOR: admin.firestore.FieldValue.increment(VICTOR),
-                    prevVICTOR: data__.VICTOR,
-                    prevJEFF: data__.JEFF,
-                    prevBABRA: data__.BABRA,
-                    JEFF: admin.firestore.FieldValue.increment(JEFF),
-                    BABRA: admin.firestore.FieldValue.increment(BABRA),
-                    remain: admin.firestore.FieldValue.increment(remain),
-                    totalLeaving: admin.firestore.FieldValue.increment(totalLeaving)
+        if (JEFF && VICTOR === 0) {
+            return admin.firestore().runTransaction((transaction) => {
+                return transaction.get(availDocRef).then((_availDoc) => {
+                    const data__ = _availDoc.data();
+                    transaction.update(availDocRef, {
+                        submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+                        date: admin.firestore.FieldValue.serverTimestamp(),
+                        prevBABRA: data__.BABRA,
+                        BABRA: admin.firestore.FieldValue.increment(BABRA),
+                        remain: admin.firestore.FieldValue.increment(remain),
+                        totalLeaving: admin.firestore.FieldValue.increment(totalLeaving)
+                    })
                 })
-            })
-        });
+            });
+        } else if (JEFF && BABRA === 0) {
+            return admin.firestore().runTransaction((transaction) => {
+                return transaction.get(availDocRef).then((_availDoc) => {
+                    const data__ = _availDoc.data();
+                    transaction.update(availDocRef, {
+                        submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+                        date: admin.firestore.FieldValue.serverTimestamp(),
+                        VICTOR: admin.firestore.FieldValue.increment(VICTOR),
+                        prevVICTOR: data__.VICTOR,
+                        remain: admin.firestore.FieldValue.increment(remain),
+                        totalLeaving: admin.firestore.FieldValue.increment(totalLeaving)
+                    })
+                })
+            });
+        } else if (VICTOR && BABRA === 0) {
+            return admin.firestore().runTransaction((transaction) => {
+                return transaction.get(availDocRef).then((_availDoc) => {
+                    const data__ = _availDoc.data();
+                    transaction.update(availDocRef, {
+                        submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+                        date: admin.firestore.FieldValue.serverTimestamp(),
+                        prevJEFF: data__.JEFF,
+                        JEFF: admin.firestore.FieldValue.increment(JEFF),
+                        remain: admin.firestore.FieldValue.increment(remain),
+                        totalLeaving: admin.firestore.FieldValue.increment(totalLeaving)
+                    })
+                })
+            });
+        } else {
+            return admin.firestore().runTransaction((transaction) => {
+                return transaction.get(availDocRef).then((_availDoc) => {
+                    const data__ = _availDoc.data();
+                    transaction.update(availDocRef, {
+                        submittedOn: admin.firestore.FieldValue.serverTimestamp(),
+                        date: admin.firestore.FieldValue.serverTimestamp(),
+                        VICTOR: admin.firestore.FieldValue.increment(VICTOR),
+                        prevVICTOR: data__.VICTOR,
+                        prevJEFF: data__.JEFF,
+                        prevBABRA: data__.BABRA,
+                        JEFF: admin.firestore.FieldValue.increment(JEFF),
+                        BABRA: admin.firestore.FieldValue.increment(BABRA),
+                        remain: admin.firestore.FieldValue.increment(remain),
+                        totalLeaving: admin.firestore.FieldValue.increment(totalLeaving)
+                    })
+                })
+            });
+        }
     }));
 
 exports.salesMade = functions.firestore.document('sales/{saleId}')
