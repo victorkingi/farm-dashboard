@@ -116,6 +116,15 @@ function Dashboard(props) {
   const [allChecked, setAllChecked] = useState(false);
   const [pendChecked, setPendChecked] = useState({});
 
+  useEffect(() => {
+    let total = 0;
+    for (const [, value] of Object.entries(pendChecked)) {
+      if (value) total += 1;
+    }
+    if (total === pend?.length - 1) setAllChecked(true);
+    else setAllChecked(false);
+  }, [pendChecked, pend]);
+
   const transactionHistoryData =  {
     labels: JSON.stringify(trans) !== '{}'
         ? trans.labels : ["Bank", "Victor","Jeff"],
