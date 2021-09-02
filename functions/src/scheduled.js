@@ -998,6 +998,7 @@ function predictProfit() {
         for (let i = 0; i < query.size; i++) {
             const doc = query.docs[i];
             const data = doc.data();
+            if (data.docId.startsWith('WITHDRAWN_')) continue;
             profits.push(parseFloat(data.profit));
             const myDate = new Date(data.docId);
             const myDateString = ('0' + myDate.getDate()).slice(-2) + '/'
@@ -1009,6 +1010,7 @@ function predictProfit() {
         console.log("DATA:", data);
         xhr.send(data);
     });
+    return 0;
 }
 
 async function estimatedTrays() {

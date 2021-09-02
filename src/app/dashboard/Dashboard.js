@@ -640,23 +640,53 @@ function Dashboard(props) {
                       <div className="d-flex align-items-center align-self-start">
                         <h3 className="mb-0">KSh {numeral(parseFloat(forProfit[1].profit))
                             .format("0,0.00")}</h3>
-                        <p className={`text-${riseDrop(forProfit[1].profit, profit[0].profit)
+                        <p className={`text-${riseDrop(forProfit[1].profit, getLatestWeekProfit().sun1)
                         < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                          {riseDrop(forProfit[1].profit, profit[0].profit) < 0
-                              ? numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0,0.0")
-                              : '+'.concat(numeral(riseDrop(forProfit[1].profit, profit[0].profit)).format("0,0.0"))}%
+                          {riseDrop(forProfit[1].profit, getLatestWeekProfit().sun1) < 0
+                              ? numeral(riseDrop(forProfit[1].profit, getLatestWeekProfit().sun1)).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(forProfit[1].profit, getLatestWeekProfit().sun1)).format("0,0.0"))}%
                         </p>
                       </div>
                     </div>
                     <div className="col-3">
                       <div
-                          className={`icon icon-box-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'danger' : 'success'}`}>
+                          className={`icon icon-box-${riseDrop(forProfit[1].profit, getLatestWeekProfit().sun1) < 0 ? 'danger' : 'success'}`}>
                         <span
-    className={`mdi mdi-arrow-${riseDrop(forProfit[1].profit, profit[0].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+    className={`mdi mdi-arrow-${riseDrop(forProfit[1].profit, getLatestWeekProfit().sun1) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                       </div>
                     </div>
                   </div>}
                   <h6 className="text-muted font-weight-normal">Forecasted Next Week Profit</h6>
+                </div>
+              </div>
+            </div>
+            }
+            {!isMobile &&
+            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+              <div className="card">
+                <div className="card-body">
+                  {(forProfit && profit) && <div className="row">
+                    <div className="col-9">
+                      <div className="d-flex align-items-center align-self-start">
+                        <h3 className="mb-0">KSh {numeral(parseFloat(forProfit[0].profit))
+                            .format("0,0.00")}</h3>
+                        <p className={`text-${riseDrop(forProfit[0].profit, forProfit[1].profit)
+                        < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                          {riseDrop(forProfit[0].profit, forProfit[1].profit) < 0
+                              ? numeral(riseDrop(forProfit[0].profit, forProfit[1].profit)).format("0,0.0")
+                              : '+'.concat(numeral(riseDrop(forProfit[0].profit, forProfit[1].profit)).format("0,0.0"))}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="col-3">
+                      <div
+                          className={`icon icon-box-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'danger' : 'success'}`}>
+                        <span
+                            className={`mdi mdi-arrow-${riseDrop(forProfit[0].profit, forProfit[1].profit) < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                      </div>
+                    </div>
+                  </div>}
+                  <h6 className="text-muted font-weight-normal">Forecasted 2 Weeks After Profit</h6>
                 </div>
               </div>
             </div>
