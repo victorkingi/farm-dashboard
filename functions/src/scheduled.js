@@ -40,41 +40,49 @@ function initializeMap() {
 
 async function dailyUpdateBags() {
     predictBags();
-    return admin.firestore().doc("bags/current_bags")
-        .get().then((bagDoc) => {
-            admin.firestore().doc('bags/predicted_bags')
-                .get().then((predDoc) => {
-                    const predData = predDoc.data();
-                    const next = parseInt(predData.nextDay);
-                    if (bagDoc.exists) {
-                        let bagNum = next;
-                        bagDoc.ref.update({
-                            number: bagNum,
-                            submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                        });
-
-                    if (bagNum === 0) {
-                        const details = {
-                            title: `No feeds in store!`,
-                            body: `Click to find out more`,
-                            admin: false
-                        }
-                        return makeANotification(details);
-                    } else if (bagNum <= 3) {
-                        const details = {
-                            title: `Few feeds in store!`,
-                            body: `Bags of feeds in store are ${bagNum}`,
-                            admin: false
-                        }
-                        return makeANotification(details);
-                    }
-                }
-            })
-            return 0;
-        })
-        .catch((err) => {
-            return console.error("Error at bags, ", err);
+    const today = new Date();
+    const bagDoc = await admin.firestore().doc('bags/predicted_bags');
+    const trend = bagDoc.data().trend.split(';');
+    let dates = trend[0].split(',');
+    let values = trend[1].split(',');
+    if (dates.length !== values.length) throw new Error("Invalid date/val number");
+    const latestVal = values[values.length - 1];
+    const latestDate = dates[dates.length - 1];
+    let cleanedDate = latestDate.split('/');
+    cleanedDate = `${cleanedDate[1]}/${cleanedDate[0]}/${cleanedDate[2]}`;
+    const lastDate = new Date(cleanedDate);
+    lastDate.setDate(lastDate.getDate()+1);
+    const diff = today.getTime() - lastDate.getTime();
+    const days = Math.floor(diff / 86400000);
+    let finalVal = parseInt(latestVal) - days;
+    if (finalVal < 0) {
+        finalVal = 0;
+        await admin.firestore().doc("bags/current_bags").update({
+            number: 0,
+            submittedOn: admin.firestore.FieldValue.serverTimestamp()
         });
+    } else {
+        await admin.firestore().doc("bags/current_bags").update({
+            number: finalVal,
+            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+    if (finalVal === 0) {
+        const details = {
+            title: `No feeds in store!`,
+            body: `Click to find out more`,
+            admin: false
+        }
+        return makeANotification(details);
+    } else if (finalVal <= 3) {
+        const details = {
+            title: `Few feeds in store!`,
+            body: `Bags of feeds in store are ${finalVal}`,
+            admin: false
+        }
+        return makeANotification(details);
+    }
+    return 0;
 }
 async function dailyCurrentTraysCheck() {
     const trayRef = admin.firestore().collection("trays").doc("current_trays");
