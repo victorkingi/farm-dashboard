@@ -1106,6 +1106,21 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
             .orderBy("submittedOn", "asc")
             .get()
             .then(async (query) => {
+                if (query.size === 1) return 0;
+                let totalTraysToSell = 0;
+                query.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.values.category === "sales") totalTraysToSell += parseInt(data.values.trayNo);
+                });
+                const trayDoc = await admin.firestore().doc('trays/current_trays').get()
+                const _data = trayDoc.data();
+                const currentTrays = parseInt(_data.current.split(',')[0]);
+                if ((currentTrays - totalTraysToSell) < 0) {
+                    const errMess = "Trays not enough to complete transactions";
+                    errorMessage(errMess, 'JEFF');
+                    throw new Error(errMess);
+                }
+
                 initializeMap();
                 await calculateBalance();
                 await assertInputsAreCorrect(query);
