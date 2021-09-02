@@ -393,7 +393,7 @@ function checkPreExistingDataSale(preExist, values, found, type) {
     return found;
 }
 
-async function verifyEggs(values) {
+async function verifyEggs(values, id) {
     const trayNo = parseInt(values.values.trayNo);
     const date = values.values.date;
     const traysDoc = await admin.firestore()
@@ -453,12 +453,15 @@ async function verifyEggs(values) {
         }
     });
     if (toSellEggs !== 0) {
+        admin.firestore().doc(`pending_transactions/${id}`).update({
+            rejected: true
+        });
         errorMessage("Not enough trays to sell!",
             values.values.name);
     }
 }
 
-async function updateEggs(values) {
+async function updateEggs(values, id) {
     const trayNo = parseInt(values.values.trayNo);
     const date = values.values.date;
     const traysDoc = await admin.firestore()
@@ -519,6 +522,9 @@ async function updateEggs(values) {
     });
 
     if (toSellEggs !== 0) {
+        admin.firestore().doc(`pending_transactions/${id}`).update({
+            rejected: true
+        });
         errorMessage("Previous check got passed, not enough trays!",
             values.values.name);
         return false;
@@ -557,7 +563,7 @@ async function updateEggs(values) {
     return true;
 }
 
-async function saleParamCheck(values) {
+async function saleParamCheck(values, id) {
     const pending = await admin.firestore().collection('pending_transactions')
         .orderBy("submittedOn", "desc").get();
     const sales = await admin.firestore().collection('sales')
@@ -592,96 +598,67 @@ async function saleParamCheck(values) {
     }
 
     if (found) {
+        admin.firestore().doc(`pending_transactions/${id}`).update({
+            rejected: true
+        });
         errorMessage("Duplicate data!", values.values.name);
     }
     //checks if some sales will not have enough eggs to burn
-    await verifyEggs(values);
+    await verifyEggs(values, id);
 }
 
-async function buyParamCheck(values, submittedOn) {
+async function buyParamCheck(values, submittedOn, id) {
     const pending = await admin.firestore().collection('pending_transactions')
         .orderBy("submittedOn", "desc").get();
     const buys = await admin.firestore().collection('purchases')
         .orderBy("submittedOn", "desc").get();
     let found = false;
 
-    if (values.replaced === true) {
-        let toClearId = "";
-        for (let i = 0; i < buys.size; i++) {
-            const doc = buys.docs[i];
-            const data = doc.data();
-            const category = data.category;
-            const date = data.date.toDate().getTime();
-            const section = data.section;
-
-            const checkDate = date === values.date.toDate().getTime();
-            const checkCategory = category === values.category;
-            const checkSection = section === values.section;
-            console.log(date, values.date.toDate().getTime());
-            console.log("DATE:", checkDate);
-            console.log(category, values.category);
-            console.log("CAT:", checkCategory);
-            console.log(section, values.section);
-            console.log("SECTION:", checkSection);
-            if (checkCategory && checkSection && checkDate) {
-                found = true;
-                toClearId = doc.id;
-                break;
-            }
+    for (let i = 0; i < pending.size; i++) {
+        const doc = pending.docs[i];
+        const data = doc.data();
+        const checkIfErrored = data.submittedOn.toDate().getTime() === submittedOn.toDate().getTime();
+        if (checkIfErrored) {
+            //prevent false positive of doc pointing to itself
+            continue;
         }
 
-        if (!found) {
-            return errorMessage("ENTRY TO REPLACE NOT FOUND!", values.name);
-        } else {
-            const toBeReplaced = await admin.firestore().doc(`purchases/${toClearId}`).get();
-            if (!toBeReplaced.exists) {
-                return errorMessage("DOC TO BE REPLACED NOT FOUND!".concat("id is:", toClearId), values.name);
-            }
-        }
-    } else {
-        for (let i = 0; i < pending.size; i++) {
-            const doc = pending.docs[i];
-            const data = doc.data();
-            const checkIfErrored = data.submittedOn.toDate().getTime() === submittedOn.toDate().getTime();
+        const category = data.values.category;
+        const date = data.values.date ? data.values.date.toDate().getTime() : null;
+        const section = data.values.section;
 
-            if (checkIfErrored) {
-                //prevent false positive of doc pointing to itself
-                continue;
-            }
-
-            const category = data.values.category;
-            const date = data.values.date ? data.values.date.toDate().getTime() : null;
-            const section = data.values.section;
-
-            const checkDate = date === values.date.toDate().getTime();
-            const checkCategory = category === values.category;
-            const checkSection = section === values.section;
-            if (checkCategory && checkSection && checkDate) {
-                found = true;
-                break;
-            }
-        }
-        for (let i = 0; i < buys.size; i++) {
-            const doc = buys.docs[i];
-            const data = doc.data();
-            const category = data.category;
-            const date = data.date.toDate().getTime();
-            const section = data.section;
-
-            const checkDate = date === values.date.toDate().getTime();
-            const checkCategory = category === values.category;
-            const checkSection = section === values.section;
-            if (checkCategory && checkSection && checkDate) {
-                found = true;
-                break;
-            }
-        }
-        if (found) {
-            return errorMessage("Duplicate data!", values.name);
+        const checkDate = date === values.date.toDate().getTime();
+        const checkCategory = category === values.category;
+        const checkSection = section === values.section;
+        if (checkCategory && checkSection && checkDate) {
+            found = true;
+            break;
         }
     }
+
+    for (let i = 0; i < buys.size; i++) {
+        const doc = buys.docs[i];
+        const data = doc.data();
+        const category = data.category;
+        const date = data.date.toDate().getTime();
+        const section = data.section;
+
+        const checkDate = date === values.date.toDate().getTime();
+        const checkCategory = category === values.category;
+        const checkSection = section === values.section;
+        if (checkCategory && checkSection && checkDate) {
+            found = true;
+            break;
+        }
+    }
+    if (found) {
+        admin.firestore().doc(`pending_transactions/${id}`).update({
+            rejected: true
+        });
+        return errorMessage("Duplicate data!", values.name);
+    }
 }
-async function borrowParamCheck(values, submittedOn) {
+async function borrowParamCheck(values, submittedOn, id) {
     const pending = await admin.firestore().collection('pending_transactions')
         .orderBy("submittedOn", "desc").get();
     const current = await admin.firestore().collection('current')
@@ -690,6 +667,9 @@ async function borrowParamCheck(values, submittedOn) {
     let found = false;
 
     if (balance < parseFloat(values.amount)) {
+        admin.firestore().doc(`pending_transactions/${id}`).update({
+            rejected: true
+        });
         errorMessage("Insufficient Funds!");
     }
 
@@ -716,10 +696,13 @@ async function borrowParamCheck(values, submittedOn) {
         }
     }
     if (found) {
+        admin.firestore().doc(`pending_transactions/${id}`).update({
+            rejected: true
+        });
         errorMessage("Duplicate data!", values.name);
     }
 }
-async function sendParamCheck(values, submittedOn) {
+async function sendParamCheck(values, submittedOn, id) {
     const pending = await admin.firestore().collection('pending_transactions')
         .orderBy("submittedOn", "desc").get();
     const current = await admin.firestore().collection('current')
@@ -758,6 +741,9 @@ async function sendParamCheck(values, submittedOn) {
     totalSending += parseFloat(values.amount);
 
     if (balance < totalSending) {
+        admin.firestore().doc(`pending_transactions/${id}`).update({
+            rejected: true
+        });
         errorMessage("Insufficient Funds!", values.initiator);
     }
 }
@@ -766,19 +752,21 @@ async function assertInputsAreCorrect(query) {
     for (let i = 0; i < query.size; i++) {
         const doc = query.docs[i];
         const data = doc.data();
+        const id = doc.id;
         if (data.values.replaced) throw new Error("Expected replaced to be false for: " + data);
-        if (data.values.category === "sales") await saleParamCheck(data);
-        else if (data.values.category === "buys") await buyParamCheck(data.values, data.submittedOn);
-        else if (data.values.category === "borrow") await borrowParamCheck(data.values, data.submittedOn);
-        else if (data.values.category === "send") await sendParamCheck(data.values, data.submittedOn);
+        if (data.values.category === "sales") await saleParamCheck(data, id);
+        else if (data.values.category === "buys") await buyParamCheck(data.values, data.submittedOn, id);
+        else if (data.values.category === "borrow") await borrowParamCheck(data.values, data.submittedOn, id);
+        else if (data.values.category === "send") await sendParamCheck(data.values, data.submittedOn, id);
     }
     for (let i = 0; i < query.size; i++) {
         const doc = query.docs[i];
         const data = doc.data();
+        const id = doc.id;
         if (data.values.category === "sales"
             && !data.values.replaced) {
             //burns eggs
-            const done = await updateEggs(data);
+            const done = await updateEggs(data, id);
             if (!done) throw new Error("Burning eggs failed");
         }
     }
@@ -977,6 +965,7 @@ function predictProfit() {
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
             console.log(xhr.status);
+            if (xhr.status !== 200) throw new Error("Request failed with status code: "+xhr.status);
             console.log("RESPONSE", xhr.responseText);
             const resJson = JSON.parse(xhr.responseText);
             const date1 = new Date(resJson['0'].ds);
@@ -1117,6 +1106,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                 const currentTrays = parseInt(_data.current.split(',')[0]);
                 if ((currentTrays - totalTraysToSell) < 0) {
                     const errMess = "Trays not enough to complete transactions";
+                    admin.firestore().doc('temp/temp').update({ errMess, submittedOn: admin.firestore.FieldValue.serverTimestamp() })
                     errorMessage(errMess, 'JEFF');
                     throw new Error(errMess);
                 }
@@ -1395,11 +1385,15 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
         });
 });
 
-exports.weeklyChanges = functions.runWith(runtimeOptWeekly)
-    .pubsub.schedule('every sunday 01:00').onRun((() => {
+exports.predictPft = functions.runWith(runtimeOptWeekly).region('europe-west2')
+    .pubsub.schedule('every sunday 01:00').timeZone('Africa/Nairobi').onRun((() => {
+        return predictProfit();
+    }));
+
+exports.weeklyChanges = functions.runWith(runtimeOptWeekly).region('europe-west2')
+    .pubsub.schedule('every sunday 02:00').timeZone('Africa/Nairobi').onRun((() => {
     weeklyChickenAgeUpdate();
     weeklyExportFirestore();
-    predictProfit();
     const sunday = new Date();
     sunday.setHours(0, 0, 0, 0);
     return admin.firestore().collection('profit')
