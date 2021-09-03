@@ -35,7 +35,7 @@ class Sidebar extends Component {
     const dropdownPaths = [
       {path:'/apps', state: 'appsMenuOpen'},
       {path:'/basic-ui', state: 'basicUiMenuOpen'},
-      {path:'/form-elements', state: 'formElementsMenuOpen'},
+      {path:'/inputs', state: 'formElementsMenuOpen'},
       {path:'/tables', state: 'tablesMenuOpen'},
       {path:'/icons', state: 'iconsMenuOpen'},
       {path:'/charts', state: 'chartsMenuOpen'},
@@ -50,7 +50,10 @@ class Sidebar extends Component {
     }));
 
   }
-
+  isPathActive(path) {
+    if (path === '/') return this.props.location.pathname === path && path === '/';
+    else return this.props.location.pathname.startsWith(path);
+  }
 
   render () {
     return (
@@ -81,7 +84,7 @@ class Sidebar extends Component {
                 <span className="menu-title">Dashboard</span>
               </Link>
             </li>
-            <li className={ this.isPathActive('/form-elements') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+            <li className={ this.isPathActive('/inputs') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
               <div className={ this.state.formElementsMenuOpen ? 'nav-link menu-expanded' : 'nav-link' } onClick={ () => this.toggleMenuState('formElementsMenuOpen') } data-toggle="collapse">
               <span className="menu-icon">
                 <i className="mdi mdi-playlist-play"/>
@@ -95,7 +98,7 @@ class Sidebar extends Component {
                     <li className="nav-item">
                       <Link
                           className={
-                            this.isPathActive('/form-elements/basic-elements') ? 'nav-link active' : 'nav-link' }
+                            this.isPathActive('/inputs/sale') ? 'nav-link active' : 'nav-link' }
                           to="/inputs/sale">
                         Sales</Link></li>
                   </ul>
@@ -103,7 +106,7 @@ class Sidebar extends Component {
                     <li className="nav-item">
                       <Link
                           className={
-                            this.isPathActive('/form-elements/basic-elements') ? 'nav-link active' : 'nav-link' }
+                            this.isPathActive('/inputs/purchase') ? 'nav-link active' : 'nav-link' }
                           to="/inputs/purchase">
                         Purchases</Link></li>
                   </ul>
@@ -111,7 +114,7 @@ class Sidebar extends Component {
                     <li className="nav-item">
                       <Link
                           className={
-                            this.isPathActive('/form-elements/basic-elements') ? 'nav-link active' : 'nav-link' }
+                            this.isPathActive('/inputs/eggs') ? 'nav-link active' : 'nav-link' }
                           to="/inputs/eggs">
                         Eggs</Link></li>
                   </ul>
@@ -119,7 +122,7 @@ class Sidebar extends Component {
                     <li className="nav-item">
                       <Link
                           className={
-                            this.isPathActive('/form-elements/basic-elements') ? 'nav-link active' : 'nav-link' }
+                            this.isPathActive('/inputs/borrow') ? 'nav-link active' : 'nav-link' }
                           to="/inputs/borrow">
                         Borrowed</Link></li>
                   </ul>
@@ -127,7 +130,7 @@ class Sidebar extends Component {
                     <li className="nav-item">
                       <Link
                           className={
-                            this.isPathActive('/form-elements/basic-elements') ? 'nav-link active' : 'nav-link' }
+                            this.isPathActive('/inputs/ds') ? 'nav-link active' : 'nav-link' }
                           to="/inputs/ds">
                         Dead / Sick</Link></li>
                   </ul>
@@ -135,7 +138,7 @@ class Sidebar extends Component {
                     <li className="nav-item">
                       <Link
                           className={
-                            this.isPathActive('/form-elements/basic-elements') ? 'nav-link active' : 'nav-link' }
+                            this.isPathActive('/inputs/money') ? 'nav-link active' : 'nav-link' }
                           to="/inputs/money">
                         Send</Link></li>
                   </ul>
@@ -224,10 +227,6 @@ class Sidebar extends Component {
           </ul>
         </nav>
     );
-  }
-
-  isPathActive(path) {
-    return this.props.location.pathname.startsWith(path);
   }
 
   componentDidMount() {
