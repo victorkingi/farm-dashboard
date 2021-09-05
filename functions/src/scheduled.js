@@ -1166,6 +1166,7 @@ async function findCausedTray(needed) {
             }
         }
     }
+    console.log("IDS FOUND:", ids);
     for (const x in ids) {
         if (!ids.hasOwnProperty(x)) continue;
         console.log("MARKED:", ids[x]);
@@ -1199,7 +1200,8 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                 const currentTrays = parseInt(_data.current.split(',')[0]);
                 if ((currentTrays - totalTraysToSell) < 0) {
                     const difference = totalTraysToSell - currentTrays;
-                    findCausedTray(difference);
+                    console.log("DIFF:", difference);
+                    await findCausedTray(difference);
                     const errMess = "Trays not enough to complete transactions";
                     admin.firestore().doc('temp/temp').update({ errMess, submittedOn: admin.firestore.FieldValue.serverTimestamp() })
                     errorMessage(errMess, 'JEFF');
