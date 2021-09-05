@@ -121,7 +121,7 @@ function Dashboard(props) {
     for (const [, value] of Object.entries(pendChecked)) {
       if (value) total += 1;
     }
-    if (total === pend?.length - 1) setAllChecked(true);
+    if (total === pend?.length - 1 && total !== 0) setAllChecked(true);
     else setAllChecked(false);
   }, [pendChecked, pend]);
 
