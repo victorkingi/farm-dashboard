@@ -1207,7 +1207,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                     errorMessage(errMess, 'JEFF');
                     throw new Error(errMess);
                 }
-
+                await admin.firestore().doc('temp/err_trays').delete();
                 initializeMap();
                 await calculateBalance();
                 await assertInputsAreCorrect(query);
