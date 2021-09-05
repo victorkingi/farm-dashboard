@@ -1092,6 +1092,89 @@ exports.dailyChanges = functions.runWith(runtimeOptsDaily).region('europe-west2'
         return updateTxList();
     });
 
+function callTrayFinder(sending) {
+    const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/findCauseTray";
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            console.log(xhr.status);
+            if (parseInt(xhr.status) !== 200) throw new Error("Request wasn't successful: "+xhr.status);
+            const resJson = JSON.parse(xhr.responseText);
+            console.log("RESPONSE", resJson);
+            admin.firestore().doc('temp/err_trays').set({ resJson, submittedOn: admin.firestore.FieldValue.serverTimestamp() });
+        }
+    };
+    console.log(sending);
+    const toSend = `{"message":"${sending}"}`
+    console.log("DATA:", toSend);
+    xhr.send(toSend);
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function findCausedTray(needed) {
+    const query = await admin.firestore().collection('pending_transactions')
+        .get();
+    let docs = [];
+    query.forEach((doc) => {
+        if (doc.id === 'cleared') return 0;
+        docs.push({id: doc.id, data: doc.data().values});
+    });
+    let trayNo = [];
+    for (let i = 0; i < docs.length; i++) {
+        trayNo.push(parseInt(docs[i].data.trayNo));
+    }
+    callTrayFinder(trayNo.toString()+';'+needed.toString());
+    let found = false;
+    let n = 0;
+    let combination = [];
+    while (!found) {
+        let combinationFound = await admin.firestore().doc('temp/err_trays').get();
+        if (combinationFound.exists) {
+            combinationFound = combinationFound.data();
+            combination = combinationFound.resJson;
+            let temp = combination;
+            let test = 0;
+            if (combination.length !== 0) test = temp.reduce((a, b) => a + b, 0);
+            if (test !== needed) {
+                console.log("wait", n);
+                await sleep(2000);
+            } else {
+                found = true;
+            }
+        } else {
+            console.log("wait", n);
+            await sleep(2000);
+        }
+        n++;
+        if (n > 10) break;
+    }
+    if (!found) {
+        console.log('No combination exists');
+        return 'No combination exists';
+    }
+    const ids = [];
+    for (let i = 0; i < docs.length; i++) {
+        for (const x in combination) {
+            if (combination[x] === parseInt(docs[i].data.trayNo)) {
+                ids.push(docs[i].id);
+            }
+        }
+    }
+    for (const x in ids) {
+        if (!ids.hasOwnProperty(x)) continue;
+        console.log("MARKED:", ids[x]);
+        admin.firestore().doc(`pending_transactions/${ids[x]}`).update({
+            rejected: true
+        });
+    }
+}
+
 /**
  * eggsChange function always has to run earlier than wakeUpMiner function to prevent
  * situation where trays are sold on the same day they where collected and no
@@ -1115,6 +1198,8 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                 const _data = trayDoc.data();
                 const currentTrays = parseInt(_data.current.split(',')[0]);
                 if ((currentTrays - totalTraysToSell) < 0) {
+                    const difference = totalTraysToSell - currentTrays;
+                    findCausedTray(difference);
                     const errMess = "Trays not enough to complete transactions";
                     admin.firestore().doc('temp/temp').update({ errMess, submittedOn: admin.firestore.FieldValue.serverTimestamp() })
                     errorMessage(errMess, 'JEFF');
