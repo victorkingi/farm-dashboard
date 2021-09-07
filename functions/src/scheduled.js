@@ -1189,7 +1189,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
             .orderBy("submittedOn", "asc")
             .get()
             .then(async (query) => {
-                if (query.size === 1) return 0;
+                if (query.size === 0) return 0;
                 let totalTraysToSell = 0;
                 query.forEach((doc) => {
                     const data = doc.data();
