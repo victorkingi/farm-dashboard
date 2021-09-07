@@ -560,7 +560,7 @@ async function updateEggs(values, id) {
             list[item[0]] = '0,0';
         }))
     }
-    admin.firestore().doc('trays/current_trays')
+    await admin.firestore().doc('trays/current_trays')
         .update({
             submittedOn: admin.firestore.FieldValue.serverTimestamp(),
             linkedList: list,
