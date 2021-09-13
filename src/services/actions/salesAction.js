@@ -29,13 +29,14 @@ export const getSectionAddr = (section) => {
  * @param values
  * @param isUnknownBuyer
  */
-export const inputSell = (values, suggested) => {
+export const inputSell = (values, isUnknownBuyer) => {
   return (dispatch, getState, {
     getFirebase,
     getFirestore
   }) => {
     const firestore = getFirestore();
-    if (typeof suggested !== 'object') {
+    console.log(values);
+    if (!isUnknownBuyer) {
       if (JSON.parse(values.status)) {
         firestore.collection('pending_transactions')
           .add({
@@ -71,6 +72,6 @@ export const inputSell = (values, suggested) => {
       });
     }
   };
-};
+}
 
 export { makeid };
