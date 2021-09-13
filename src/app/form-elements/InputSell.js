@@ -454,7 +454,7 @@ function InputSell(props) {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    inputSell: (sale) => dispatch(inputSell(sale))
+    inputSell: (sale, isUnknownBuyer) => dispatch(inputSell(sale, isUnknownBuyer))
   };
 };
 
