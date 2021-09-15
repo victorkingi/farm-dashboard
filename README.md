@@ -1,5 +1,8 @@
 # poultry101
 
+**An error might pop-up during yarn/npm build or yarn/npm start which is "Node Error: resolve-url-loader: CSS error".
+To solve this, go to `node_modules/resolve-url-loader` open `index.js` and
+under `var options` change `removeCR` from `false` to `true`.**<br/><br/>
 A data keeping offline-first, reactjs web app for farmers.<br/>
 NB:- The project is called poultry 101 but can also be extended to
 various farm animals or crop farming with just a few tweaks.

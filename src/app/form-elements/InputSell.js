@@ -50,7 +50,7 @@ function autoCorrectBuyerName(entered) {
   let suggestions = predictionary.predict(entered);
   const final = [];
   for (let k in suggestions) {
-    const chose = chosen[k];
+    const chose = suggestions[k];
     const lev = ed.levenshtein(entered, chose, insert, remove, update);
     if (lev.distance < 3) final.push(chose);
   }
