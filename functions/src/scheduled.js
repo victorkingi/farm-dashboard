@@ -1077,7 +1077,7 @@ async function updateEggsTrend() {
 }
 
 exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
-    .schedule('every 1 hours from 05:00 to 06:00')
+    .schedule('every 1 hours from 17:00 to 18:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         estimatedTrays();
         return dailyCurrentTraysCheck();
