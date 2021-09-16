@@ -1040,7 +1040,7 @@ async function estimatedTrays() {
     return admin.firestore().doc('trays/current_trays')
         .update({
             estimate,
-            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+            predictedOn: admin.firestore.FieldValue.serverTimestamp()
         });
 }
 
@@ -1077,7 +1077,7 @@ async function updateEggsTrend() {
 }
 
 exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
-    .schedule('every 1 hours from 03:00 to 04:00')
+    .schedule('every 1 hours from 05:00 to 06:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         estimatedTrays();
         return dailyCurrentTraysCheck();
