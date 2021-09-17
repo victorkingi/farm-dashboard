@@ -1123,6 +1123,7 @@ async function findCausedTray(needed) {
     let docs = [];
     query.forEach((doc) => {
         if (doc.id === 'cleared') return 0;
+        if (!doc.data().values.trayNo) return 0;
         docs.push({id: doc.id, data: doc.data().values});
     });
     let trayNo = [];
