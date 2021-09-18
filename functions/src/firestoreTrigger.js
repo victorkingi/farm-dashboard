@@ -966,25 +966,3 @@ exports.salesMade = functions.firestore.document('sales/{saleId}')
             });
         }
     });
-
-exports.toChangeTrays = functions.firestore.document('to_rewind/{rewId}')
-    .onWrite(((change) => {
-        const data = change.after.data();
-        if (!data.approved) return 0;
-
-        return admin.firestore().doc('trays/current_trays')
-            .get().then((doc) => {
-                const trayDoc = doc.data();
-                const list = trayDoc.linkedList;
-                let dummyList = list;
-                for (const [key] of Object.entries(list)) {
-                    if (key === data.date) {
-                        dummyList[key] = data.values;
-                    }
-                }
-                doc.ref.update({
-                    linkedList: dummyList,
-                    traysUpdate: admin.firestore.FieldValue.serverTimestamp()
-                })
-            });
-    }))
