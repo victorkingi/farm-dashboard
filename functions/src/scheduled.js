@@ -461,7 +461,7 @@ async function verifyEggs(values, id) {
         }
     });
     if (toSellEggs !== 0) {
-        admin.firestore().doc(`pending_transactions/${id}`).update({
+        await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
         errorMessage("Not enough trays to sell!",
@@ -530,7 +530,7 @@ async function updateEggs(values, id) {
     });
 
     if (toSellEggs !== 0) {
-        admin.firestore().doc(`pending_transactions/${id}`).update({
+        await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
         errorMessage("Previous check got passed, not enough trays!",
@@ -606,7 +606,7 @@ async function saleParamCheck(values, id) {
     }
 
     if (found) {
-        admin.firestore().doc(`pending_transactions/${id}`).update({
+        await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
         errorMessage("Duplicate data!", values.values.name);
@@ -660,7 +660,7 @@ async function buyParamCheck(values, submittedOn, id) {
         }
     }
     if (found) {
-        admin.firestore().doc(`pending_transactions/${id}`).update({
+        await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
         return errorMessage("Duplicate data!", values.name);
@@ -674,8 +674,45 @@ async function borrowParamCheck(values, submittedOn, id) {
     const balance = parseFloat(current.data().balance);
     let found = false;
 
-    if (balance < parseFloat(values.amount)) {
-        admin.firestore().doc(`pending_transactions/${id}`).update({
+    let totalSending = 0;
+    for (let i = 0; i < pending.size; i++) {
+        const doc = pending.docs[i];
+        const data = doc.data();
+        const checkIfErrored = data.submittedOn.toDate().getTime() === submittedOn.toDate().getTime();
+
+        if (checkIfErrored) {
+            //prevent false positive of doc pointing to itself
+            continue;
+        }
+
+        const initiator = data.values.name;
+        const category = data.values.category;
+        const section = data.values.section;
+
+        const checkInitiator = initiator === values.name;
+        const checkCategory = category === "send";
+        if (checkInitiator && checkCategory) {
+            //add to total
+            totalSending += parseFloat(data.values.amount);
+        }
+        if (data.values.receiver === values.name) {
+            totalSending -= parseFloat(data.values.amount);
+        }
+        if (checkInitiator && category === "sales" && section !== "THIKA_FARMERS") {
+            totalSending -= parseInt(data.values.trayNo) * parseFloat(data.values.trayPrice);
+        }
+        if (data.values.borrower === values.name && category === "borrow") {
+            totalSending += parseFloat(data.values.amount);
+        }
+        if (data.values.get_from === values.name && category === "borrow") {
+            totalSending -= parseFloat(data.values.amount);
+        }
+    }
+
+    totalSending += parseFloat(values.amount);
+
+    if (balance < totalSending) {
+        await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
         errorMessage("Insufficient Funds!");
@@ -704,7 +741,7 @@ async function borrowParamCheck(values, submittedOn, id) {
         }
     }
     if (found) {
-        admin.firestore().doc(`pending_transactions/${id}`).update({
+        await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
         errorMessage("Duplicate data!", values.name);
@@ -749,7 +786,7 @@ async function sendParamCheck(values, submittedOn, id) {
     totalSending += parseFloat(values.amount);
 
     if (balance < totalSending) {
-        admin.firestore().doc(`pending_transactions/${id}`).update({
+        await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
         errorMessage("Insufficient Funds!", values.initiator);
@@ -1171,7 +1208,7 @@ async function findCausedTray(needed) {
     for (const x in ids) {
         if (!ids.hasOwnProperty(x)) continue;
         console.log("MARKED:", ids[x]);
-        admin.firestore().doc(`pending_transactions/${ids[x]}`).update({
+        await admin.firestore().doc(`pending_transactions/${ids[x]}`).update({
             rejected: true
         });
     }
@@ -1204,7 +1241,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                     console.log("DIFF:", difference);
                     await findCausedTray(difference);
                     const errMess = "Trays not enough to complete transactions";
-                    admin.firestore().doc('temp/temp').update({ errMess, submittedOn: admin.firestore.FieldValue.serverTimestamp() })
+                    await admin.firestore().doc('temp/temp').update({ errMess, submittedOn: admin.firestore.FieldValue.serverTimestamp() })
                     errorMessage(errMess, 'JEFF');
                     throw new Error(errMess);
                 }
@@ -1365,7 +1402,7 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                                     user: `MINER`,
                                     time: admin.firestore.FieldValue.serverTimestamp(),
                                 }
-                                createNotification(notification);
+                                await createNotification(notification);
                                 function davidEncrypting(){
                                     const david = {
                                         secretKey: new Uint8Array ([
@@ -1517,16 +1554,16 @@ async function updateMonthlyRev() {
         .get();
     const saleGrossVal = saleGross.data().totalAmountEarned;
     const buyGrossVal = buyGross.data().totalAmountSpent;
-    saleGross.ref.set({
+    await saleGross.ref.set({
         prevMonth: saleGrossVal,
         submittedOn: admin.firestore.FieldValue.serverTimestamp(),
         totalAmountEarned: 0
     }, { merge: true });
-    buyGross.ref.set({
+    await buyGross.ref.set({
         prevMonth: buyGrossVal,
         submittedOn: admin.firestore.FieldValue.serverTimestamp(),
         totalAmountSpent: 0
-    }, { merge: true });
+    }, {merge: true});
     return 0;
 }
 
