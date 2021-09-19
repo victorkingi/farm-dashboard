@@ -22,6 +22,7 @@ const { Blockchain } = require('./blockchain');
 const { Transaction } = require('./transaction');
 const { SHA512, ec, actions, USERS } = require('./constants');
 const nacl = require('tweetnacl');
+const {estimatedTrays} = require("./utils");
 nacl.util = require('tweetnacl-util');
 const keys = require('./addresses.json').keys;
 const arr = [
@@ -39,7 +40,7 @@ function initializeMap() {
 }
 
 async function dailyUpdateBags() {
-    predictBags();
+    // predictBags();
     const today = new Date();
     const bagDoc = await admin.firestore().doc('bags/predicted_bags').get();
     const trend = bagDoc.data().trend.split(';');
@@ -910,7 +911,7 @@ const runtimeOptsDaily = {
     memory: '8GB'
 }
 
-function predictBags() {
+/* function predictBags() {
     const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-bags";
 
     const xhr = new XMLHttpRequest();
@@ -966,7 +967,7 @@ function predictBags() {
         console.log("DATA:", toSend);
         xhr.send(toSend);
     });
-}
+} */
 
 function predictEggs() {
     const url = "https://europe-west2-poultry101-6b1ed.cloudfunctions.net/predict-eggs";
@@ -1064,29 +1065,6 @@ function predictProfit() {
     return 0;
 }
 
-async function estimatedTrays() {
-    const doc = await admin.firestore().doc('trays/current_trays').get();
-    const data = doc.data();
-    const response = data.response;
-    const current = data.current;
-    const curEggs = safeTrayEggConvert(current, true);
-    if (!response) return -1;
-    let totalEggs = curEggs;
-    console.log("initial eggs", totalEggs);
-    for (const [, value] of Object.entries(response)) {
-        let eggs  = parseInt(value['yhat']);
-        console.log("adding", eggs);
-        totalEggs += eggs;
-    }
-    console.log("final eggs", totalEggs);
-    const estimate = safeTrayEggConvert(totalEggs, false);
-    return admin.firestore().doc('trays/current_trays')
-        .update({
-            estimate,
-            predictedOn: admin.firestore.FieldValue.serverTimestamp()
-        });
-}
-
 const runtimeOptWeekly = {
     timeoutSeconds: 540,
     memory: '8GB'
@@ -1122,7 +1100,7 @@ async function updateEggsTrend() {
 exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
     .schedule('every 1 hours from 17:00 to 18:00')
     .timeZone('Africa/Nairobi').onRun(() => {
-        estimatedTrays();
+        estimatedTrays(false);
         return dailyCurrentTraysCheck();
     });
 

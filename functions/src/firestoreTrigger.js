@@ -12,6 +12,7 @@ const {
     errorMessage, safeTrayEggConvert
 } = require('./helper');
 const numeral = require('numeral');
+const {estimatedTrays} = require("./scheduled");
 
 const runtimeOpt = {
     timeoutSeconds: 180
@@ -732,9 +733,12 @@ exports.updateTrays = functions.firestore.document('trays/current_trays')
                 console.log("Late Trays:", totalTrays);
                 let ans = safeTrayEggConvert(allEggs, false, true, totalTrays);
                 if (ans === data.current) return 0;
-                return admin.firestore().doc('trays/current_trays').update({
-                    current: ans,
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                return estimatedTrays(true).then((estimate) => {
+                    return admin.firestore().doc('trays/current_trays').update({
+                        current: ans,
+                        estimate,
+                        submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                    });
                 });
             })
     }));
