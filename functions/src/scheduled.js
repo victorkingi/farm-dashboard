@@ -781,6 +781,12 @@ async function sendParamCheck(values, submittedOn, id) {
         if (checkInitiator && category === "sales" && section !== "THIKA_FARMERS") {
             totalSending -= parseInt(data.values.trayNo) * parseFloat(data.values.trayPrice);
         }
+        if (data.values.borrower === values.name && category === "borrow") {
+            totalSending += parseFloat(data.values.amount);
+        }
+        if (data.values.get_from === values.name && category === "borrow") {
+            totalSending -= parseFloat(data.values.amount);
+        }
     }
 
     totalSending += parseFloat(values.amount);

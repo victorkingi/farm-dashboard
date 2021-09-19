@@ -24,6 +24,7 @@ yarn-error.log*
 .firebase
 firestore.indexes.json
 firestore.rules
+firebase-debug.log
 storage.rules
 yarn.lock
 functions/node_modules/
