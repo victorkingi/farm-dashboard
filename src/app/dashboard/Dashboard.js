@@ -100,7 +100,7 @@ function getUser() {
 function Dashboard(props) {
   const {
     notifications, pend, forProfit,
-    profit, chick, trays,
+    profit, chick, trays, last_eggs,
     block, current, stats
   } = props;
   const [open, setOpen] = useState(false);
@@ -246,6 +246,32 @@ function Dashboard(props) {
       enabled: true
     }
   }
+  useEffect(() => {
+    if (trays && last_eggs) {
+      const response = trays['0'].cumulative;
+      const expectedInputs = [];
+      let date2 = new Date(last_eggs['0'].date_);
+      date2.setDate(date2.getDate()+1);
+      if (date2.getTime() > new Date().toDateString()) throw new Error("Impossible eggs value");
+      while (new Date().getTime() > date2.getTime()) {
+        let isFound = false;
+        for (const [, value_] of Object.entries(response)) {
+          let date = new Date(value_['ds']);
+          if (date.toDateString() === date2.toDateString()) {
+            expectedInputs.push({
+              date: new Date(date2),
+              eggs: value_['yhat']
+            });
+            isFound = true;
+            date2.setDate(date2.getDate()+1);
+            break;
+          }
+        }
+        if (!isFound) throw new Error("inconsistent dates in eggs");
+      }
+      localStorage.setItem('expected', JSON.stringify(expectedInputs));
+    }
+  }, [trays, last_eggs]);
 
   const user = useMemo(() => {
     const __user = localStorage.getItem('user') || false;
@@ -1150,6 +1176,7 @@ const mapStateToProps = function(state) {
     trays: state.firestore.ordered.trays,
     block: state.firestore.ordered.transactions,
     current: state.firestore.ordered.current,
+    last_eggs: state.firestore.ordered.eggs_collected,
     stats: state.firestore.ordered.stats
   }
 }
@@ -1163,6 +1190,7 @@ export default compose(
       {collection: 'profit', limit: 3, orderBy: ['date', 'desc']},
       {collection: 'chicken_details'},
       {collection: 'trays'},
+      {collection: 'eggs_collected', limit: 1, orderBy: ['date_', 'desc']},
       {collection: 'current', orderBy: ['important', 'asc'] },
       {collection: 'transactions', limit: 1},
       {collection: 'stats'}
