@@ -12,7 +12,7 @@ const {
     errorMessage, safeTrayEggConvert
 } = require('./helper');
 const numeral = require('numeral');
-const {estimatedTrays} = require("./scheduled");
+const {estimatedTrays} = require("./utils");
 
 const runtimeOpt = {
     timeoutSeconds: 180
