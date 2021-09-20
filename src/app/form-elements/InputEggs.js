@@ -10,6 +10,30 @@ import MuiAlert from '@material-ui/lab/Alert';
 import "react-datepicker/dist/react-datepicker.css";
 import {Offline, Online} from "react-detect-offline";
 
+function safeTrayEggConvert(data, inverse, reduce, amount) {
+    //returns a string 0,0 given egg number if inverse false
+    //else returns egg number given str
+    if (inverse) {
+        if (reduce || amount) throw new Error("reduce and amount should be undefined");
+        data = data.split(',');
+        if (data.length !== 2) throw new Error("Length not 2");
+        if (!data[0] || !data[1]) throw new Error("Data is undefined");
+        else if (typeof data[0] !== 'string' || typeof data[1] !== 'string') throw new Error("Type error producing eggs");
+        return (parseInt(data[0]) * 30) + parseInt(data[1]);
+    } else {
+        if (typeof data !== 'number') throw new Error("Data wasn't a number");
+        if (typeof amount !== 'number' && reduce) throw new Error("trays to remove were not specified");
+        else if (data < 0) throw new Error("Invalid negative number");
+        const trays = Math.floor(data / 30);
+        const eggs = data % 30;
+        const correctConvert = ((trays * 30) + eggs) === data;
+        console.log("Eggs", data, "trays:", trays, "eggs", eggs);
+        if (!correctConvert) throw new Error("Conversion failed, expected: "+data+" but got: "+(trays * 30) + eggs);
+        console.log("Before trays:", trays);
+        return `${reduce ? (trays - amount) : trays},${eggs}`;
+    }
+}
+
 export function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
@@ -40,6 +64,40 @@ function InputEggs(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+
+    const checkEggNumber = (eggs, date) => {
+        let expected = localStorage.getItem('expected');
+        if (expected !== null) {
+            expected = JSON.parse(expected);
+            let found = false;
+            let isFalse = false;
+            for (let i = 0; i < expected.length; i++) {
+                let eDate = new Date(expected[i].date);
+                let amount = expected[i].eggs;
+                let acceptedDiff = 100;
+                const cleanedDate  = new Date(date);
+                cleanedDate.setHours(0, 0, 0, 0);
+                if (eDate.getTime() === cleanedDate.getTime()) {
+                    found = true;
+                    if (eggs > acceptedDiff+amount || eggs < amount - acceptedDiff) {
+                        isFalse = true;
+                    }
+                }
+            }
+            if (!found) {
+                setError('No match found');
+                setOpenError(true);
+                return false;
+            } else {
+                if (isFalse) {
+                    setError('Trays entered don\'t seem correct');
+                    setOpenError(true);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -85,9 +143,13 @@ function InputEggs(props) {
             setOpenError(true);
             return;
         }
-        props.inputTray(state);
-        setOpenError(false);
-        setOpen(true);
+        const eggs = safeTrayEggConvert(state.trays_store, true);
+        const eggsOk = checkEggNumber(eggs, state.date_);
+        if (eggsOk) {
+            props.inputTray(state);
+            setOpenError(false);
+            setOpen(true);
+        }
     };
 
     const handleClose = (event, reason) => {
