@@ -445,9 +445,9 @@ exports.buysMade = functions.firestore.document('purchases/{buyId}')
 
             const lastSunday = buy.date.toDate();
             lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
-            console.log("LAST SUNDAY:", lastSunday.toDateString());
+            console.log("LAST SUNDAY:", lastSunday.toLocaleDateString());
             admin.firestore().collection('profit')
-                .where('docId', '==', lastSunday.toDateString())
+                .where('docId', '==', lastSunday.toLocaleDateString())
                 .get().then((query) => {
                 if (query.size > 1 || query.size === 0) {
                     errorMessage("BIG QUERY RETURNED: "+query.size, buy.submittedBy);
@@ -861,7 +861,7 @@ exports.debtSmear = functions.firestore.document('sales/{saleId}')
         const section = data.section;
         const id = context.params.saleId;
         if (section === "CAKES") {
-            admin.firestore().collection('sales')
+            return admin.firestore().collection('sales')
                 .orderBy('date', 'desc').get()
                 .then((query) => {
                     let price = 0;
@@ -892,6 +892,7 @@ exports.debtSmear = functions.firestore.document('sales/{saleId}')
                         });
                 });
         }
+        return 0;
     }))
 
 exports.salesMade = functions.firestore.document('sales/{saleId}')
@@ -913,9 +914,9 @@ exports.salesMade = functions.firestore.document('sales/{saleId}')
             const docRef = `sales/${context.params.saleId}`;
             const lastSunday = sale.date.toDate();
             lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
-            console.log("LAST SUNDAY:", lastSunday.toDateString());
+            console.log("LAST SUNDAY:", lastSunday.toLocaleDateString());
             admin.firestore().collection('profit')
-                .where('docId', '==', lastSunday.toDateString())
+                .where('docId', '==', lastSunday.toLocaleDateString())
                 .get().then((query) => {
                 query.forEach((doc_) => {
                     const profitDocRef = admin.firestore().doc(`profit/${doc_.id}`);
@@ -979,9 +980,9 @@ exports.salesMade = functions.firestore.document('sales/{saleId}')
             const profit = parseFloat(parseInt(sale.trayNo) * parseFloat(sale.trayPrice));
             const lastSunday = sale.date.toDate();
             lastSunday.setDate(lastSunday.getDate() - lastSunday.getDay());
-            console.log("LAST SUNDAY:", lastSunday.toDateString());
+            console.log("LAST SUNDAY:", lastSunday.toLocaleDateString());
             return admin.firestore().collection('profit')
-                .where('docId', '==', lastSunday.toDateString())
+                .where('docId', '==', lastSunday.toLocaleDateString())
                 .get().then((query) => {
                     if (query.size > 1 || query.size === 0) {
                         errorMessage("QUERIED ZERO OR MORE DOCS: "+query.size,
