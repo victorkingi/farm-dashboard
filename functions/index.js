@@ -11,11 +11,11 @@ admin.initializeApp({
 //
 const handleFCM = require('./src/handleFCM');
 const firestoreTrigger = require('./src/firestoreTrigger');
-const utils = require('./src/utils');
+const callable = require('./src/onCall');
 const scheduled = require('./src/scheduled');
 
 exports.FCMT = firestoreTrigger;
 exports.hFCM = handleFCM;
-exports.util = utils;
+exports.util = callable;
 exports.sch = scheduled;
 

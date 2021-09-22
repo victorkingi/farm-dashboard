@@ -1518,7 +1518,7 @@ exports.weeklyChanges = functions.runWith(runtimeOptWeekly).region('europe-west2
     sunday.setHours(0, 0, 0, 0);
     return admin.firestore().collection('profit')
         .add({
-            docId: date.toDateString(),
+            docId: date.toLocaleDateString('en-US', {timeZone: 'Africa/Nairobi'}),
             date: sunday,
             profit: 0,
             split: {
