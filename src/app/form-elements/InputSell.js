@@ -15,11 +15,7 @@ import { firebase } from '../../services/api/fbConfig';
 import Predictionary from 'predictionary';
 import ed from 'edit-distance';
 
-let name = firebase.auth().currentUser?.displayName;
-name = name ? name.substring(0, name.lastIndexOf(' '))
-  .toUpperCase() : '';
-
-function autoCorrectBuyerName(entered) {
+function autoCorrectBuyerName(entered, section) {
   let insert,
     remove,
     update;
@@ -46,7 +42,8 @@ function autoCorrectBuyerName(entered) {
     'Kinyanjui'
   ];
   predictionary.addWords(chosen);
-  if (skip.includes(entered)) return entered;
+  if (skip.includes(entered) && section !== getSectionAddr(entered)) return {entered};
+  else if (skip.includes(entered) && section === getSectionAddr(entered)) return entered
   let suggestions = predictionary.predict(entered);
   const final = [];
   for (let k in suggestions) {
@@ -62,7 +59,8 @@ function InputSell(props) {
   const [state, setState] = useState({
     date: new Date(),
     section: 'Choose Section',
-    buyerName: ''
+    buyerName: '',
+    trayPrice: '290'
   });
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
@@ -70,6 +68,10 @@ function InputSell(props) {
   const [error, setError] = useState('');
   const [disReplace, setDisReplace] = useState(false);
   const [defPaid, setDefPaid] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  let name = firebase.auth().currentUser?.displayName;
+  name = name ? name.substring(0, name.lastIndexOf(' '))
+      .toUpperCase() : '';
 
   useEffect(() => {
     if (name !== 'VICTOR') {
@@ -82,7 +84,12 @@ function InputSell(props) {
     } else {
       setDefPaid(false);
     }
-  }, [state]);
+    if (state.section === 'Cakes') {
+      setDisabled(true);
+    } else {
+      setDisabled(false);
+    }
+  }, [state, name]);
 
   const checkDate = (date) => {
     if (date.getTime() > new Date().getTime()) {
@@ -110,6 +117,11 @@ function InputSell(props) {
     }
     if (values.trayNo < 1 || values.trayPrice < 1) {
       setError('Tray price and number cannot be negative / 0');
+      setOpenError(true);
+      return false;
+    }
+    if (values.section === "CAKES" && values.trayPrice !== "290") {
+      setError("Tray price for cake should be 290");
       setOpenError(true);
       return false;
     }
@@ -207,10 +219,10 @@ function InputSell(props) {
     values.date = date;
     let proceed = parameterChecks(values);
     if (proceed) {
-      const returned = autoCorrectBuyerName(values.buyerName);
+      const returned = autoCorrectBuyerName(values.buyerName, values.section);
       if (typeof returned === 'string') {
         values.buyerName = returned;
-        props.inputSell(values);
+        props.inputSell(values, false);
         setOpenError(false);
         setOpen(true);
       } else {
@@ -345,6 +357,7 @@ function InputSell(props) {
                   className='form-control'
                   id='buyerName'
                   placeholder='Name of Buyer'
+                  value={state.buyerName}
                 />
               </Form.Group>
               <Form.Group>
@@ -365,6 +378,8 @@ function InputSell(props) {
                   className='form-control'
                   id='trayPrice'
                   placeholder='Price per Tray'
+                  value={state.trayPrice}
+                  disabled={disabled}
                 />
               </Form.Group>
               <div className='col-md-6'>

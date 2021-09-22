@@ -14,10 +14,6 @@ import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
 import {firestore} from "../../services/api/fbConfig";
 
-let __user__ = localStorage.getItem('name');
-__user__ = __user__ !== null ? __user__.toUpperCase() : '';
-
-
 function getLastSunday(d) {
   const t = new Date(d);
   t.setDate(t.getDate() - t.getDay());
@@ -89,14 +85,6 @@ function getTotal(stats) {
   return { sales: 0, buys: 0 }
 }
 
-function getUser() {
-  if (__user__ === 'BANK') return 0;
-  else if (__user__ === 'JEFF') return 1;
-  else if (__user__ === 'VICTOR') return 2;
-  else if (__user__ === 'BABRA') return 3;
-  else return 3;
-}
-
 function Dashboard(props) {
   const {
     notifications, pend, forProfit,
@@ -115,6 +103,16 @@ function Dashboard(props) {
   const [name, setName] = useState('');
   const [allChecked, setAllChecked] = useState(false);
   const [pendChecked, setPendChecked] = useState({});
+  let __user__ = localStorage.getItem('name');
+  __user__ = __user__ !== null ? __user__.toUpperCase() : '';
+
+  const getUser = () => {
+    if (__user__ === 'BANK') return 0;
+    else if (__user__ === 'JEFF') return 1;
+    else if (__user__ === 'VICTOR') return 2;
+    else if (__user__ === 'BABRA') return 3;
+    else return 3;
+  }
 
   useEffect(() => {
     let total = 0;
@@ -207,7 +205,7 @@ function Dashboard(props) {
         setDisable(allDisable);
       }
     }
-  }, [name, block, pend]);
+  }, [name, block, pend, __user__]);
 
   // undo write events to database
   const rollBack = () => {

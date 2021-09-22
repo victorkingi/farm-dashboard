@@ -14,9 +14,6 @@ import {Offline, Online} from "react-detect-offline";
 import {getSectionAddr} from "../../services/actions/salesAction";
 import {firebase} from '../../services/api/fbConfig';
 
-let name = firebase.auth().currentUser.displayName;
-name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
-
 function InputPurchase(props) {
     const [state, setState] = useState({
         date: new Date(),
@@ -28,12 +25,14 @@ function InputPurchase(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
     const [disReplace, setDisReplace] = useState(false);
+    let name = firebase.auth().currentUser.displayName;
+    name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
 
     useEffect(() => {
         if (name !== "VICTOR") setDisReplace(true);
         else setDisReplace(false);
 
-    }, [state]);
+    }, [state, name]);
 
     const checkDate = (date) => {
         if (date.getTime() > new Date().getTime()) {

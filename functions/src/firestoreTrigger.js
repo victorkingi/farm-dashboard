@@ -855,6 +855,45 @@ exports.availWithdraw = functions.firestore.document('profit/{profitId}')
         }
     }));
 
+exports.debtSmear = functions.firestore.document('sales/{saleId}')
+    .onCreate(((snapshot, context) => {
+        const data = snapshot.data();
+        const section = data.section;
+        const id = context.params.saleId;
+        if (section === "CAKES") {
+            admin.firestore().collection('sales')
+                .orderBy('date', 'desc').get()
+                .then((query) => {
+                    let price = 0;
+                    let usedId = '';
+                    let done = false;
+                    query.forEach((doc) => {
+                        if(done) return 0;
+                        const isTF = doc.data().section === "THIKA_FARMERS";
+                        if (isTF) {
+                            price = parseFloat(doc.data().trayPrice);
+                            usedId = doc.id;
+                            done = true;
+                        }
+                    });
+                    const total = parseFloat(data.trayPrice) * parseInt(data.trayNo);
+                    const expected = price * parseInt(data.trayNo);
+                    const finalMap = {
+                        priceUsed: price,
+                        difference: total - expected,
+                        usedId,
+                        cakeId: id
+                    };
+                    return admin.firestore().doc('temp/debt_smear')
+                        .update({
+                            [id+";!!;"+usedId]: finalMap,
+                            gross: admin.firestore.FieldValue.increment(finalMap.difference),
+                            submittedOn: admin.firestore.FieldValue.serverTimestamp()
+                        });
+                });
+        }
+    }))
+
 exports.salesMade = functions.firestore.document('sales/{saleId}')
     .onWrite((change, context) => {
         const afterData = change.after.exists ? change.after.data() : false;

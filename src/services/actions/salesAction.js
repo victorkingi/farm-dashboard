@@ -35,7 +35,6 @@ export const inputSell = (values, isUnknownBuyer) => {
     getFirestore
   }) => {
     const firestore = getFirestore();
-    console.log(values);
     if (!isUnknownBuyer) {
       if (JSON.parse(values.status)) {
         firestore.collection('pending_transactions')
