@@ -12,9 +12,6 @@ import {connect} from "react-redux";
 import {moneyBorrowed} from "../../services/actions/moneyAction";
 import {firebase} from '../../services/api/fbConfig';
 
-let name = firebase.auth().currentUser.displayName;
-name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
-
 function InputBorrowed(props) {
     const [state, setState] = useState({
         date: new Date(),
@@ -27,12 +24,14 @@ function InputBorrowed(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
     const [disReplace, setDisReplace] = useState(false);
+    let name = firebase.auth().currentUser.displayName;
+    name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
 
     useEffect(() => {
         if (name !== "VICTOR") setDisReplace(true);
         else setDisReplace(false);
 
-    }, [state]);
+    }, [state, name]);
 
     const checkDate = (date) => {
         if (date.getTime() > new Date().getTime()) {

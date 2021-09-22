@@ -2,10 +2,9 @@ import React, {Component} from 'react';
 import { Link, withRouter } from 'react-router-dom';
 import { Collapse } from 'react-bootstrap';
 
-const __name = localStorage.getItem('name') || 'User';
-
 class Sidebar extends Component {
   state = {};
+  __name = localStorage.getItem('name') || 'User';
 
   toggleMenuState(menuState) {
     if (this.state[menuState]) {
@@ -70,7 +69,7 @@ class Sidebar extends Component {
                     <span className="count bg-success"/>
                   </div>
                   <div className="profile-name">
-                    <h5 className="mb-0 font-weight-normal">Hi, {__name}</h5>
+                    <h5 className="mb-0 font-weight-normal">Hi, {this.__name}</h5>
                   </div>
                 </div>
               </div>
