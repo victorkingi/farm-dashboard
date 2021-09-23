@@ -1273,9 +1273,17 @@ exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
                             data.values.date.toDate().toDateString());
                         tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
                         viczcoin.addTransaction(tx1);
-                            if (data.values.section !== "THIKA_FARMERS") {
+                            if (data.values.section !== "THIKA_FARMERS" && data.values.section !== "DUKA") {
                                 const tx2 = new Transaction(users.get(USERS.MINER),
                                     users.get(data.values.name), total,
+                                    actions.SELL.concat(";").concat(data.values.section, ";").concat(data.values.buyerName,
+                                        ";FROM:", USERS.MINER, ";TO:", data.values.name),
+                                    replaced, data.values.date.toDate().toDateString());
+                                tx2.signTransaction(users.get(USERS.MINER.concat("_pr")));
+                                viczcoin.addTransaction(tx2);
+                            } else if (data.values.section === "DUKA") {
+                                const tx2 = new Transaction(users.get(USERS.MINER),
+                                    users.get("JEFF"), total,
                                     actions.SELL.concat(";").concat(data.values.section, ";").concat(data.values.buyerName,
                                         ";FROM:", USERS.MINER, ";TO:", data.values.name),
                                     replaced, data.values.date.toDate().toDateString());
