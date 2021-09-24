@@ -16,26 +16,20 @@ import Predictionary from 'predictionary';
 import ed from 'edit-distance';
 
 function autoCorrectBuyerName(entered, section) {
-  let insert,
-    remove,
-    update;
-  insert = remove = () => {
-    return 1;
-  };
-  update = (stringA, stringB) => {
-    return stringA !== stringB ? 1 : 0;
-  };
+  let insert, remove, update;
+  insert = remove = () => { return 1; };
+  update = (stringA, stringB) => { return stringA !== stringB ? 1 : 0; };
   let predictionary = Predictionary.instance();
   const skip = ['Thika Farmers', 'Cakes', 'Duka'];
   const chosen = [
     'Eton',
-    'Sang\'',
+    "Sang'",
     'Karithi',
     'Titus',
     'Mwangi',
     'Lynn',
     'Gituku',
-    'Lang\'at',
+    "Lang'at",
     'Wahome',
     'Kamau',
     'Simiyu',
@@ -43,16 +37,22 @@ function autoCorrectBuyerName(entered, section) {
   ];
   predictionary.addWords(chosen);
   if (skip.includes(entered) && section !== getSectionAddr(entered)) return {entered};
-  else if (skip.includes(entered) && section === getSectionAddr(entered)) return entered
-  let suggestions = predictionary.predict(entered);
+  else if (skip.includes(entered) && section === getSectionAddr(entered)) return entered;
   const final = [];
-  for (let k in suggestions) {
-    const chose = suggestions[k];
+  for (let k in chosen) {
+    const chose = chosen[k];
     const lev = ed.levenshtein(entered, chose, insert, remove, update);
     if (lev.distance < 3) final.push(chose);
   }
-  if (final.length === 1) return final[0];
-  if (final.length > 1 || final.length === 0) return final;
+  let suggestions = predictionary.predict(entered);
+  final.push(...suggestions);
+  let ans;
+  for (let k in final) {
+    const chose = final[k];
+    const lev = ed.levenshtein(entered, chose, insert, remove, update);
+    if (lev.distance < 3) ans = chose;
+  }
+  return ans;
 }
 
 function InputSell(props) {
