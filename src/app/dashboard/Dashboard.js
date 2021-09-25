@@ -17,14 +17,14 @@ import {firebase, firestore} from "../../services/api/fbConfig";
 if (navigator.onLine) {
   firebase.auth().onAuthStateChanged((user_) => {
     if (!user_) {
-      //const key = localStorage.getItem('key');
+      const key = localStorage.getItem('key');
       const email = localStorage.getItem('user');
-     // if (key === null || email === null) return 0;
+      if (key === null || email === null) return 0;
       return firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
           .then(() => {
             return firebase.auth().signInWithEmailAndPassword(
                 email,
-                'Hp?*k2q5GYV2'
+                key
             ).then(() => {
               console.log("reauthenticated");
               window.alert("reauthenticated");
