@@ -174,6 +174,9 @@ function Navbar(props) {
           <Link className="navbar-brand brand-logo-mini"  to="/"><img src={"https://firebasestorage.googleapis.com/v0/b/poultry101-6b1ed.appspot.com/o/logo256.png?alt=media&token=25b09b36-23e6-4c62-9207-667d99541df4"} alt="logo" /></Link>
         </div>
         <div className="navbar-menu-wrapper flex-grow d-flex align-items-stretch">
+          <button className="navbar-dark align-self-center" type="button" onClick={ () => window.location.reload() }>
+            <span className="mdi mdi-refresh"/>
+          </button>
           <button className="navbar-toggler align-self-center" type="button" onClick={ () => document.body.classList.toggle('sidebar-icon-only') }>
             <span className="mdi mdi-menu"/>
           </button>
