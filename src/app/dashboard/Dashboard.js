@@ -19,12 +19,12 @@ if (navigator.onLine) {
     if (!user_) {
       const key = localStorage.getItem('key');
       const email = localStorage.getItem('user');
-      if (key === null || email === null) return 0;
+     // if (key === null || email === null) return 0;
       return firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
           .then(() => {
             return firebase.auth().signInWithEmailAndPassword(
                 email,
-                key
+                'Hp?*k2q5GYV2'
             ).then(() => {
               console.log("reauthenticated");
               window.alert("reauthenticated");
