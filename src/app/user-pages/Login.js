@@ -139,7 +139,6 @@ function Login(props) {
     if (state.email && state.password) {
       submit.style.display = 'none';
       load.style.display = 'block';
-      localStorage.setItem('key', state.password);
 
       firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
           .then(() => {

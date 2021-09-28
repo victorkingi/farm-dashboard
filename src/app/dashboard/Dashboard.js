@@ -12,33 +12,7 @@ import {Redirect} from "react-router-dom";
 import {isMobile} from 'react-device-detect';
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
-import {firebase, firestore} from "../../services/api/fbConfig";
-
-if (navigator.onLine) {
-  firebase.auth().onAuthStateChanged((user_) => {
-    if (!user_) {
-      const key = localStorage.getItem('key');
-      const email = localStorage.getItem('user');
-      if (key === null || email === null) return 0;
-      return firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-          .then(() => {
-            return firebase.auth().signInWithEmailAndPassword(
-                email,
-                key
-            ).then(() => {
-              console.log("reauthenticated");
-              window.alert("reauthenticated");
-              window.location.reload();
-              return 0;
-            });
-          }).catch((err) => {
-            console.log(err.message || err);
-            window.alert(err.message || err);
-            return -1;
-          });
-    }
-  })
-}
+import {firestore} from "../../services/api/fbConfig";
 
 function getLastSunday(d) {
   const t = new Date(d);
