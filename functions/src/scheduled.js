@@ -1198,6 +1198,24 @@ async function findCausedTray(needed) {
     }
 }
 
+async function movePendEggs() {
+    const query = await admin.firestore().collection('pend_eggs_collected')
+        .orderBy('submittedOn', 'desc').get();
+    if (query.size === 0) return 0;
+    return query.forEach((doc) => {
+        const data =  doc.data();
+        admin.firestore().collection('eggs_collected').add({
+            ...data
+        }).then(() => doc.ref.delete());
+    });
+}
+
+exports.moveEggs = functions.region('europe-west2')
+    .pubsub.schedule('every 1 hours from 01:00 to 02:00')
+    .timeZone('Africa/Nairobi').onRun(() => {
+        return movePendEggs();
+    });
+
 /**
  * eggsChange function always has to run earlier than wakeUpMiner function to prevent
  * situation where trays are sold on the same day they where collected and no
