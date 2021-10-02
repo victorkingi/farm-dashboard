@@ -601,6 +601,7 @@ async function eggsChange() {
         console.log("NOT UPDATED:", parseInt(notUpdatedData.date_))
         //get previous date used. make sure it exists first
         prevDate.setDate(prevDate.getDate() - 1);
+        console.log(prevDate.toLocaleString(), prevDate.getTime());
         const querySnapshot = await admin.firestore().collection('eggs_collected')
             .where('date_', '==', prevDate.getTime())
             .get();
