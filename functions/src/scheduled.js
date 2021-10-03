@@ -1072,7 +1072,7 @@ const runtimeOptWeekly = {
 
 async function updateEggsTrend() {
     const query = await admin.firestore().collection('eggs_collected')
-        .orderBy('date_', 'desc').get();
+        .orderBy('date_', 'asc').get();
     const dates = [];
     const values = [];
     let firstDate;
@@ -1083,7 +1083,7 @@ async function updateEggsTrend() {
         const value = safeTrayEggConvert(data.trays_store, true);
         values.push(value);
         dates.push(getDateString(date_));
-        if (!firstDate && i === 0) firstDate = date_.getTime();
+        if (!firstDate && i === query.size-1) firstDate = date_.getTime();
         i++;
     });
     if (dates.length !== values.length) throw new Error("Dates and values not equal");

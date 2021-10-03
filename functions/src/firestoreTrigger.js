@@ -608,8 +608,7 @@ async function eggsChange() {
         if (!found) throw new Error("Date missing for "+prevDate.toDateString());
         const lastEnteredBag = bagsData.dates[bagsData.dates.length - 1];
         const lastEnteredTime = new Date(clean_date(lastEnteredBag));
-        lastEnteredTime.setHours(0, 0, 0, 0);
-        const lastEnteredTimeStamp = lastEnteredTime.getTime();
+        const lastEnteredTimeStamp = lastEnteredTime.getTime()+86400000;
         console.log("FOUND:", lastEnteredTimeStamp , "NEEDED:", prevDate.getTime())
         if (Math.abs(lastEnteredTimeStamp - prevDate.getTime()) > 86400000) throw new Error("Wrong bags date");
         bagsData.bags_data.push(notUpdatedData.bags_store.toString());
