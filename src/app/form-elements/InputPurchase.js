@@ -77,7 +77,7 @@ function InputPurchase(props) {
                     return false;
                 }
             }
-        } else if (!values.section) {
+        } else if (!values.section || values.section === "CHOOSE_SECTION") {
             setError('Section cannot be empty');
             setOpenError(true);
             return false;
