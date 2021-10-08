@@ -1068,13 +1068,13 @@ function Dashboard(props) {
                             </label>
                           </div>
                         </th>
+                        <th> Transaction State </th>
                         <th> From </th>
                         <th> To </th>
                         <th> Amount </th>
                         <th> Category </th>
                         <th> Section </th>
                         <th> Date </th>
-                        <th> Mining Status </th>
                       </tr>
                       </thead>
                       <tbody>
@@ -1101,6 +1101,11 @@ function Dashboard(props) {
                                   </div>
                                 </td>
                                 <td>
+                                  {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
+                                  {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
+                                  {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
+                                </td>
+                                <td>
                                   <div className="d-flex">
                                     <span className="pl-2">
                                       {item.values.category !== "send" && item.values.category !== "borrow" && 'Miner'}
@@ -1123,11 +1128,6 @@ function Dashboard(props) {
                                 <td> {sanitize_string(item.values?.category)} </td>
                                 <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
-                                <td>
-                                  {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
-                                  {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
-                                  {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
-                                </td>
                               </tr>
                             )
                       })}
