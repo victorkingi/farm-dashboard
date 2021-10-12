@@ -908,7 +908,7 @@ async function updateTxList() {
 
 const runtimeOptsDaily = {
     timeoutSeconds: 540,
-    memory: '8GB'
+    memory: '4GB'
 }
 
 /* function predictBags() {
@@ -1097,7 +1097,7 @@ async function updateEggsTrend() {
     });
 }
 
-exports.eggTrend = functions.runWith(runtimeOptsDaily).region('europe-west2').pubsub
+exports.eggTrend = functions.region('europe-west2').pubsub
     .schedule('every 1 hours from 17:00 to 18:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         estimatedTrays(false);
@@ -1200,13 +1200,37 @@ async function findCausedTray(needed) {
 
 async function movePendEggs() {
     const query = await admin.firestore().collection('pend_eggs_collected')
-        .orderBy('submittedOn', 'desc').get();
-    if (query.size === 0) return 0;
-    return query.forEach((doc) => {
-        const data =  doc.data();
-        admin.firestore().collection('eggs_collected').add({
-            ...data
-        }).then(() => doc.ref.delete());
+        .orderBy('date_', 'asc').get();
+    const lastQuery = await admin.firestore().collection('eggs_collected')
+        .orderBy('date_', 'desc').limit(1).get();
+    if (query.size === 0 || lastQuery.size === 0) return 0;
+    return lastQuery.forEach((lastDoc) => {
+        let expectedPrevDate = lastDoc.data().date_;
+        let oneDay = 86400000;
+        return query.forEach((doc) => {
+            const data =  doc.data();
+            let foundPrevDate = data.date_ - oneDay;
+            if (expectedPrevDate !== foundPrevDate) {
+                console.log("MARKED:", doc.id);
+                return admin.firestore().doc(`pend_eggs_collected/${doc.id}`).update({
+                    rejected: true
+                }).then(() => {
+                    const er = new Error("UNMATCHED DATES: expected "+expectedPrevDate+" but was: "+foundPrevDate);
+                    console.error(er);
+                    throw er;
+                });
+            } else {
+                async function cleanup() {
+                    await admin.firestore().collection('eggs_collected').add({
+                        ...data
+                    })
+                    await doc.ref.delete();
+                    await sleep(3000);
+                    expectedPrevDate += oneDay;
+                }
+                return cleanup();
+            }
+        });
     });
 }
 
@@ -1221,7 +1245,11 @@ exports.moveEggs = functions.region('europe-west2')
  * situation where trays are sold on the same day they where collected and no
  * trays to burn are available in the linked list to accommodate the transaction.
  */
-exports.wakeUpMiner = functions.runWith(runtimeOptsDaily).region('europe-west2')
+const miningOpts = {
+    timeoutSeconds: 540,
+    memory: '8GB'
+}
+exports.wakeUpMiner = functions.runWith(miningOpts).region('europe-west2')
     .pubsub.schedule('every 1 hours from 03:00 to 04:00')
     .timeZone('Africa/Nairobi').onRun(() => {
         return admin.firestore()
