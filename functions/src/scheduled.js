@@ -1142,10 +1142,12 @@ async function findCausedTray(needed) {
     const query = await admin.firestore().collection('pending_transactions')
         .get();
     let docs = [];
+    const trayId = new Map();
     query.forEach((doc) => {
         if (doc.id === 'cleared') return 0;
         if (!doc.data().values.trayNo) return 0;
         docs.push({id: doc.id, data: doc.data().values});
+        trayId.set(parseInt(doc.data().values.trayNo), doc.id);
     });
     let trayNo = [];
     for (let i = 0; i < docs.length; i++) {
@@ -1155,6 +1157,7 @@ async function findCausedTray(needed) {
     let found = false;
     let n = 0;
     let combination = [];
+    const maxTrays = Math.max(...trayNo);
     while (!found) {
         let combinationFound = await admin.firestore().doc('temp/err_trays').get();
         if (combinationFound.exists) {
@@ -1177,6 +1180,19 @@ async function findCausedTray(needed) {
         if (n > 10) break;
     }
     if (!found) {
+        if (maxTrays >= needed) {
+            console.log("MARKED:", trayId.get(maxTrays));
+            await admin.firestore().doc(`pending_transactions/${trayId.get(maxTrays)}`).update({
+                rejected: true
+            });
+        } else {
+            trayId.forEach((value) => {
+                console.log("MARKED ALL:", value);
+                admin.firestore().doc(`pending_transactions/${value}`).update({
+                    rejected: true
+                });
+            })
+        }
         console.log('No combination exists');
         return 'No combination exists';
     }
@@ -1225,7 +1241,7 @@ async function movePendEggs() {
                         ...data
                     })
                     await doc.ref.delete();
-                    await sleep(3000);
+                    await sleep(5000);
                     expectedPrevDate += oneDay;
                 }
                 return cleanup();
