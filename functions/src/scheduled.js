@@ -465,6 +465,14 @@ async function verifyEggs(values, id) {
         await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
+        const notification = {
+            content: `Insufficient gas`,
+            extraContent: `Not enough trays. ID: ${id}`,
+            identifier: 'tray',
+            user: 'MINER',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }
+        await createNotification(notification);
         errorMessage("Not enough trays to sell!",
             values.values.name);
     }
@@ -534,6 +542,14 @@ async function updateEggs(values, id) {
         await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
+        const notification = {
+            content: `Insufficient gas`,
+            extraContent: `Not enough trays. ID: ${id}`,
+            identifier: 'tray',
+            user: 'MINER',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }
+        await createNotification(notification);
         errorMessage("Previous check got passed, not enough trays!",
             values.values.name);
         return false;
@@ -610,6 +626,14 @@ async function saleParamCheck(values, id) {
         await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
+        const notification = {
+            content: `Duplicate transaction at ${id}`,
+            extraContent: 'Might exist in pending or server',
+            identifier: 'fail',
+            user: 'MINER',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }
+        await createNotification(notification);
         errorMessage("Duplicate data!", values.values.name);
     }
     //checks if some sales will not have enough eggs to burn
@@ -664,6 +688,14 @@ async function buyParamCheck(values, submittedOn, id) {
         await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
+        const notification = {
+            content: `Duplicate transaction at ${id}`,
+            extraContent: 'Might exist in pending or server',
+            identifier: 'fail',
+            user: 'MINER',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }
+        await createNotification(notification);
         return errorMessage("Duplicate data!", values.name);
     }
 }
@@ -716,6 +748,14 @@ async function borrowParamCheck(values, submittedOn, id) {
         await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
+        const notification = {
+            content: `Insufficient funds`,
+            extraContent: `Send Ksh.${numeral(totalSending).format("0,0")} from ${cleanString(values.name)}`,
+            identifier: 'fail',
+            user: 'MINER',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }
+        await createNotification(notification);
         errorMessage("Insufficient Funds!");
     }
 
@@ -745,6 +785,14 @@ async function borrowParamCheck(values, submittedOn, id) {
         await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
+        const notification = {
+            content: `Duplicate transaction at ${id}`,
+            extraContent: 'Might exist in pending or server',
+            identifier: 'fail',
+            user: 'MINER',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }
+        await createNotification(notification);
         errorMessage("Duplicate data!", values.name);
     }
 }
@@ -796,6 +844,14 @@ async function sendParamCheck(values, submittedOn, id) {
         await admin.firestore().doc(`pending_transactions/${id}`).update({
             rejected: true
         });
+        const notification = {
+            content: `Insufficient funds`,
+            extraContent: `Send Ksh.${numeral(totalSending).format("0,0")} from ${cleanString(values.name)}`,
+            identifier: 'fail',
+            user: 'MINER',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }
+        await createNotification(notification);
         errorMessage("Insufficient Funds!", values.initiator);
     }
 }
@@ -1158,6 +1214,7 @@ async function findCausedTray(needed) {
     let n = 0;
     let combination = [];
     const maxTrays = Math.max(...trayNo);
+    let largestMarked = false;
     while (!found) {
         let combinationFound = await admin.firestore().doc('temp/err_trays').get();
         if (combinationFound.exists) {
@@ -1185,14 +1242,30 @@ async function findCausedTray(needed) {
             await admin.firestore().doc(`pending_transactions/${trayId.get(maxTrays)}`).update({
                 rejected: true
             });
+            largestMarked = true;
         } else {
-            trayId.forEach((value) => {
+            const mapTray = new Map([...trayId.entries()].sort());
+            let all = 0;
+            let isDone = false;
+            mapTray.forEach((value, key) => {
+                if (isDone) return 0;
                 console.log("MARKED ALL:", value);
                 admin.firestore().doc(`pending_transactions/${value}`).update({
                     rejected: true
                 });
-            })
+                all += key;
+                if (all >= needed) isDone = true;
+            });
+            largestMarked = false;
         }
+        const notification = {
+            content: 'Insufficient gas',
+            extraContent: `${largestMarked ? `Largest transaction marked` : `Marked txs may cause failure`}`,
+            identifier: 'tray',
+            user: 'MINER',
+            time: admin.firestore.FieldValue.serverTimestamp(),
+        }
+        await createNotification(notification);
         console.log('No combination exists');
         return 'No combination exists';
     }
@@ -1212,6 +1285,14 @@ async function findCausedTray(needed) {
             rejected: true
         });
     }
+    const notification = {
+        content: 'Insufficient gas',
+        extraContent: 'Marked txs causing failure',
+        identifier: 'tray',
+        user: 'MINER',
+        time: admin.firestore.FieldValue.serverTimestamp(),
+    }
+    await createNotification(notification);
 }
 
 async function movePendEggs() {
@@ -1233,7 +1314,16 @@ async function movePendEggs() {
                 }).then(() => {
                     const er = new Error("UNMATCHED DATES: expected "+expectedPrevDate+" but was: "+foundPrevDate);
                     console.error(er);
-                    throw er;
+                    const notification = {
+                        content: 'Wrong eggs date entered',
+                        extraContent: `${new Date(expectedPrevDate).toDateString()}, ${new Date(foundPrevDate).toDateString()}`,
+                        identifier: 'fail',
+                        user: 'MINER',
+                        time: admin.firestore.FieldValue.serverTimestamp(),
+                    }
+                    return createNotification(notification).then(() => {
+                        throw er;
+                    });
                 });
             } else {
                 async function cleanup() {
