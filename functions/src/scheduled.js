@@ -1304,7 +1304,7 @@ async function movePendEggs() {
     return lastQuery.forEach((lastDoc) => {
         let expectedPrevDate = lastDoc.data().date_;
         let oneDay = 86400000;
-        return query.forEach((doc) => {
+        query.forEach((doc) => {
             const data =  doc.data();
             let foundPrevDate = data.date_ - oneDay;
             if (expectedPrevDate !== foundPrevDate) {
@@ -1326,13 +1326,13 @@ async function movePendEggs() {
                     });
                 });
             } else {
+                expectedPrevDate += oneDay;
                 async function cleanup() {
                     await admin.firestore().collection('eggs_collected').add({
                         ...data
                     })
                     await doc.ref.delete();
                     await sleep(5000);
-                    expectedPrevDate += oneDay;
                 }
                 return cleanup();
             }
