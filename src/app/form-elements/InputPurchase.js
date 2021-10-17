@@ -25,7 +25,7 @@ function InputPurchase(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
     const [disReplace, setDisReplace] = useState(false);
-    let name = firebase.auth().currentUser.displayName;
+    let name = firebase.auth().currentUser?.displayName || '';
     name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
 
     useEffect(() => {
@@ -45,7 +45,7 @@ function InputPurchase(props) {
     }
 
     const parameterChecks = (values) => {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         if (values.itemName) {
             values.itemName = values.itemName.charAt(0).toUpperCase().concat(values
                 .itemName.substring(1));
@@ -62,6 +62,20 @@ function InputPurchase(props) {
                 for (let i = 0; i < enteredMonths.length; i++) {
                     for (let p = 0; p < months.length; p++) {
                         if (enteredMonths[i] === months[p]) {
+                            if (found.includes(months[p])) {
+                                setError("Duplicate months entered");
+                                setOpenError(true);
+                                return false;
+                            }
+                            if (found.length !== 0) {
+                                const lastEntered = found[found.length-1];
+                                const index = months.indexOf(lastEntered);
+                                if (months[(index+1)%12] !== enteredMonths[i]) {
+                                    setError("Inconsistent months, next should be "+months[(index+1)%12]);
+                                    setOpenError(true);
+                                    return false;
+                                }
+                            }
                             found.push(enteredMonths[i]);
                         }
                     }
