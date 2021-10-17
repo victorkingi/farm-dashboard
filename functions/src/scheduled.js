@@ -325,21 +325,21 @@ async function calculateBalance() {
 }
 const runtm = {
     timeoutSeconds: 540,
-    memory: '4GB'
+    memory: '8GB'
 }
 
 exports.fix = functions.runWith(runtm).firestore.document('me/me')
     .onCreate((() => {
         async function mine() {
-            /*console.log("Starting miner...");
+            console.log("Starting miner...");
             initializeMap();
             let difficulty = await admin.firestore().doc('temp/difficulty').get();
             difficulty = parseInt(difficulty.data().diff);
             const viczcoin = new Blockchain(users.get(USERS.MINER),
                 999999,
                 'genesis_block', difficulty);
-            const tx1 = new Transaction(users.get('FEEDS'),
-                users.get(USERS.MINER),48700, actions.TRADE
+            const tx1 = new Transaction(users.get(USERS.FEEDS),
+                users.get(USERS.MINER),24000, actions.TRADE
                     .concat(";FROM:", 'FEEDS', ";TO:", 'MINER'),
                 "null", new Date().toDateString());
             tx1.signTransaction(users.get(USERS.FEEDS.concat("_pr")));
@@ -354,7 +354,7 @@ exports.fix = functions.runWith(runtm).firestore.document('me/me')
             admin.firestore().collection("blockchain").add({
                 ...all,
                 minedOn: admin.firestore.FieldValue.serverTimestamp()
-            }).then(() => { return console.log("DONE"); }); */
+            }).then(() => { return console.log("DONE"); });
         }
         return mine();
 }));
