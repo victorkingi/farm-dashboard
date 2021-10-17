@@ -640,13 +640,54 @@ async function saleParamCheck(values, id) {
     await verifyEggs(values, id);
 }
 
+const acceptedMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", ""];
+async function confirmPaidMonths(entered, id, values) {
+    const query = await admin.firestore().collection('purchases').orderBy('date', 'desc')
+        .get();
+    let foundMonth = false;
+    query.forEach((doc) => {
+        if (foundMonth) return 0;
+        const data = doc.data();
+        const itemName = data.itemName.split(',');
+        let total = 0;
+        for (let item of acceptedMonths) {
+            total += itemName.includes(item) ? 1 : 0;
+        }
+        if (total === itemName.length) {
+            foundMonth = true;
+            const lastMonth = itemName[itemName.length-2];
+            const index = acceptedMonths.indexOf(lastMonth);
+            const nextMonth = acceptedMonths[(index+1)%12];
+            if (entered !== nextMonth) {
+                admin.firestore().doc(`pending_transactions/${id}`).update({
+                    rejected: true
+                });
+                const notification = {
+                    content: `Inconsistent Months ${id}`,
+                    extraContent: `Expected ${nextMonth}, got ${entered}`,
+                    identifier: 'fail',
+                    user: 'MINER',
+                    time: admin.firestore.FieldValue.serverTimestamp(),
+                }
+                createNotification(notification);
+                return errorMessage("Inconsistent months!", values.name);
+            }
+        }
+    });
+    console.log("success");
+    return 0;
+}
+
 async function buyParamCheck(values, submittedOn, id) {
     const pending = await admin.firestore().collection('pending_transactions')
         .orderBy("submittedOn", "desc").get();
     const buys = await admin.firestore().collection('purchases')
         .orderBy("submittedOn", "desc").get();
     let found = false;
-
+    if (values.section === "OTHER_PURITY") {
+        const months = values.itemName.split(',');
+        await confirmPaidMonths(months[0], id, values);
+    }
     for (let i = 0; i < pending.size; i++) {
         const doc = pending.docs[i];
         const data = doc.data();
