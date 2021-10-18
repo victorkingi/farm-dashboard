@@ -888,7 +888,7 @@ function Dashboard(props) {
                           return (
                               <div key={item.id} className="preview-item border-bottom">
                                 <div className="preview-thumbnail">
-                                  <div className="preview-icon bg-primary">
+                                  <div className={(item.identifier === 'fail' || item.identifier === 'tray') ? "preview-icon bg-danger" : "preview-icon bg-primary"}>
                                     <i className={`mdi mdi-${icon}`}/>
                                   </div>
                                 </div>
