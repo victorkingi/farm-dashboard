@@ -265,7 +265,10 @@ function Dashboard(props) {
             break;
           }
         }
-        if (!isFound) throw new Error("inconsistent dates in eggs");
+        if (!isFound) {
+          console.error("inconsistent dates in eggs");
+          return -1;
+        }
       }
       localStorage.setItem('expected', JSON.stringify(expectedInputs));
     }
