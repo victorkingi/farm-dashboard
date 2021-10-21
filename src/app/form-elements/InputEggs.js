@@ -144,6 +144,11 @@ function InputEggs(props) {
             return;
         }
         const eggs = safeTrayEggConvert(state.trays_store, true);
+        if (new Date().getTimezoneOffset() !== -180) {
+            setError('Different Timezone detected. Cannot handle input');
+            setOpenError(true);
+            return;
+        }
         const eggsOk = checkEggNumber(eggs, state.date_);
         if (eggsOk) {
             props.inputTray(state);
