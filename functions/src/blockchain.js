@@ -136,33 +136,6 @@ class Block {
         const endTime = performance.now();
         const totalTime = (endTime - startTime) / 1000;// time took to run in milliseconds
         console.log('Total time:'+totalTime +' s');
-        if (totalTime > 47) {
-            let rand = Math.random();
-            if (rand >= 0.5) {
-                admin.firestore().doc('temp/difficulty').update({
-                    diff: admin.firestore.FieldValue.increment(-1),
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-            } else if (difficulty > 3) {
-                admin.firestore().doc('temp/difficulty').update({
-                    diff: admin.firestore.FieldValue.increment(-1),
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-            }
-        } else {
-            let rand = Math.random();
-            if (difficulty > 3 && rand >= 0.5) {
-                admin.firestore().doc('temp/difficulty').update({
-                    diff: admin.firestore.FieldValue.increment(-1),
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-            } else if (difficulty < 4) {
-                admin.firestore().doc('temp/difficulty').update({
-                    diff: admin.firestore.FieldValue.increment(1),
-                    submittedOn: admin.firestore.FieldValue.serverTimestamp()
-                });
-            }
-        }
         if (this.previousHash === "genesis_block") console.log("genesis block mined!");
         else console.log("Block mined: " + this.hash);
     }
