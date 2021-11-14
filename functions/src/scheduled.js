@@ -1726,13 +1726,13 @@ exports.wakeUpMiner = functions.runWith(miningOpts).region('europe-west2')
                                       });
                                   return await calculateBalance();
                               }
+                              mutexLockDoc.ref.update({ MUTEX_LOCK: 0 });
+                              console.log("UNLOCKED");
                               admin.firestore().collection("blockchain").add({
                                   ...all,
                                   minedOn: admin.firestore.FieldValue.serverTimestamp()
                               }).then(async () => {
                                   await calcAndSend(hash);
-                                  await mutexLockDoc.ref.update({ MUTEX_LOCK: 0 });
-                                  console.log("UNLOCKED");
                               });
                           }
                       });
