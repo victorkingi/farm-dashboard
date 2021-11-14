@@ -33,7 +33,9 @@ function autoCorrectBuyerName(entered, section) {
     'Wahome',
     'Kamau',
     'Simiyu',
-    'Kinyanjui'
+    'Kinyanjui',
+    'Rose',
+    'Ben'
   ];
   predictionary.addWords(chosen);
   if (skip.includes(entered) && section !== getSectionAddr(entered)) return {entered};
