@@ -1419,7 +1419,7 @@ const miningOpts = {
 exports.wakeUpMiner = functions.runWith(miningOpts).region('europe-west2')
     .pubsub.schedule('every 1 hours from 03:00 to 04:00')
     .timeZone('Africa/Nairobi').onRun(() => {
-      return admin.firestore().doc('temp/temp').get().then((mutexLockDoc) => {
+      return admin.firestore().doc('temp/MUTEX_LOCK').get().then((mutexLockDoc) => {
           const mutexData = mutexLockDoc.data();
           const isLocked = mutexData.MUTEX_LOCK !== 0;
           if (isLocked) {
