@@ -1,7 +1,6 @@
 const { Transaction } = require('./transaction');
 const { SHA512, actions } = require('./constants');
 const { performance } = require('perf_hooks');
-const admin = require('firebase-admin');
 
 class Blockchain {
     constructor(minerWallet, minerReward, prevHash, difficulty) {
@@ -27,7 +26,7 @@ class Blockchain {
     getLatestBlock() { return this.chain[this.chain.length - 1]; }
 
     minePendingTransactions() {
-        console.log(this.pendingTransactions.length+" transactions are in this block...");
+        console.log(this.pendingTransactions.length+` transaction${this.pendingTransactions.length === 1 ? ' is' : 's are'} in this block...`);
         const rewardTx = new Transaction(null, this.minerWallet, this.miningReward, actions.REWARD);
         this.pendingTransactions.push(rewardTx);
 
