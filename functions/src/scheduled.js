@@ -339,11 +339,15 @@ exports.fix = functions.runWith(runtm).firestore.document('me/me')
                 999999,
                 'genesis_block', difficulty);
             const tx1 = new Transaction(users.get(USERS.MINER),
-                users.get(USERS.BANK),1000, actions.TRADE
-                    .concat(";FROM:", 'MINER', ";TO:", 'BANK'),
-                "null", new Date().toDateString());
+                users.get(USERS.BANK),573.44, "INTEREST;FROM:MINER;TO:BANK",
+                "null", "Thu Sep 30 2021");
             tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
             viczcoin.addTransaction(tx1);
+            const tx2 = new Transaction(users.get(USERS.BANK),
+                users.get(USERS.MINER),86.02, "TAX;FROM:BANK;TO:MINER",
+                "null", "Thu Sep 30 2021");
+            tx2.signTransaction(users.get(USERS.BANK.concat("_pr")));
+            viczcoin.addTransaction(tx2);
             viczcoin.minePendingTransactions();
             console.log("Is blockchain valid: ", viczcoin.isChainValid());
             const converted = JSON.stringify(viczcoin);
