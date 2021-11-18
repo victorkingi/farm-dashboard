@@ -145,149 +145,154 @@ exports.safeBlock = functions.runWith(runtimeOpt).firestore.document('blockchain
         const newData = change.after.exists ? change.after.data() : null;
         const timeout = 60 * 1000;
 
-        setTimeout(() => {
-            if (data === null && newData) {
-                //if doc is created confirm that cloud function created it
-                admin.firestore().doc('pending_transactions/cleared').get()
-                    .then((doc) => {
-                        if (doc.exists) {
-                            const pendData = doc.data();
-                            const david = {
-                                publicKey: new Uint8Array ([
-                                    26,
-                                    115,
-                                    198,
-                                    234,
-                                    228,
-                                    153,
-                                    102,
-                                    241,
-                                    221,
-                                    143,
-                                    36,
-                                    114,
-                                    233,
-                                    165,
-                                    221,
-                                    138,
-                                    157,
-                                    203,
-                                    60,
-                                    254,
-                                    227,
-                                    215,
-                                    147,
-                                    75,
-                                    205,
-                                    197,
-                                    239,
-                                    158,
-                                    181,
-                                    5,
-                                    20,
-                                    74 ])
-                            };
-                            const viktoria = {
-                                secretKey: new Uint8Array ([
-                                    67,
-                                    8,
-                                    242,
-                                    213,
-                                    16,
-                                    14,
-                                    221,
-                                    181,
-                                    189,
-                                    97,
-                                    68,
-                                    98,
-                                    171,
-                                    132,
-                                    33,
-                                    101,
-                                    227,
-                                    49,
-                                    38,
-                                    122,
-                                    175,
-                                    94,
-                                    102,
-                                    87,
-                                    59,
-                                    80,
-                                    122,
-                                    86,
-                                    134,
-                                    74,
-                                    242,
-                                    49 ])
-                            };
+        return admin.firestore().doc('me/me').get().then((doc) => {
+            if (doc.exists) {
+                const isReady = doc.data().isReady;
+                if (isReady) return 0;
+            }
+            setTimeout(() => {
+                if (data === null && newData) {
+                    //if doc is created confirm that cloud function created it
+                    admin.firestore().doc('pending_transactions/cleared').get()
+                        .then((doc) => {
+                            if (doc.exists) {
+                                const pendData = doc.data();
+                                const david = {
+                                    publicKey: new Uint8Array ([
+                                        26,
+                                        115,
+                                        198,
+                                        234,
+                                        228,
+                                        153,
+                                        102,
+                                        241,
+                                        221,
+                                        143,
+                                        36,
+                                        114,
+                                        233,
+                                        165,
+                                        221,
+                                        138,
+                                        157,
+                                        203,
+                                        60,
+                                        254,
+                                        227,
+                                        215,
+                                        147,
+                                        75,
+                                        205,
+                                        197,
+                                        239,
+                                        158,
+                                        181,
+                                        5,
+                                        20,
+                                        74 ])
+                                };
+                                const viktoria = {
+                                    secretKey: new Uint8Array ([
+                                        67,
+                                        8,
+                                        242,
+                                        213,
+                                        16,
+                                        14,
+                                        221,
+                                        181,
+                                        189,
+                                        97,
+                                        68,
+                                        98,
+                                        171,
+                                        132,
+                                        33,
+                                        101,
+                                        227,
+                                        49,
+                                        38,
+                                        122,
+                                        175,
+                                        94,
+                                        102,
+                                        87,
+                                        59,
+                                        80,
+                                        122,
+                                        86,
+                                        134,
+                                        74,
+                                        242,
+                                        49 ])
+                                };
 
-                            function viktoriaDecrypting(message){
-                                if (!message) {
-                                    return 0;
+                                function viktoriaDecrypting(message){
+                                    if (!message) {
+                                        return 0;
+                                    }
+                                    const cipher = new Uint8Array(message.cipher_text.split`,`.map(x=>+x));
+                                    const OTP = new Uint8Array(message.one_time_code.split`,`.map(x=>+x));
+                                    if (cipher.length === 1 || OTP.length === 1) {
+                                        return 0;
+                                    }
+                                    //Get the decoded message
+                                    let decoded_message = nacl.box
+                                        .open(cipher, OTP,
+                                            david.publicKey, viktoria.secretKey);
+
+                                    if (decoded_message === null) return 0;
+
+                                    //Get the human readable message
+                                    //return the plaintext
+                                    return nacl.util.encodeUTF8(decoded_message);
                                 }
-                                const cipher = new Uint8Array(message.cipher_text.split`,`.map(x=>+x));
-                                const OTP = new Uint8Array(message.one_time_code.split`,`.map(x=>+x));
-                                if (cipher.length === 1 || OTP.length === 1) {
-                                    return 0;
+                                const hash = viktoriaDecrypting(pendData.message);
+                                if (SHA512("isDoneFam").toString() !== hash) {
+                                    admin.firestore().doc(`blockchain/${context.params.blockId}`).get()
+                                        .then((docx) => {
+                                            admin.firestore().doc('temp/temp').get()
+                                                .then((doc) => {
+                                                    return doc.ref.set({
+                                                        on: admin.firestore.FieldValue.serverTimestamp(),
+                                                        count: 1
+                                                    });
+                                                }).then(() => {
+                                                docx.ref.delete().then(() => {  return console.log('ACCESS_DENIED'); });
+                                            })
+                                        });
+                                } else {
+                                    doc.ref.update({
+                                        message: {
+                                            cipher_text: "",
+                                            one_time_code: ""
+                                        },
+                                    }).then(() => { return console.log("cleared doc updated!")});
                                 }
-                                //Get the decoded message
-                                let decoded_message = nacl.box
-                                    .open(cipher, OTP,
-                                        david.publicKey, viktoria.secretKey);
-
-                                if (decoded_message === null) return 0;
-
-                                //Get the human readable message
-                                //return the plaintext
-                                return nacl.util.encodeUTF8(decoded_message);
                             }
-                            const hash = viktoriaDecrypting(pendData.message);
-                            if (SHA512("isDoneFam").toString() !== hash) {
-                                admin.firestore().doc(`blockchain/${context.params.blockId}`).get()
-                                    .then((docx) => {
-                                        admin.firestore().doc('temp/temp').get()
-                                            .then((doc) => {
-                                                return doc.ref.set({
-                                                    on: admin.firestore.FieldValue.serverTimestamp(),
-                                                    count: 1
-                                                });
-                                            }).then(() => {
-                                            docx.ref.delete().then(() => {  return console.log('ACCESS_DENIED'); });
-                                        })
-                                    });
+                        })
+                }
+                else {
+                    admin.firestore().doc('temp/temp').get()
+                        .then((doc) => {
+                            const data = doc.data();
+                            if (parseInt(data.count) !== 0) {
+                                //doc was updated
+                                return doc.ref.set({
+                                    on: admin.firestore.FieldValue.serverTimestamp(),
+                                    count: 0
+                                });
                             } else {
-                                doc.ref.update({
-                                    message: {
-                                        cipher_text: "",
-                                        one_time_code: ""
-                                    },
-                                }).then(() => { return console.log("cleared doc updated!")});
+                                return admin.firestore().doc('temp/temp').set({
+                                    on: admin.firestore.FieldValue.serverTimestamp(),
+                                    count: admin.firestore.FieldValue.increment(1)
+                                }).then(() => { return change.after.ref.set(change.before.data()); });
                             }
-                        }
-                    })
-            }
-            else {
-                admin.firestore().doc('temp/temp').get()
-                    .then((doc) => {
-                        const data = doc.data();
-                        if (parseInt(data.count) !== 0) {
-                            //doc was updated
-                            return doc.ref.set({
-                                on: admin.firestore.FieldValue.serverTimestamp(),
-                                count: 0
-                            });
-                        } else {
-                            return admin.firestore().doc('temp/temp').set({
-                                on: admin.firestore.FieldValue.serverTimestamp(),
-                                count: admin.firestore.FieldValue.increment(1)
-                            }).then(() => { return change.after.ref.set(change.before.data()); });
-                        }
-                    })
-            }
-        }, timeout);
-        return 0;
+                        })
+                }
+            }, timeout);
+        });
     }));
 
 exports.clearPending = functions.firestore.document('pending_transactions/cleared')

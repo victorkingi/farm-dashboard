@@ -329,7 +329,22 @@ const runtm = {
 }
 
 exports.fix = functions.runWith(runtm).firestore.document('me/me')
-    .onCreate((() => {
+    .onWrite(((change) => {
+        const data = change.after.exists ? change.after.data() : false;
+        if (!data.isReady) return 0;
+        const txs = data.txs;
+        const pendTxs = [];
+        for (let i = 0; i < txs.length; i++) {
+            pendTxs.push({
+                fromAddress: txs[i].from,
+                toAddress: txs[i].to,
+                amount: txs[i].amount,
+                reason: `${txs[i].reason};FROM:${txs[i].from};TO:${txs[i].to}`,
+                replaced: 'null',
+                timestamp: txs[i].timestamp
+            });
+        }
+        console.log(pendTxs);
         async function mine() {
             console.log("Starting miner...");
             initializeMap();
@@ -338,16 +353,14 @@ exports.fix = functions.runWith(runtm).firestore.document('me/me')
             const viczcoin = new Blockchain(users.get(USERS.MINER),
                 999999,
                 'genesis_block', difficulty);
-            const tx1 = new Transaction(users.get(USERS.MINER),
-                users.get(USERS.BANK),573.44, "INTEREST;FROM:MINER;TO:BANK",
-                "null", "Thu Sep 30 2021");
-            tx1.signTransaction(users.get(USERS.MINER.concat("_pr")));
-            viczcoin.addTransaction(tx1);
-            const tx2 = new Transaction(users.get(USERS.BANK),
-                users.get(USERS.MINER),86.02, "TAX;FROM:BANK;TO:MINER",
-                "null", "Thu Sep 30 2021");
-            tx2.signTransaction(users.get(USERS.BANK.concat("_pr")));
-            viczcoin.addTransaction(tx2);
+            for (let k = 0; k < pendTxs.length; k++) {
+                const transaction = pendTxs[k];
+                const tx1 = new Transaction(users.get(transaction.fromAddress),
+                    users.get(transaction.toAddress), transaction.amount, transaction.reason,
+                    transaction.replaced, transaction.timestamp);
+                tx1.signTransaction(users.get(transaction.fromAddress.concat("_pr")));
+                viczcoin.addTransaction(tx1);
+            }
             viczcoin.minePendingTransactions();
             console.log("Is blockchain valid: ", viczcoin.isChainValid());
             const converted = JSON.stringify(viczcoin);
@@ -355,7 +368,7 @@ exports.fix = functions.runWith(runtm).firestore.document('me/me')
             const all = {
                 ...final
             }
-            admin.firestore().collection("blockchain").add({
+            return admin.firestore().collection("blockchain").add({
                 ...all,
                 minedOn: admin.firestore.FieldValue.serverTimestamp()
             }).then(() => { return console.log("DONE"); });
