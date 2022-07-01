@@ -23,15 +23,6 @@ function InputBorrowed(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
-    const [disReplace, setDisReplace] = useState(false);
-    let name = firebase.auth().currentUser.displayName;
-    name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
-
-    useEffect(() => {
-        if (name !== "VICTOR") setDisReplace(true);
-        else setDisReplace(false);
-
-    }, [state, name]);
 
     const checkDate = (date) => {
         if (date.getTime() > new Date().getTime()) {
@@ -243,13 +234,6 @@ function InputBorrowed(props) {
                                     <label htmlFor="purpose">Purpose</label>
                                     <Form.Control type="text" onChange={handleSelect} className="form-control" id="purpose" placeholder="Purpose" />
                                 </Form.Group>
-                                <div className="form-check">
-                                    <label htmlFor="replaced" className="form-check-label text-muted">
-                                        <input disabled={disReplace} type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
-                                        <i className="input-helper"/>
-                                        Replace an entry
-                                    </label>
-                                </div>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>
                         </div>
