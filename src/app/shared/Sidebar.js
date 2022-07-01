@@ -149,7 +149,7 @@ class Sidebar extends Component {
               <span className="menu-icon">
                 <i className="mdi mdi-table-large"/>
               </span>
-                <span className="menu-title">Debts</span>
+                <span className="menu-title">Other</span>
                 <i className="menu-arrow"/>
               </div>
               <Collapse in={ this.state.tablesMenuOpen }>
@@ -161,16 +161,7 @@ class Sidebar extends Component {
                             this.isPathActive('/tables/basic-table')
                                 ? 'nav-link active' : 'nav-link' }
                           to="/tables/basic-table">
-                        Late Payment</Link></li>
-                  </ul>
-                  <ul className="nav flex-column sub-menu">
-                    <li className="nav-item">
-                      <Link
-                          className={
-                            this.isPathActive('/tables/basic-table')
-                                ? 'nav-link active' : 'nav-link' }
-                          to="/tables/basic-table">
-                        Anne Debt</Link></li>
+                        All Entries</Link></li>
                   </ul>
                 </div>
               </Collapse>

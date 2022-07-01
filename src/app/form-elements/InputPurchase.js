@@ -24,15 +24,8 @@ function InputPurchase(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
-    const [disReplace, setDisReplace] = useState(false);
     let name = firebase.auth().currentUser?.displayName || '';
     name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
-
-    useEffect(() => {
-        if (name !== "VICTOR") setDisReplace(true);
-        else setDisReplace(false);
-
-    }, [state, name]);
 
     const checkDate = (date) => {
         if (date.getTime() > new Date().getTime()) {
@@ -134,11 +127,6 @@ function InputPurchase(props) {
             replaced: !!state.replaced
         };
         values.section = getSectionAddr(values.section);
-        if (name !== "VICTOR" && values.replaced) {
-            setError('Untick replace wrong entry');
-            setOpenError(true);
-            return;
-        }
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
         values.date = date;
@@ -264,13 +252,6 @@ function InputPurchase(props) {
                                     <label htmlFor="objectPrice">Price per Object</label>
                                     <Form.Control type="number" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
                                 </Form.Group>
-                                <div className="form-check">
-                                    <label htmlFor="replaced" className="form-check-label text-muted">
-                                        <input disabled={disReplace} type="checkbox" onChange={handleSelect} className="form-check-input" id="replaced" name="replaced" defaultValue={0} />
-                                        <i className="input-helper"/>
-                                        Replace an entry
-                                    </label>
-                                </div>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>
                         </div>

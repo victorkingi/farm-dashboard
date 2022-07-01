@@ -70,7 +70,6 @@ function InputSell(props) {
   const [openError, setOpenError] = useState(false);
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
-  const [disReplace, setDisReplace] = useState(false);
   const [defPaid, setDefPaid] = useState(false);
   const [disabled, setDisabled] = useState(false);
   let name = firebase.auth().currentUser?.displayName;
@@ -78,11 +77,6 @@ function InputSell(props) {
       .toUpperCase() : '';
 
   useEffect(() => {
-    if (name !== 'VICTOR') {
-      setDisReplace(true);
-    } else {
-      setDisReplace(false);
-    }
     if (state.section === 'Thika Farmers' || state.section === 'Duka') {
       setDefPaid(true);
     } else {
@@ -213,11 +207,6 @@ function InputSell(props) {
       .charAt(0)
       .toUpperCase()
       .concat(values.buyerName.substring(1));
-    if (name !== 'VICTOR' && values.replaced) {
-      setError('Untick replace wrong entry');
-      setOpenError(true);
-      return;
-    }
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
     values.date = date;
@@ -417,24 +406,6 @@ function InputSell(props) {
                       />
                       <i className='input-helper' />
                       Not Paid
-                    </label>
-                  </div>
-                  <div className='form-check'>
-                    <label
-                      htmlFor='replaced'
-                      className='form-check-label text-muted'
-                    >
-                      <input
-                        disabled={disReplace}
-                        type='checkbox'
-                        onChange={handleSelect}
-                        className='form-check-input'
-                        id='replaced'
-                        name='replaced'
-                        defaultValue={0}
-                      />
-                      <i className='input-helper' />
-                      Replace an entry
                     </label>
                   </div>
                 </Form.Group>
