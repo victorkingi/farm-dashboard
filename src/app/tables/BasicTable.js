@@ -1,10 +1,21 @@
-import React from 'react'
+import React, {useState} from 'react'
 import EnhancedTable from "./Table";
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 
 function BasicTable() {
-  return (
+    const [label, setLabel] = useState('');
+    const [hash, setHash] = useState('');
+
+    const handleChange = (event, values) => {
+        setLabel(values.label);
+    }
+
+    const handleHashChange = (e) => {
+        setHash(e.target.value);
+    }
+
+    return (
       <div>
           <div className="page-header">
           <h3 className="page-title">All Entries</h3>
@@ -19,17 +30,20 @@ function BasicTable() {
             <div className="col-lg-6 grid-margin stretch-card">
                 <div className="card">
                     <div className="card-body">
-                            <Autocomplete
-                                disablePortal
-                                id="combo-box-demo"
-                                options={top100Films}
-                                sx={{ width: 300 }}
-                                renderInput={(params) => <TextField {...params} label="Select Type to Show" color="success" focused />}
-                            />
+                        <Autocomplete
+                            disablePortal
+                            id="combo-box-demo"
+                            options={top100Films}
+                            sx={{ width: 300 }}
+                            onChange={handleChange}
+                            renderInput={(params) => <TextField {...params} label="Select Type to Show" color="success" focused />}
+                        />
+                        <br />
+                        <TextField value={hash} onChange={handleHashChange} fullWidth id="outlined-basic" label="Enter specific hash to check" variant="outlined" />
                     </div>
                 </div>
             </div>
-          <EnhancedTable />
+          <EnhancedTable to_use={label} hash={hash} />
         </div>
       </div>
     )
@@ -39,7 +53,14 @@ const top100Films = [
     { label: 'Purchases'},
     { label: 'Eggs Collected' },
     { label: 'Trades'},
-    { label: 'Dead or Sick'}
+    { label: 'Dead or Sick'},
+    { label: 'Feeds' },
+    { label: 'Pay Purity' },
+    { label: 'Thika Farmers' },
+    { label: 'Cakes' },
+    { label: 'Duka' },
+    { label: 'Other Sales' },
+    { label: 'Other Purchases'}
 ];
 
 export default BasicTable
