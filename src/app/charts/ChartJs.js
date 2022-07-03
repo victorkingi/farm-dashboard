@@ -10,7 +10,7 @@ function ChartJs(props) {
 
     const [dataset, setDataSet] = useState({});
 
-    const [areaOptions, setAreaOptions] = useState({
+    const [areaOptions, ] = useState({
         plugins: {
             filler: {
                 propagate: true

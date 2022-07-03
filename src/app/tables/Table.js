@@ -216,7 +216,7 @@ EnhancedTableToolbar.propTypes = {
 };
 
 function EnhancedTable(props) {
-    const { tx_ui } = props;
+    const { tx_ui, to_use, hash } = props;
 
     const [order, setOrder] = useState('asc');
     const [txs, setTxs] = useState({});
@@ -231,17 +231,103 @@ function EnhancedTable(props) {
         if(tx_ui) {
             const temp = []
             let local_txs = {}
+            let action;
+            if (to_use === 'Sales') {
+                action = 'Sale';
+            } else if (to_use === 'Trades') {
+                action = 'Trade';
+            } else if (to_use === 'Purchases') {
+                action = 'Purchase';
+            } else {
+                action = to_use
+            }
+            const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
+
             for(const tx of tx_ui) {
-                temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                local_txs = {
-                    ...local_txs,
-                    [tx.hash]: tx
-                };
+                if (is_valid_hash) {
+                    console.log("hash match");
+                    if (tx.hash === hash) {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                        local_txs = {
+                            ...local_txs,
+                            [tx.hash]: tx
+                        };
+                        break
+                    }
+                } else if (action === '') {
+                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    local_txs = {
+                        ...local_txs,
+                        [tx.hash]: tx
+                    };
+                } else if (action === tx.type) {
+                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    local_txs = {
+                        ...local_txs,
+                        [tx.hash]: tx
+                    };
+                } else if (action === 'Feeds') {
+                    if (tx.type === 'Purchase' && tx.data.section === 'FEEDS') {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                        local_txs = {
+                            ...local_txs,
+                            [tx.hash]: tx
+                        };
+                    }
+                } else if (action === 'Pay Purity') {
+                    if (tx.type === 'Purchase' && tx.data.section === 'PPURITY') {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                        local_txs = {
+                            ...local_txs,
+                            [tx.hash]: tx
+                        };
+                    }
+                } else if (action === 'Thika Farmers') {
+                    if (tx.type === 'Sale' && tx.data.section === 'THIKAFARMERS') {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                        local_txs = {
+                            ...local_txs,
+                            [tx.hash]: tx
+                        };
+                    }
+                } else if (action === 'Cakes') {
+                    if (tx.type === 'Sale' && tx.data.section === 'CAKES') {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                        local_txs = {
+                            ...local_txs,
+                            [tx.hash]: tx
+                        };
+                    }
+                } else if (action === 'Duka') {
+                    if (tx.type === 'Sale' && tx.data.section === 'DUKA') {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                        local_txs = {
+                            ...local_txs,
+                            [tx.hash]: tx
+                        };
+                    }
+                } else if (action === 'Other Sales') {
+                    if (tx.type === 'Sale' && tx.data.section === 'SOTHER') {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                        local_txs = {
+                            ...local_txs,
+                            [tx.hash]: tx
+                        };
+                    }
+                } else if (action === 'Other Purchases') {
+                    if (tx.type === 'Purchase' && tx.data.section === 'POTHER') {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                        local_txs = {
+                            ...local_txs,
+                            [tx.hash]: tx
+                        };
+                    }
+                }
             }
             setTxs(local_txs);
             setRows(temp);
         }
-    }, [tx_ui]);
+    }, [tx_ui, to_use, hash]);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -432,7 +518,8 @@ function EnhancedTable(props) {
                             <br />
                         </div>
                     )
-                } else if (type === 'Trade') {
+                }
+                else if (type === 'Trade') {
                     return (
                         <div key={item}>
                             <Card variant="outlined">
@@ -467,7 +554,8 @@ function EnhancedTable(props) {
                             <br />
                         </div>
                     )
-                } else if (type === 'Sale') {
+                }
+                else if (type === 'Sale') {
                     return (
                         <div key={item}>
                             <Card variant="outlined">
@@ -496,7 +584,8 @@ function EnhancedTable(props) {
                             <br />
                         </div>
                     )
-                } else if (type === 'Purchase') {
+                }
+                else if (type === 'Purchase') {
                     return (
                         <div key={item}>
                             <Card variant="outlined">
@@ -525,7 +614,8 @@ function EnhancedTable(props) {
                             <br />
                         </div>
                     )
-                } else if (type === 'Dead or Sick') {
+                }
+                else if (type === 'Dead or Sick') {
                     return (
                         <div key={item}>
                             <Card variant="outlined">
@@ -556,9 +646,8 @@ function EnhancedTable(props) {
                             <br />
                         </div>
                     )
-                } else {
-                    return <div key={item} />
                 }
+                return <div />
             })}
         </Box>
     );

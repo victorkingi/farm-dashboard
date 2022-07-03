@@ -5,12 +5,7 @@ const client = new firestore.v1.FirestoreAdminClient();
 const bucket = 'gs://poultry101-6b1ed-firestore-backup';
 
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-const numeral = require('numeral');
 const date = new Date();
-
-const nacl = require('tweetnacl');
-const {estimatedTrays} = require("./utils");
-nacl.util = require('tweetnacl-util');
 
 async function weeklyExportFirestore() {
     const projectId = process.env.GCP_PROJECT || process.env.GCLOUD_PROJECT;
@@ -26,43 +21,12 @@ async function weeklyExportFirestore() {
 
     }).then(responses => {
         const response = responses[0];
-        const details = {
-            title: `database exported`,
-            body: `${response['name']}`,
-            name: "VICTOR"
-        }
         return console.log(`Operation Name: ${response['name']}`);
 
     }).catch(err => {
         console.error(err);
-        const details = {
-            title: `database export failed`,
-            body: `Check console for more details`,
-            name: "VICTOR"
-        }
         throw new Error(`Export operation failed: ${err.message}`);
     });
-}
-
-function getDateString(myDate) {
-    return ('0' + myDate.getDate()).slice(-2) + '/'
-        + ('0' + (myDate.getMonth()+1)).slice(-2) + '/'
-        + myDate.getFullYear();
-}
-
-const cleanString = (str) => {
-    let str_1 = str.toUpperCase().charAt(0).concat(str.toLowerCase().slice(1));
-    str_1 = str_1.includes('_') ? str_1.replace('_', ' ') : str_1;
-    let str_2 = str_1.includes(' ') ? str_1.substring(str_1.lastIndexOf(' ')+1) : null;
-    str_2 = str_2 !== null ? str_2.toUpperCase().charAt(0).concat(str_2.toLowerCase().slice(1)) : null;
-    if (str_2 !== null) {
-        str_1 = str_1.substring(0, str_1.lastIndexOf(" ")).concat(" ").concat(str_2);
-    }
-    return str_1
-}
-function getRanColor() {
-    const randomColor = Math.floor(Math.random()*16777215).toString(16);
-    return "#"+randomColor;
 }
 
 const runtimeOptsDaily = {
@@ -278,13 +242,6 @@ async function findCausedTray(needed) {
         await admin.firestore().doc(`pending_transactions/${ids[x]}`).update({
             rejected: true
         });
-    }
-    const notification = {
-        content: 'Insufficient gas',
-        extraContent: 'Marked txs causing failure',
-        identifier: 'tray',
-        user: 'MINER',
-        time: admin.firestore.FieldValue.serverTimestamp(),
     }
 }
 
