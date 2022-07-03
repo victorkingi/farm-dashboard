@@ -32,12 +32,15 @@ function autoCorrectBuyerName(entered, section) {
     "Lang'at",
     'Wahome',
     'Kamau',
+    'Wakamau',
     'Simiyu',
     'Kinyanjui',
-    'Rose',
+    'Benson',
     'Ben',
+    'Rose',
     'Gitonyi',
-    'Muthomi'
+    'Muthomi',
+    'forgotjeff'
   ];
   predictionary.addWords(chosen);
   if (skip.includes(entered) && section !== getSectionAddr(entered)) return {entered};

@@ -386,6 +386,7 @@ function EnhancedTable(props) {
             />
             {selected.map((item) => {
                 const type = txs[item].type;
+                const prevValues = txs[item].data.prev_values;
 
                 if (type === 'Eggs Collected') {
                     return (
@@ -419,6 +420,9 @@ function EnhancedTable(props) {
                                             Broken: {txs[item].data.broken}
                                             <br />
                                         </Typography>
+                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                        </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
@@ -451,6 +455,9 @@ function EnhancedTable(props) {
                                             <br />
                                             {txs[item].data.reason !== '' && txs[item].data.reason.toLowerCase()}
                                         </Typography>
+                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                        </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
@@ -477,6 +484,9 @@ function EnhancedTable(props) {
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {numeral(txs[item].data.tray_no).format("0,0")} Tray(s) at Ksh. {numeral(txs[item].data.tray_price).format("0,0")}
                                         </Typography>
+                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                        </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
@@ -502,6 +512,9 @@ function EnhancedTable(props) {
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {numeral(txs[item].data.item_no).format("0,0")} Item(s) at Ksh. {numeral(txs[item].data.item_price).format("0,0")}
+                                        </Typography>
+                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
@@ -530,6 +543,9 @@ function EnhancedTable(props) {
                                             {numeral(txs[item].data.number).format("0,0")} {txs[item].data.section.toLowerCase()}
                                             <br />
                                             {txs[item].data.reason.toLowerCase()}
+                                        </Typography>
+                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
