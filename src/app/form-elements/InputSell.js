@@ -66,7 +66,7 @@ function InputSell(props) {
     date: new Date(),
     section: 'Choose Section',
     buyerName: '',
-    trayPrice: '290'
+    trayPrice: '300'
   });
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
