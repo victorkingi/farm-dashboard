@@ -60,7 +60,11 @@ const top100Films = [
     { label: 'Cakes' },
     { label: 'Duka' },
     { label: 'Other Sales' },
-    { label: 'Other Purchases'}
+    { label: 'Other Purchases'},
+    { label: 'Submitted by Victor'},
+    { label: 'Submitted by Purity'},
+    { label: 'Submitted by Babra'},
+    { label: 'Submitted by Jeff'},
 ];
 
 export default BasicTable

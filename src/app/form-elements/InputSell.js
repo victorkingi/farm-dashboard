@@ -74,7 +74,6 @@ function InputSell(props) {
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [defPaid, setDefPaid] = useState(false);
-  const [disabled, setDisabled] = useState(false);
   let name = firebase.auth().currentUser?.displayName;
   name = name ? name.substring(0, name.lastIndexOf(' '))
       .toUpperCase() : '';
@@ -84,11 +83,6 @@ function InputSell(props) {
       setDefPaid(true);
     } else {
       setDefPaid(false);
-    }
-    if (state.section === 'Cakes') {
-      setDisabled(true);
-    } else {
-      setDisabled(false);
     }
   }, [state, name]);
 
@@ -118,11 +112,6 @@ function InputSell(props) {
     }
     if (values.trayNo < 1 || values.trayPrice < 1) {
       setError('Tray price and number cannot be negative / 0');
-      setOpenError(true);
-      return false;
-    }
-    if (values.section === "CAKES" && values.trayPrice !== "290") {
-      setError("Tray price for cake should be 290");
       setOpenError(true);
       return false;
     }
@@ -375,7 +364,6 @@ function InputSell(props) {
                   id='trayPrice'
                   placeholder='Price per Tray'
                   value={state.trayPrice}
-                  disabled={disabled}
                 />
               </Form.Group>
               <div className='col-md-6'>
