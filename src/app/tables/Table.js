@@ -260,6 +260,30 @@ function EnhancedTable(props) {
                         ...local_txs,
                         [tx.hash]: tx
                     };
+                } else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') {
+                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    local_txs = {
+                        ...local_txs,
+                        [tx.hash]: tx
+                    };
+                } else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') {
+                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    local_txs = {
+                        ...local_txs,
+                        [tx.hash]: tx
+                    };
+                } else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') {
+                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    local_txs = {
+                        ...local_txs,
+                        [tx.hash]: tx
+                    };
+                } else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') {
+                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    local_txs = {
+                        ...local_txs,
+                        [tx.hash]: tx
+                    };
                 } else if (action === tx.type) {
                     temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                     local_txs = {
@@ -567,7 +591,7 @@ function EnhancedTable(props) {
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
-                                            {txs[item].data.section === txs[item].data.buyer ? txs[item].data.section.toLowerCase() : `${txs[item].data.section.toLowerCase()}, ${txs[item].data.buyer.toLowerCase()}`}
+                                            {txs[item].data.section === txs[item].data.buyer ? txs[item].data.section.toLowerCase() : `${txs[item].data.section.toLowerCase() === 'sother' ? 'other' : txs[item].data.section.toLowerCase()}, ${txs[item].data.buyer.toLowerCase()}`}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {numeral(txs[item].data.tray_no).format("0,0")} Tray(s) at Ksh. {numeral(txs[item].data.tray_price).format("0,0")}
@@ -597,7 +621,7 @@ function EnhancedTable(props) {
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
-                                            {`${txs[item].data.section.toLowerCase()}, ${txs[item].data.item_name.toLowerCase()}`}
+                                            {`${txs[item].data.section.toLowerCase() === 'pother' ? 'other,' : txs[item].data.section.toLowerCase() === 'ppurity' ? 'Purity:' : txs[item].data.section.toLowerCase()+','} ${txs[item].data.item_name.toLowerCase()}`}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {numeral(txs[item].data.item_no).format("0,0")} Item(s) at Ksh. {numeral(txs[item].data.item_price).format("0,0")}
