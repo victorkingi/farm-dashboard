@@ -216,7 +216,7 @@ EnhancedTableToolbar.propTypes = {
 };
 
 function EnhancedTable(props) {
-    const { tx_ui, to_use, hash } = props;
+    const { tx_ui, to_use } = props;
 
     const [order, setOrder] = useState('asc');
     const [txs, setTxs] = useState({});
@@ -226,89 +226,25 @@ function EnhancedTable(props) {
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [rows, setRows] = useState([]);
-    const [spMap, setSPMap] = useState({});
 
     useEffect(() => {
         if (tx_ui) {
-            let map_ = {}
-            // trades map with sales and purchases
-            for (const tx of tx_ui) {
-                if (tx.type !== 'Trade') continue
-                if (tx.data.sale_hash === '' && tx.data.purchase_hash === '') continue;
-                map_ = {
-                    ...map_,
-                    [tx.data.sale_hash !== '' ? tx.data.sale_hash : tx.data.purchase_hash]: tx
-                }
-            }
-            setSPMap(map_);
-        }
-    }, [tx_ui]);
-
-    useEffect(() => {
-        if(tx_ui) {
             const temp = []
             let local_txs = {}
-            let action;
-            if (to_use === 'Sales') {
-                action = 'Sale';
-            } else if (to_use === 'Trades') {
-                action = 'Trade';
-            } else if (to_use === 'Purchases') {
-                action = 'Purchase';
-            } else {
-                action = to_use
-            }
-            const is_valid_hash = /^[a-f0-9]{5}$/.test(hash);
 
-            for(const tx of tx_ui) {
-                local_txs = {
-                    ...local_txs,
-                    [tx.hash]: tx
-                };
-                if (is_valid_hash) {
-                    if (tx.hash.slice(0, 5) === hash) {
-                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                        setPage(0);
-                    }
-                }
-                else if (action === '') {
-                    if (tx.type === 'Trade') {
-                        if (!(tx.data.sale_hash === '' && tx.data.purchase_hash === '')) continue;
-                    }
+            for (const tx of tx_ui) {
+                if (tx.data.from === to_use.toUpperCase() || tx.data.to === to_use.toUpperCase()) {
+                    local_txs = {
+                        ...local_txs,
+                        [tx.hash]: tx
+                    };
                     temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                }
-                else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === tx.type) {
-                    if (action === 'Trade') {
-                        if (tx.data.sale_hash === '' && tx.data.purchase_hash === '') {
-                            temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                        }
-                    } else {
-                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                    }
-                } else if (action === 'Feeds') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'FEEDS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Pay Purity') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'PPURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Thika Farmers') {
-                    if (tx.type === 'Sale' && tx.data.section === 'THIKAFARMERS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Cakes') {
-                    if (tx.type === 'Sale' && tx.data.section === 'CAKES') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Duka') {
-                    if (tx.type === 'Sale' && tx.data.section === 'DUKA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Other Sales') {
-                    if (tx.type === 'Sale' && tx.data.section === 'SOTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Other Purchases') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'POTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                 }
             }
             setTxs(local_txs);
             setRows(temp);
         }
-    }, [tx_ui, to_use, hash, spMap]);
+    }, [to_use, tx_ui]);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -643,6 +579,6 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'tx_ui', orderBy: ['submitted_on', 'desc']}
+        {collection: 'tx_ui', where: [['type', '==', 'Trade']], orderBy: ['submitted_on', 'desc']}
     ])
 )(EnhancedTable);

@@ -18,6 +18,7 @@ const InputEggs = lazy(() => import('./app/form-elements/InputEggs'));
 const Withdraw = lazy(() => import('./app/form-elements/Withdraw'));
 
 const BasicTable = lazy(() => import('./app/tables/BasicTable'));
+const BalancesBasicTable = lazy(() => import('./app/tables/BalancesBasicTable'));
 
 const Mdi = lazy(() => import('./app/icons/Mdi'));
 
@@ -47,7 +48,8 @@ function AppRoutes() {
           <Route path="/inputs/money" component={ InputMoney } />
           <Route path="/withdraw" component={ Withdraw }/>
 
-          <Route path="/tables/basic-table" component={ BasicTable } />
+          <Route path="/tables/balances" component={ BalancesBasicTable } />
+          <Route path="/tables/entries" component={ BasicTable } />
 
           <Route path="/icons/mdi" component={ Mdi } />
 
