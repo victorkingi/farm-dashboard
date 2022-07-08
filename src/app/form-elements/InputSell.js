@@ -39,7 +39,8 @@ function autoCorrectBuyerName(entered, section) {
     'Ben',
     'Rose',
     'Gitonyi',
-    'Muthomi'
+    'Muthomi',
+    'Solomon'
   ];
   predictionary.addWords(chosen);
   if (skip.includes(entered) && section !== getSectionAddr(entered)) return {entered};
