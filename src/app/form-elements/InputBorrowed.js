@@ -71,7 +71,7 @@ function InputBorrowed(props) {
         for (let i = 0; i < arr.length; i++) {
             if (arr[i][0] === "amount") {
                 if (!amountRegex.test(arr[i][1])) {
-                    setError('Borrow amount cannot be negative');
+                    setError('Borrow amount cannot be negative or not a number');
                     setOpenError(true);
                     return;
                 }
@@ -87,13 +87,7 @@ function InputBorrowed(props) {
         name =  name.substring(0, name.lastIndexOf(" ")).toUpperCase();
         let values = {
             ...state,
-            name,
-            replaced: !!state.replaced
-        }
-        if (name !== "VICTOR" && values.replaced) {
-            setError('Untick replace wrong entry');
-            setOpenError(true);
-            return;
+            name
         }
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
@@ -228,7 +222,7 @@ function InputBorrowed(props) {
                                 <br />
                                 <Form.Group>
                                     <label htmlFor="amount">Amount</label>
-                                    <Form.Control type="number" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="purpose">Purpose</label>

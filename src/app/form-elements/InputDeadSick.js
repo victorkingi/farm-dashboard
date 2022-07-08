@@ -24,7 +24,7 @@ function InputDeadSick(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const numberRegex = /^([\d]+)$/;
+        const numberRegex = /^([0-9]+)$/;
         const noZeroRegex = /^(0*)$/;
         const arr = Object.entries(state);
         if (arr.length < 6) {
@@ -40,7 +40,7 @@ function InputDeadSick(props) {
                     return;
                 }
                 if (!numberRegex.test(arr[i][1])) {
-                    setError('Chicken number cannot be negative');
+                    setError('Chicken number cannot be negative or not a number');
                     setOpenError(true);
                     return;
                 }
@@ -169,7 +169,7 @@ function InputDeadSick(props) {
                                 <br />
                                 <Form.Group>
                                     <label htmlFor="chickenNo">Number of Chickens</label>
-                                    <Form.Control type="number" onChange={handleSelect} className="form-control" id="chickenNo" placeholder="Number of Chickens" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="chickenNo" placeholder="Number of Chickens" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="reason">Reason (and Treatment Given)</label>
