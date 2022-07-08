@@ -15,12 +15,12 @@ import { firebase } from '../../services/api/fbConfig';
 import Predictionary from 'predictionary';
 import ed from 'edit-distance';
 
-function autoCorrectBuyerName(entered, section) {
+function autoCorrectBuyerName(values) {
   let insert, remove, update;
   insert = remove = () => { return 1; };
   update = (stringA, stringB) => { return stringA !== stringB ? 1 : 0; };
   let predictionary = Predictionary.instance();
-  const skip = ['Thika Farmers', 'Cakes', 'Duka'];
+  const skip = ['THIKAFARMERS', 'CAKES', 'DUKA'];
   const chosen = [
     'Eton',
     "Sang'",
@@ -43,20 +43,19 @@ function autoCorrectBuyerName(entered, section) {
     'Solomon'
   ];
   predictionary.addWords(chosen);
-  if (skip.includes(entered) && section !== getSectionAddr(entered)) return {entered};
-  else if (skip.includes(entered) && section === getSectionAddr(entered)) return entered;
+  if (skip.includes(values.section)) return values.section;
   const final = [];
   for (let k in chosen) {
     const chose = chosen[k];
-    const lev = ed.levenshtein(entered, chose, insert, remove, update);
+    const lev = ed.levenshtein(values.buyerName, chose, insert, remove, update);
     if (lev.distance < 3) final.push(chose);
   }
-  let suggestions = predictionary.predict(entered);
+  let suggestions = predictionary.predict(values.buyerName);
   final.push(...suggestions);
   let ans;
   for (let k in final) {
     const chose = final[k];
-    const lev = ed.levenshtein(entered, chose, insert, remove, update);
+    const lev = ed.levenshtein(values.buyerName, chose, insert, remove, update);
     if (lev.distance < 3) ans = chose;
   }
   return ans;
@@ -98,7 +97,7 @@ function InputSell(props) {
 
   const parameterChecks = (values) => {
     if (
-      (values.section === 'THIKA_FARMERS' || values.section === 'DUKA') &&
+      (values.section === 'THIKAFARMERS' || values.section === 'DUKA') &&
       !JSON.parse(values.status)
     ) {
       setError('Thika Farmers and duka are always paid');
@@ -121,20 +120,13 @@ function InputSell(props) {
       return false;
     }
     let proceed = checkDate(values.date);
-    if (values.buyerName && proceed) {
-      values.buyerName = values.buyerName
-        .charAt(0)
-        .toUpperCase()
-        .concat(values.buyerName.substring(1));
-      return true;
-    }
-    return false;
+    return !!(values.buyerName && proceed);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const arr = Object.entries(state);
-    const trayRegex = /^([\d]+)$/;
+    const trayRegex = /^([0-9]+)$/;
     const noZeroRegex = /^(0*)$/;
 
     if (arr.length < 5) {
@@ -170,7 +162,7 @@ function InputSell(props) {
       }
       if (arr[i][0] === 'trayNo' || arr[i][0] === 'trayPrice') {
         if (!trayRegex.test(arr[i][1])) {
-          setError('Tray price and amount cannot be negative');
+          setError('Tray price and amount cannot be negative or not a number');
           setOpenError(true);
           return;
         }
@@ -188,25 +180,20 @@ function InputSell(props) {
     const values = {
       ...state,
       name,
-      status,
-      replaced: !!state.replaced
+      status
     };
     delete values.not_paid;
     delete values.paid;
     values.category = 'sales';
     values.section = getSectionAddr(values.section);
-    values.buyerName = values.buyerName
-      .charAt(0)
-      .toUpperCase()
-      .concat(values.buyerName.substring(1));
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
     values.date = date;
     let proceed = parameterChecks(values);
     if (proceed) {
-      const returned = autoCorrectBuyerName(values.buyerName, values.section);
+      const returned = autoCorrectBuyerName(values);
       if (typeof returned === 'string') {
-        values.buyerName = returned;
+        values.buyerName = returned.toUpperCase();
         props.inputSell(values, false);
         setOpenError(false);
         setOpen(true);
@@ -348,7 +335,7 @@ function InputSell(props) {
               <Form.Group>
                 <label htmlFor='trayNo'>Number of Trays</label>
                 <Form.Control
-                  type='number'
+                  type='text'
                   onChange={handleSelect}
                   className='form-control'
                   id='trayNo'
@@ -358,7 +345,7 @@ function InputSell(props) {
               <Form.Group>
                 <label htmlFor='trayPrice'>Price per Tray</label>
                 <Form.Control
-                  type='number'
+                  type='text'
                   onChange={handleSelect}
                   className='form-control'
                   id='trayPrice'

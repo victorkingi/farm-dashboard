@@ -102,8 +102,8 @@ function InputEggs(props) {
     const handleSubmit = (e) => {
         e.preventDefault();
         const levelRegex = /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-5])$/;
-        const trayStoreRegex = /^[\d]+,([0-9]|1[0-9]|2[0-9])$/;
-        const bagsRegex = /^[\d]+$/.test(state.bags_store);
+        const trayStoreRegex = /^[0-9]+,([0-9]|1[0-9]|2[0-9])$/;
+        const bagsRegex = /^[0-9]+$/.test(state.bags_store);
         const arr = Object.entries(state);
 
         if (arr.length < 11) {
@@ -225,35 +225,35 @@ function InputEggs(props) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="a1">A1</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="a1" placeholder="A1 Eggs" required />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="a1" placeholder="A1 Eggs" required />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="b1">B1</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="b1" placeholder="B1 Eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="b1" placeholder="B1 Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="c1">C1</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="c1" placeholder="C1 Eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="c1" placeholder="C1 Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="a2">A2</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="a2" placeholder="A2 Eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="a2" placeholder="A2 Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="b2">B2</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="b2" placeholder="B2 Eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="b2" placeholder="B2 Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="c2">C2</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="c2" placeholder="C2 Eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="c2" placeholder="C2 Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="house">House</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="house" placeholder="House Eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="house" placeholder="House Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="broken">Broken</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="broken" placeholder="Broken Eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="broken" placeholder="Broken Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="trays_store">Total Trays</label>

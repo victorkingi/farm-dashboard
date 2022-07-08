@@ -18,7 +18,7 @@ function InputPurchase(props) {
     const [state, setState] = useState({
         date: new Date(),
         section: 'Choose Section',
-        category: 'buys',
+        category: 'buys'
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -43,7 +43,7 @@ function InputPurchase(props) {
             values.itemName = values.itemName.charAt(0).toUpperCase().concat(values
                 .itemName.substring(1));
         }
-        if (values.itemName && values.section === "OTHER_PURITY") {
+        if (values.itemName && values.section === "PPURITY") {
             const regex = /^([A-Z][a-z]{2},)+$/;
             if (!regex.test(values.itemName)) {
                 setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
@@ -110,7 +110,7 @@ function InputPurchase(props) {
         for (let i = 0; i < arr.length; i++) {
             if (arr[i][0] === "objectNo" || arr[i][0] === "objectPrice") {
                 if (!priceAmountRegex.test(arr[i][1])) {
-                    setError('Object price and amount cannot be negative or zero');
+                    setError('Object price and amount cannot be negative, zero or not a number');
                     setOpenError(true);
                     return;
                 }
@@ -123,8 +123,7 @@ function InputPurchase(props) {
         }
         let values = {
             ...state,
-            name,
-            replaced: !!state.replaced
+            name
         };
         values.section = getSectionAddr(values.section);
         let date = new Date(values.date);
@@ -132,6 +131,7 @@ function InputPurchase(props) {
         values.date = date;
         let proceed = parameterChecks(values);
         if (proceed) {
+            values.itemName = values.itemName.toUpperCase();
             props.inputPurchase(values);
             setOpenError(false);
             setOpen(true);
@@ -235,7 +235,7 @@ function InputPurchase(props) {
                                     <Dropdown.Item eventKey="Drug">Drug</Dropdown.Item>
                                     <Dropdown.Item eventKey="Other Purchase">Other Purchase</Dropdown.Item>
                                     <Dropdown.Divider />
-                                    <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Pay Purity">Pay Purity</Dropdown.Item>
                                 </DropdownButton>
                                 <br />
                                 <Form.Group>
@@ -246,11 +246,11 @@ function InputPurchase(props) {
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="objectNo">Number of Objects</label>
-                                    <Form.Control type="number" onChange={handleSelect} className="form-control" id="objectNo" placeholder="Number of Objects" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectNo" placeholder="Number of Objects" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="objectPrice">Price per Object</label>
-                                    <Form.Control type="number" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>

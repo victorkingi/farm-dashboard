@@ -68,7 +68,7 @@ function InputMoney(props) {
         for (let i = 0; i < arr.length; i++) {
             if (arr[i][0] === "amount") {
                 if (!priceAmountRegex.test(arr[i][1])) {
-                    setError('Money to send cannot be negative');
+                    setError('Money to send cannot be negative or not a number');
                     setOpenError(true);
                     return;
                 }
@@ -199,7 +199,7 @@ function InputMoney(props) {
                                 <br />
                                 <Form.Group>
                                     <label htmlFor="amount">Amount</label>
-                                    <Form.Control type="number" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>
