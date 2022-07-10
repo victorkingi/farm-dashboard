@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import { Form } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import DatePicker from "react-datepicker";
@@ -18,6 +18,8 @@ function InputPurchase(props) {
     const [state, setState] = useState({
         date: new Date(),
         section: 'Choose Section',
+        objectNo: '',
+        itemName: '',
         category: 'buys'
     });
     const [open, setOpen] = useState(false);
@@ -184,6 +186,21 @@ function InputPurchase(props) {
         }
     }
 
+    useMemo(() => {
+        if (/^([A-Z][a-z]{2},)+$/.test(state.itemName) && state.section === 'Pay Purity') {
+            setState({
+                ...state,
+                objectNo: (state.itemName.split(',').length - 1).toString()
+            });
+        } else if (state.section === 'Pay Purity') {
+            setState({
+                ...state,
+                objectNo: '0'
+            });
+        }
+        // eslint-disable-next-line
+    }, [state.itemName]);
+
     const componentDidMount = () => {
         bsCustomFileInput.init()
     }
@@ -191,91 +208,92 @@ function InputPurchase(props) {
     useEffect(() => {
         componentDidMount();
     }, []);
-        if (redirect) {
-            return (
-                <Redirect to='/'/>
-            )
-        }
+
+    if (redirect) {
         return (
-            <div>
-                <div className="page-header">
-                    <h3 className="page-title">Input Purchase</h3>
-                    <nav aria-label="breadcrumb">
-                        <ol className="breadcrumb">
-                            <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => {
-                                event.preventDefault();
-                                setRedirect(true);
-                            }}>Home</a></li>
-                            <li className="breadcrumb-item active" aria-current="page">Input Purchase</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div className="col-xl grid-margin stretch-card">
-                    <div className="card">
-                        <div className="card-body">
-                            <h4 className="card-title">Input Purchase</h4>
-                            <p className="card-description"> Enter purchase made </p>
-                            <form className="forms-sample">
-                                <label htmlFor="date">Date</label>
-                                <Form.Group>
-                                    <DatePicker
-                                        selected={state.date}
-                                        onChange={handleDate}
-                                        className='form-control'
-                                        id='date'
-                                    />
-                                </Form.Group>
-                                <DropdownButton
-                                    alignRight
-                                    title={state.section}
-                                    id="dropdown-menu-align-right"
-                                    onSelect={handleSelect}
-                                >
-                                    <Dropdown.Item eventKey="Feeds">Feeds</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Drug">Drug</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Other Purchase">Other Purchase</Dropdown.Item>
-                                    <Dropdown.Divider />
-                                    <Dropdown.Item eventKey="Pay Purity">Pay Purity</Dropdown.Item>
-                                </DropdownButton>
-                                <br />
-                                <Form.Group>
-                                    <label htmlFor="itemName">Item Name</label>
-                                    <Form.Control type="text"
-                                                  onChange={handleSelect}
-                                                  className="form-control" id="itemName" placeholder="Name of Item" />
-                                </Form.Group>
-                                <Form.Group>
-                                    <label htmlFor="objectNo">Number of Objects</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectNo" placeholder="Number of Objects" />
-                                </Form.Group>
-                                <Form.Group>
-                                    <label htmlFor="objectPrice">Price per Object</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
-                                </Form.Group>
-                                <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
-                            </form>
-                        </div>
+            <Redirect to='/'/>
+        )
+    }
+    return (
+        <div>
+            <div className="page-header">
+                <h3 className="page-title">Input Purchase</h3>
+                <nav aria-label="breadcrumb">
+                    <ol className="breadcrumb">
+                        <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => {
+                            event.preventDefault();
+                            setRedirect(true);
+                        }}>Home</a></li>
+                        <li className="breadcrumb-item active" aria-current="page">Input Purchase</li>
+                    </ol>
+                </nav>
+            </div>
+            <div className="col-xl grid-margin stretch-card">
+                <div className="card">
+                    <div className="card-body">
+                        <h4 className="card-title">Input Purchase</h4>
+                        <p className="card-description"> Enter purchase made </p>
+                        <form className="forms-sample">
+                            <label htmlFor="date">Date</label>
+                            <Form.Group>
+                                <DatePicker
+                                    selected={state.date}
+                                    onChange={handleDate}
+                                    className='form-control'
+                                    id='date'
+                                />
+                            </Form.Group>
+                            <DropdownButton
+                                alignRight
+                                title={state.section}
+                                id="dropdown-menu-align-right"
+                                onSelect={handleSelect}
+                            >
+                                <Dropdown.Item eventKey="Feeds">Feeds</Dropdown.Item>
+                                <Dropdown.Item eventKey="Drug">Drug</Dropdown.Item>
+                                <Dropdown.Item eventKey="Other Purchase">Other Purchase</Dropdown.Item>
+                                <Dropdown.Divider />
+                                <Dropdown.Item eventKey="Pay Purity">Pay Purity</Dropdown.Item>
+                            </DropdownButton>
+                            <br />
+                            <Form.Group>
+                                <label htmlFor="itemName">Item Name</label>
+                                <Form.Control type="text"
+                                              onChange={handleSelect}
+                                              className="form-control" id="itemName" placeholder="Name of Item" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="objectNo">Number of Objects</label>
+                                <Form.Control value={state.objectNo} type="text" onChange={handleSelect} className="form-control" id="objectNo" placeholder="Number of Objects" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="objectPrice">Price per Object</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
+                            </Form.Group>
+                            <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
+                        </form>
                     </div>
                 </div>
-                <Online>
-                    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-                        <Alert onClose={handleClose} severity="success">
-                            Data Submitted
-                        </Alert>
-                    </Snackbar>
-                </Online>
-                <Offline>
-                    <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-                        <Alert onClose={handleClose} severity="warning">
-                            Data will be submitted automatically when back online
-                        </Alert>
-                    </Snackbar>
-                </Offline>
-                <Snackbar open={openError} autoHideDuration={3000} onClose={handleClose}>
-                    <Alert severity="error">{error}!</Alert>
-                </Snackbar>
             </div>
-        )
+            <Online>
+                <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="success">
+                        Data Submitted
+                    </Alert>
+                </Snackbar>
+            </Online>
+            <Offline>
+                <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="warning">
+                        Data will be submitted automatically when back online
+                    </Alert>
+                </Snackbar>
+            </Offline>
+            <Snackbar open={openError} autoHideDuration={3000} onClose={handleClose}>
+                <Alert severity="error">{error}!</Alert>
+            </Snackbar>
+        </div>
+    )
 }
 
 const mapDispatchToProps = (dispatch) => {

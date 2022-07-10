@@ -45,16 +45,6 @@ export const inputSell = (values, isUnknownBuyer) => {
           values
         });
       }
-    } else {
-      firestore.collection('pending_transactions')
-        .add({
-          values: values,
-          weirdName: new Date()
-        });
-      dispatch({
-        type: 'INPUT_SALES',
-        values
-      });
     }
   };
 }
