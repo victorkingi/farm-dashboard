@@ -16,8 +16,8 @@ export const inputTray = (eggs) => {
         }
         let newDate = values.date_;
         newDate.setHours(0, 0, 0, 0);
-        values.date_ = newDate.getTime();
-        values.notUpdated = newDate.getTime();
+        values.date_ = newDate.getTime() / 1000;
+        values.notUpdated = newDate.getTime() / 1000;
         firestore.collection('pend_eggs_collected').add({
             ...values
         });

@@ -70,9 +70,11 @@ function InputSell(props) {
   });
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
+  const [openWarn, setOpenWarn] = useState(false);
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [defPaid, setDefPaid] = useState(false);
+
   let name = firebase.auth().currentUser?.displayName;
   name = name ? name.substring(0, name.lastIndexOf(' '))
       .toUpperCase() : '';
@@ -123,7 +125,7 @@ function InputSell(props) {
     return !!(values.buyerName && proceed);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const arr = Object.entries(state);
     const trayRegex = /^([0-9]+)$/;
@@ -193,13 +195,26 @@ function InputSell(props) {
     if (proceed) {
       const returned = autoCorrectBuyerName(values);
       if (typeof returned === 'string') {
-        values.buyerName = returned.toUpperCase();
+        if (returned !== values.buyerName) {
+          setState({
+            ...state,
+            prevBuyer: values.buyerName,
+            buyerName: returned
+          });
+          values.prevBuyer = values.buyerName;
+          values.buyerName = returned;
+          setOpenError(false);
+          setOpenWarn(true);
+          await new Promise(r => setTimeout(r, 4000));
+        }
+        values.buyerName = values.buyerName.toUpperCase();
         props.inputSell(values, false);
         setOpenError(false);
+        setOpenWarn(false);
         setOpen(true);
       } else {
         props.inputSell(values, true);
-        setError('New buyer detected, this issue will be reported');
+        setError('Buyer not recognized');
         setOpenError(true);
       }
     }
@@ -399,6 +414,11 @@ function InputSell(props) {
           </div>
         </div>
       </div>
+      <Snackbar open={openWarn} autoHideDuration={4000} onClose={handleClose}>
+        <Alert onClose={handleClose} severity='warning'>
+          Autocorrected buyer name from {state.prevBuyer} to {state.buyerName}
+        </Alert>
+      </Snackbar>
       <Online>
         <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
           <Alert onClose={handleClose} severity='success'>
