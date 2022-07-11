@@ -178,8 +178,8 @@ function Dashboard(props) {
 
    const week_profit_change = dash.week_profit[last_week.toString()] - dash.week_profit[String(last_week-(7 * 24 * 60 * 60))];
    let week_profit_change_percent = (week_profit_change / dash.week_profit[String(last_week-(7 * 24 * 60 * 60))]) * 100;
-   const month_profit_change = dash.month_profit[last_month.toString()] - dash.month_profit[String(last_month-(7 * 24 * 60 * 60))];
-   let month_profit_change_percent = (month_profit_change / dash.month_profit[String(last_month-(7 * 24 * 60 * 60))]) * 100;
+   const month_profit_change = dash.month_profit[last_month.toString()] - dash.month_profit[String(last_month-(28 * 24 * 60 * 60))];
+   let month_profit_change_percent = (month_profit_change / dash.month_profit[String(last_month-(28 * 24 * 60 * 60))]) * 100;
    month_profit_change_percent = isNaN(month_profit_change_percent) ? 100 : month_profit_change_percent;
    week_profit_change_percent = isNaN(week_profit_change_percent) ? 100 : week_profit_change_percent;
 
@@ -386,7 +386,7 @@ function Dashboard(props) {
                          </div>
                        </div>
                      </div>
-                     <h6 className="text-muted font-weight-normal">Last Week Profit</h6>
+                     <h6 className="text-muted font-weight-normal">Week Profit</h6>
                    </div>
                  </div>
                </div>
@@ -413,7 +413,7 @@ function Dashboard(props) {
                      </div>
                    </div>
                  </div>
-                 <h6 className="text-muted font-weight-normal">Last Month Profit</h6>
+                 <h6 className="text-muted font-weight-normal">Month Profit</h6>
                </div>
              </div>
            </div>
