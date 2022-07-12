@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -227,7 +227,7 @@ function EnhancedTable(props) {
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [rows, setRows] = useState([]);
 
-    useEffect(() => {
+    useMemo(() => {
         if (tx_ui) {
             const temp = []
             let local_txs = {}
@@ -579,6 +579,6 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'tx_ui', where: [['type', '==', 'Trade']], orderBy: ['submitted_on', 'desc']}
+        { collection: 'tx_ui', where: [['type', '==', 'Trade']] }
     ])
 )(EnhancedTable);
