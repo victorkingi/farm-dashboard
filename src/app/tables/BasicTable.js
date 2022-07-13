@@ -58,7 +58,7 @@ function BasicTable() {
                                   onChange={handleHashChange}
                                   className='form-control'
                                   id='hash'
-                                  placeholder='Hash'
+                                  placeholder='Input id'
                                   value={hash}
                               />
                           </Form.Group>

@@ -98,7 +98,7 @@ const headCells = [
         id: 'hash',
         numeric: true,
         disablePadding: false,
-        label: 'Hash',
+        label: 'i.d',
     },
 ];
 
