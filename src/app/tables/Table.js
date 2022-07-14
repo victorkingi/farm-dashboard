@@ -29,6 +29,7 @@ import { visuallyHidden } from '@mui/utils';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 
+
 function createData(name, date, subm, status, hash) {
     return {
         name,
@@ -218,7 +219,7 @@ EnhancedTableToolbar.propTypes = {
 function EnhancedTable(props) {
     const { tx_ui, to_use, hash } = props;
 
-    const [order, setOrder] = useState('asc');
+    const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
     const [orderBy, setOrderBy] = useState('date');
     const [selected, setSelected] = useState([]);
@@ -643,6 +644,6 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'tx_ui', orderBy: ['submitted_on', 'desc']}
+        { collection: 'tx_ui', orderBy: ['submitted_on', 'desc'] }
     ])
 )(EnhancedTable);

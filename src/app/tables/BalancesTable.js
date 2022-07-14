@@ -218,7 +218,7 @@ EnhancedTableToolbar.propTypes = {
 function EnhancedTable(props) {
     const { tx_ui, to_use } = props;
 
-    const [order, setOrder] = useState('asc');
+    const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
     const [orderBy, setOrderBy] = useState('date');
     const [selected, setSelected] = useState([]);
