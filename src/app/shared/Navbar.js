@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, { useMemo, useState } from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import { Dropdown } from 'react-bootstrap';
@@ -8,32 +8,14 @@ import {firestoreConnect} from "react-redux-firebase";
 import { Line } from 'rc-progress';
 import moment from "moment";
 import {getRanColor} from "../dashboard/Dashboard";
-import {storage, firebase, firestore} from "../../services/api/fbConfig";
 import {Alert} from "../form-elements/InputEggs";
 import Snackbar from "@material-ui/core/Snackbar";
 import Localbase from "localbase";
 
-let itemCount = -1;
-let UPLOAD_LOCK = 0;
-const db = new Localbase('imageUpload');
-const storageRef = storage.ref();
-
-//gets key value pairs of all pending files
-async function allStorage() {
-  const keyPair = new Map();
-  const query = await db.collection('dead_sick').get();
-  for (let k = 0; k < query.length; k++) {
-    keyPair.set(query[k].file_name, query[k].image);
-  }
-  return keyPair;
-}
-
-function getExt(file) {
-  return file.substring(file.lastIndexOf('.')+1);
-}
+const uploadLock = [];
 
 function Navbar(props) {
-  const { pending_upload } = props;
+  const { pending_upload, firestore, firebase } = props;
   const [state, setState] = useState({
     color: new Map(),
     percent: new Map()
@@ -51,20 +33,64 @@ function Navbar(props) {
     setOpenError(false);
   };
 
-  useEffect(() => {
-    if (pending_upload?.length > 0 && UPLOAD_LOCK === 0) {
-      UPLOAD_LOCK = 1;
-      console.log("Lock acquired!");
-      allStorage().then(keyPair => {
+  useMemo(() => {
+    let mounted = true;
+
+    const finaliseUpload = async () => {
+      if (mounted && pending_upload) {
+        const storage = firebase.storage();
+        const db = new Localbase('imageUpload');
+        const storageRef = storage.ref();
+        const docs = await db.collection('dead_sick').get();
+
+        if (docs.length === 0) {
+          setOpen(false);
+          setError("Found "+pending_upload.length+" Cloud documents and locals that may not have corresponding local");
+          setOpenError(true);
+          return;
+        }
+
+        for (const tx of pending_upload) {
+          if (!(docs.map(x => x.file_name).includes(tx.file_name))) {
+            setOpen(false);
+            setError("Cloud document "+tx.file_name.slice(0, 10)+" does not exist locally");
+            setOpenError(true);
+            return;
+          }
+        }
+
+        const getExt = file => {
+          return file.substring(file.lastIndexOf('.')+1);
+        }
+
+        //gets key value pairs of all pending files
+        const allStorage = async () => {
+          const keyPair = new Map();
+          const query = await db.collection('dead_sick').get();
+          for (let k = 0; k < query.length; k++) {
+            keyPair.set(query[k].file_name, query[k].image);
+          }
+          return keyPair;
+        }
+
+        const keyPair = await allStorage();
         keyPair.forEach((value, key) => {
-          function uploadFile() {
+          if (uploadLock.includes(key)) {
+            console.log("key exists", key);
+            return;
+          } else {
+            uploadLock.push(key);
+            console.log("added to list", uploadLock);
+          }
+
+          const uploadFile = () => {
             const uploadImagesRef = storageRef.child(`dead_sick/${key.substring(5)}`);
             const metadata = {
               contentType: `image/${getExt(key.substring(5))}`
             }
+
             const uploadTask = uploadImagesRef.put(value, metadata);
-            uploadTask.on('state_changed',
-                function (snapshot) {
+            uploadTask.on('state_changed', snapshot => {
                   const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                   console.log("Upload is " + progress + " % done");
                   let prev = state.percent;
@@ -85,54 +111,106 @@ function Navbar(props) {
                     default:
                   }
                 },
-                function (error) {
+                error => {
+                  let index;
                   switch (error.code) {
                     case 'storage/unauthorized':
                       setOpen(false);
                       setError("You don't have permission to perform this task");
                       setOpenError(true);
+
+                      index = uploadLock.indexOf(key);
+                      if (index === -1) {
+                        console.log("Unknown entry being deleted");
+                        return;
+                      }
+                      uploadLock.splice(index, 1);
+
                       break;
                     case 'storage/canceled':
                       setOpen(false);
                       setError("Upload successfully cancelled");
                       setOpenError(true);
+
+                      index = uploadLock.indexOf(key);
+                      if (index === -1) {
+                        console.log("Unknown entry being deleted");
+                        return;
+                      }
+                      uploadLock.splice(index, 1);
+
                       break;
                     case 'storage/unknown':
                       setOpen(false);
                       setError("Unknown error occurred");
                       setOpenError(true);
+
+                      index = uploadLock.indexOf(key);
+                      if (index === -1) {
+                        console.log("Unknown entry being deleted");
+                        return;
+                      }
+                      uploadLock.splice(index, 1);
                       break;
                     default:
                   }
                 },
-                function () {
-                  uploadTask.snapshot.ref.getDownloadURL().then(function (url) {
+                () => {
+                  uploadTask.snapshot.ref.getDownloadURL().then( url => {
                     console.log('done')
-                    firestore
-                        .collection('pending_upload')
-                        .where("file_name", "==", key)
-                        .get().then((query) => {
+                    firestore.get({ collection: 'pending_upload', where: ['file_name', '==', key] }).then( query => {
                       if (query.size === 0) {
                         setOpen(false);
                         setError("Uploaded file doesn't have a doc");
                         setOpenError(true);
-                        throw new Error("UPLOADED FILE DOESN'T HAVE A DOC");
+
+                        const index = uploadLock.indexOf(key);
+                        if (index === -1) {
+                          console.log("Unknown entry being deleted");
+                          return;
+                        }
+                        uploadLock.splice(index, 1);
+                        return;
+
                       } else if (query.size > 1) {
                         setOpen(false);
                         setError("More than one match: " + query.size + " found");
                         setOpenError(true);
-                        throw new Error("MORE THAN ONE MATCH: " + query.size);
+
+                        const index = uploadLock.indexOf(key);
+                        if (index === -1) {
+                          console.log("Unknown entry being deleted");
+                          return;
+                        }
+                        uploadLock.splice(index, 1);
+                        return;
                       }
-                      query.forEach((doc) => {
+                      query.forEach( doc => {
                         doc.ref.update({
                           url
                         }).then(() => {
+                          // delete local doc
                           db.collection('dead_sick').doc({file_name: key}).delete();
+
+                          // add cloud doc
+                          const to_add = doc.data();
+                          delete to_add.photo;
+                          firestore.add({ collection: 'pending_transactions' }, to_add);
+
+                          // delete temp cloud doc
+                          doc.ref.delete();
+
                           setOpenError(false);
                           let imageName = key;
                           if (key.length > 10) imageName = imageName.substring(5, 10) + '...' + imageName.substr(-4);
                           setSuccess(`Image ${imageName} uploaded`);
                           setOpen(true);
+                          const index = uploadLock.indexOf(key);
+                          if (index === -1) {
+                            console.log("Unknown entry being deleted");
+                            return;
+                          }
+                          uploadLock.splice(index, 1);
                         });
                       });
                     })
@@ -141,10 +219,15 @@ function Navbar(props) {
           }
           uploadFile();
         });
-      });
-    }
+      }
+    };
+
+    if (pending_upload?.length > 0) finaliseUpload();
+
+    return () => mounted = false;
+
     //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pending_upload]);
+  }, [pending_upload?.length]);
 
   const toggleOffcanvas = () => {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
@@ -197,8 +280,6 @@ function Navbar(props) {
                 <Dropdown.Divider />
                 {
                   pending_upload?.length > 0 ? pending_upload.map((item) => {
-                    if (pending_upload.length-1 > itemCount) itemCount++;
-                    else itemCount = 0;
                     return (
                         <Dropdown.Item
                             key={item.id}

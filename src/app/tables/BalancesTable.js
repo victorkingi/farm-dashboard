@@ -455,7 +455,7 @@ function EnhancedTable(props) {
                                             <br />
                                             To: {txs[item].data.to.toLowerCase()}
                                             <br />
-                                            Amount traded: Ksh. {numeral(txs[item].data.amount).format("0,0")}
+                                            Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
                                             <br />
                                             {txs[item].data.reason !== '' && txs[item].data.reason.toLowerCase()}
                                         </Typography>

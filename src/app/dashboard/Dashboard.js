@@ -13,8 +13,10 @@ import CountUp from 'react-countup';
 import {firestore} from "../../services/api/fbConfig";
 
 export function getRanColor() {
-  const randomColor = Math.floor(Math.random()*16777215).toString(16);
-  return "#"+randomColor;
+  const ranR = Math.floor((Math.random()*255)+1).toString(16);
+  const ranG = Math.floor((Math.random()*255)+1).toString(16);
+  const ranB = Math.floor((Math.random()*255)+1).toString(16);
+  return ("#"+ranR+ranG+ranB).length === 6 ? "#0"+ranR+ranG+ranB : "#"+ranR+ranG+ranB;
 }
 
 function Dashboard(props) {
@@ -64,6 +66,10 @@ function Dashboard(props) {
               allDisable = true;
               break;
             }
+          }
+          if (pend[k].submittedBy !== name) {
+              allDisable = true;
+              break;
           }
           if (pend[k].values?.from) {
             if (pend[k].values?.from !== name) {
@@ -482,12 +488,50 @@ function Dashboard(props) {
                      </thead>
                      <tbody>
                      {pend && pend.map((item) => {
-                       let disCheckBox = name !== (item.values?.name
-                               || item.values?.from)
-                           && item.values?.name !== "ANNE";
-                       if (item.id === "cleared") return null;
+                         let disCheckBox = name !== (item.values?.name
+                                 || item.values?.from)
+                             && item?.values?.name !== "ANNE";
+                         if (item.id === "cleared") return null;
+                         if (item.category === 'deadSick') {
+                             disCheckBox = name !== item.submittedBy;
+                             return (
+                                 <tr key={item.id}>
+                                     <td>
+                                         <div className="form-check form-check-muted m-0">
+                                             <label className="form-check-label">
+                                                 <input disabled={disCheckBox} type="checkbox"
+                                                        className="form-check-input" defaultValue={0}
+                                                        checked={pendChecked[item.id]}
+                                                        onChange={() => setPendChecked({...pendChecked,
+                                                            [item.id]: !pendChecked[item.id]})}
+                                                        id={item.id} name={item.id}
+                                                 />
+                                                 <i className="input-helper"/>
+                                             </label>
+                                         </div>
+                                     </td>
+                                     <td>
+                                         {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
+                                         {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
+                                         {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
+                                     </td>
+                                     <td>
+                                         <div className="d-flex">
+                                  <span className="pl-2">
+                                    {'Dead or Sick'}
+                                  </span>
+                                         </div>
+                                     </td>
+                                     <td />
+                                     <td />
+                                     <td />
+                                     <td />
+                                     <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
+                                 </tr>
+                             )
+                         }
 
-                       return (
+                         return (
                            <tr key={item.id}>
                              <td>
                                <div className="form-check form-check-muted m-0">
@@ -532,7 +576,7 @@ function Dashboard(props) {
                              <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
                              <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                            </tr>
-                       )
+                         )
                      })}
                      </tbody>
                    </table>

@@ -11,6 +11,8 @@ export const inputDeadSick = (deadSick, image) => {
         let values = {
             ...deadSick,
             submittedBy: name,
+            url: '',
+            file_name: `${deadSick.section.toUpperCase()}_${image.name}`,
             submittedOn: new Date()
         }
         const reader = new FileReader();
@@ -19,18 +21,13 @@ export const inputDeadSick = (deadSick, image) => {
             let view = new Uint8Array(reader.result);
             db.collection('dead_sick').add({
                 image: view,
-                file_name: `DEAD_${image.name}`,
-                ext: image.name.substring(image.name.lastIndexOf('.')+1),
+                file_name: `${deadSick.section.toUpperCase()}_${image.name}`,
                 time: new Date().getTime()
+            }).then(() => {
+                console.log("doc added to local");
+                firestore.collection('pending_upload')
+                    .add({ ...values });
             });
-            firestore.collection('pending_upload')
-                .add({
-                    values,
-                    upload_complete: false,
-                    file_name: `DEAD_${image.name}`,
-                    url: '',
-                    submittedOn: new Date()
-                });
         })
         reader.readAsArrayBuffer(image);
     }

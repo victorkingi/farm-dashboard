@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useMemo, useState } from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -28,7 +28,6 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-
 
 function createData(name, date, subm, status, hash) {
     return {
@@ -221,95 +220,97 @@ function EnhancedTable(props) {
 
     const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
+    const [txWatch, setTxWatch] = useState([]);
     const [orderBy, setOrderBy] = useState('date');
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [rows, setRows] = useState([]);
-    const [spMap, setSPMap] = useState({});
 
-    useEffect(() => {
+    useMemo(() => {
         if (tx_ui) {
-            let map_ = {}
-            // trades map with sales and purchases
+            const data = [];
             for (const tx of tx_ui) {
-                if (tx.type !== 'Trade') continue
-                if (tx.data.sale_hash === '' && tx.data.purchase_hash === '') continue;
-                map_ = {
-                    ...map_,
-                    [tx.data.sale_hash !== '' ? tx.data.sale_hash : tx.data.purchase_hash]: tx
-                }
+                data.push(tx);
             }
-            setSPMap(map_);
+            setTxWatch(data);
         }
     }, [tx_ui]);
 
-    useEffect(() => {
-        if(tx_ui) {
-            const temp = []
-            let local_txs = {}
-            let action;
-            if (to_use === 'Sales') {
-                action = 'Sale';
-            } else if (to_use === 'Trades') {
-                action = 'Trade';
-            } else if (to_use === 'Purchases') {
-                action = 'Purchase';
-            } else {
-                action = to_use
-            }
-            const is_valid_hash = /^[a-f0-9]{5}$/.test(hash);
+    const getNext = async (subm, num) => {
+        const nextDocs = await props.firestore.get({ collection: 'tx_ui', limit: num, orderBy: ['data.date.unix', 'desc'], startAfter: subm });
+        const data = [...txWatch];
+        if (nextDocs.size === 0) return;
+        nextDocs.docs.forEach((doc) => data.push({ id: doc.id, ...doc.data() }));
+        setTxWatch(data);
+    }
 
-            for(const tx of tx_ui) {
-                local_txs = {
-                    ...local_txs,
-                    [tx.hash]: tx
-                };
-                if (is_valid_hash) {
-                    if (tx.hash.slice(0, 5) === hash) {
-                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                        setPage(0);
-                    }
+    useMemo(() => {
+        const temp = []
+        let local_txs = {}
+        let action;
+        if (to_use === 'Sales') {
+            action = 'Sale';
+        } else if (to_use === 'Trades') {
+            action = 'Trade';
+        } else if (to_use === 'Purchases') {
+            action = 'Purchase';
+        } else {
+            action = to_use
+        }
+        const is_valid_hash = /^[a-f0-9]{5}$/.test(hash);
+
+        for(let tx of Object.entries(txWatch)) {
+            tx = tx[1];
+            local_txs = {
+                ...local_txs,
+                [tx.hash]: tx
+            };
+            if (is_valid_hash) {
+                if (tx.hash.slice(0, 5) === hash) {
+                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    setPage(0);
                 }
-                else if (action === '') {
-                    if (tx.type === 'Trade') {
-                        if (!(tx.data.sale_hash === '' && tx.data.purchase_hash === '')) continue;
+            }
+            else if (action === '') {
+                if (tx.type === 'Trade') {
+                    if (!(tx.data.sale_hash === '' && tx.data.purchase_hash === '')) continue;
+                }
+                temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            }
+            else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            else if (action === tx.type) {
+                if (action === 'Trade') {
+                    if (tx.data.sale_hash === '' && tx.data.purchase_hash === '') {
+                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                     }
+                } else {
                     temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                 }
-                else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === tx.type) {
-                    if (action === 'Trade') {
-                        if (tx.data.sale_hash === '' && tx.data.purchase_hash === '') {
-                            temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                        }
-                    } else {
-                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                    }
-                } else if (action === 'Feeds') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'FEEDS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Pay Purity') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'PPURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Thika Farmers') {
-                    if (tx.type === 'Sale' && tx.data.section === 'THIKAFARMERS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Cakes') {
-                    if (tx.type === 'Sale' && tx.data.section === 'CAKES') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Duka') {
-                    if (tx.type === 'Sale' && tx.data.section === 'DUKA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Other Sales') {
-                    if (tx.type === 'Sale' && tx.data.section === 'SOTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Other Purchases') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'POTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                }
+            } else if (action === 'Feeds') {
+                if (tx.type === 'Purchase' && tx.data.section === 'FEEDS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            } else if (action === 'Pay Purity') {
+                if (tx.type === 'Purchase' && tx.data.section === 'PPURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            } else if (action === 'Thika Farmers') {
+                if (tx.type === 'Sale' && tx.data.section === 'THIKAFARMERS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            } else if (action === 'Cakes') {
+                if (tx.type === 'Sale' && tx.data.section === 'CAKES') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            } else if (action === 'Duka') {
+                if (tx.type === 'Sale' && tx.data.section === 'DUKA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            } else if (action === 'Other Sales') {
+                if (tx.type === 'Sale' && tx.data.section === 'SOTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            } else if (action === 'Other Purchases') {
+                if (tx.type === 'Purchase' && tx.data.section === 'POTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
             }
-            setTxs(local_txs);
-            setRows(temp);
         }
-    }, [tx_ui, to_use, hash, spMap]);
+        setTxs(local_txs);
+        setRows(temp);
+
+    }, [to_use, hash, txWatch]);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -346,18 +347,34 @@ function EnhancedTable(props) {
         setSelected(newSelected);
     };
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    const handleChangePage = async (event, newPage) => {
+        //console.log(newPage, page);
+        //console.log("SIZE",  (rows.length - (newPage*rowsPerPage)), rowsPerPage+1)
+        if (txWatch.length > 0 && newPage > page) {
+            //await getNext(txWatch[txWatch.length - 1].submitted_on, rowsPerPage+500);
+            setPage(newPage);
+        } else {
+            setPage(newPage);
+        }
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
+    const handleChangeRowsPerPage = async (event) => {
+        const numEntries = parseInt(event.target.value, 10);
+        if (numEntries > rows.length) {
+            const need = (numEntries - rows.length)+1;
+            if (txWatch) {
+                //await getNext(txWatch[txWatch.length - 1].submitted_on, need);
+            }
+        }
+        setRowsPerPage(numEntries);
         setPage(0);
+
     };
 
     const handleChangeDense = (event) => {
         setDense(event.target.checked);
     };
+
 
     const isSelected = (name) => selected.indexOf(name) !== -1;
 
@@ -452,13 +469,13 @@ function EnhancedTable(props) {
                 control={<Switch checked={dense} onChange={handleChangeDense} />}
                 label="Dense padding"
             />
-            {selected.map((item) => {
+            {selected.map((item, index) => {
                 const type = txs[item].type;
                 const prevValues = txs[item].data.prev_values;
 
                 if (type === 'Eggs Collected') {
                     return (
-                        <div key={item}>
+                        <div key={index}>
                             <Card variant="outlined">
                                 <React.Fragment>
                                     <CardContent>
@@ -503,7 +520,7 @@ function EnhancedTable(props) {
                 }
                 else if (type === 'Trade') {
                     return (
-                        <div key={item}>
+                        <div key={index}>
                             <Card variant="outlined">
                                 <React.Fragment>
                                     <CardContent>
@@ -520,7 +537,7 @@ function EnhancedTable(props) {
                                             <br />
                                             To: {txs[item].data.to.toLowerCase()}
                                             <br />
-                                            Amount traded: Ksh. {numeral(txs[item].data.amount).format("0,0")}
+                                            Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
                                             <br />
                                             {txs[item].data.reason !== '' && txs[item].data.reason.toLowerCase()}
                                         </Typography>
@@ -539,7 +556,7 @@ function EnhancedTable(props) {
                 }
                 else if (type === 'Sale') {
                     return (
-                        <div key={item}>
+                        <div key={index}>
                             <Card variant="outlined">
                                 <React.Fragment>
                                     <CardContent>
@@ -569,7 +586,7 @@ function EnhancedTable(props) {
                 }
                 else if (type === 'Purchase') {
                     return (
-                        <div key={item}>
+                        <div key={index}>
                             <Card variant="outlined">
                                 <React.Fragment>
                                     <CardContent>
@@ -599,7 +616,7 @@ function EnhancedTable(props) {
                 }
                 else if (type === 'Dead or Sick') {
                     return (
-                        <div key={item}>
+                        <div key={index}>
                             <Card variant="outlined">
                                 <React.Fragment>
                                     <CardContent>
@@ -629,7 +646,7 @@ function EnhancedTable(props) {
                         </div>
                     )
                 }
-                return <div key={0} />
+                return <div key={-6} />
             })}
         </Box>
     );
@@ -644,6 +661,6 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        { collection: 'tx_ui', orderBy: ['submitted_on', 'desc'] }
+        { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'] }
     ])
 )(EnhancedTable);
