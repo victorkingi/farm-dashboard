@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -6,6 +6,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import numeral from 'numeral';
 import { alpha } from '@mui/material/styles';
+import LinearProgress from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -71,7 +72,7 @@ function stableSort(array, comparator) {
 
 const headCells = [
     {
-        id: 'name',
+        id: 'type',
         numeric: false,
         disablePadding: true,
         label: 'Type',
@@ -119,7 +120,7 @@ function EnhancedTableHead(props) {
                         checked={rowCount > 0 && numSelected === rowCount}
                         onChange={onSelectAllClick}
                         inputProps={{
-                            'aria-label': 'select all desserts',
+                            'aria-label': 'select all entries',
                         }}
                     />
                 </TableCell>
@@ -215,8 +216,16 @@ EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
 };
 
+const getFieldName = (to_use) => {
+    if (to_use === '') return '';
+    if (to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Eggs Collected'
+    || to_use === 'Trades' || to_use === 'Dead or Sick') return ['type', `${(to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Trades') ? to_use.slice(0, to_use.length-1) : to_use}`]
+    if (to_use.startsWith('Submitted by ')) return ['data.by', `${to_use.slice(13, to_use.length).toUpperCase()}`];
+    return ['data.section', `${to_use === 'Pay Purity' ? 'PPURITY' : to_use === 'Other Sales' ? 'SOTHER' : to_use === 'Other Purchases' ? 'POTHER' : to_use === 'Thika Farmers' ? 'THIKAFARMERS' : to_use.toUpperCase() }`]
+}
+
 function EnhancedTable(props) {
-    const { tx_ui, to_use, hash } = props;
+    const { tx_ui, to_use, hash, firestore } = props;
 
     const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
@@ -227,6 +236,9 @@ function EnhancedTable(props) {
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [rows, setRows] = useState([]);
+    const [allDone, setAllDone] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const orderBy_ = `${(orderBy === 'type' || orderBy === 'date' || orderBy === 'status' || orderBy === 'hash') ? orderBy : orderBy === 'subm' ? 'submitted_on' : null}`;
 
     useMemo(() => {
         if (tx_ui) {
@@ -235,16 +247,124 @@ function EnhancedTable(props) {
                 data.push(tx);
             }
             setTxWatch(data);
+            setIsLoading(false);
         }
     }, [tx_ui]);
 
-    const getNext = async (subm, num) => {
-        const nextDocs = await props.firestore.get({ collection: 'tx_ui', limit: num, orderBy: ['data.date.unix', 'desc'], startAfter: subm });
-        const data = [...txWatch];
-        if (nextDocs.size === 0) return;
-        nextDocs.docs.forEach((doc) => data.push({ id: doc.id, ...doc.data() }));
-        setTxWatch(data);
-    }
+    useEffect(() => {
+        let isSubscribed = true;
+
+        // declare the async data fetching function
+        const fetchData = async (num) => {
+            const limit = num+txWatch.length;
+            // get the data
+            const dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
+            console.log("called rows")
+            // set state with the result if `isSubscribed` is true
+
+            if(isSubscribed) {
+                console.log("check1", dataDocs.size, limit);
+                if (dataDocs.size < limit) {
+                    setAllDone(true);
+                }
+                //setTxWatch([...dataDocs.docs.map(x => {
+                //    return { id: x.id, ...x.data() }
+                //})]);
+                console.log("cleaned done");
+            }
+        }
+
+        /*const fetchSpecificData = async (num) => {
+            const limit = num+txWatch.length;
+            const fieldName = getFieldName(to_use);
+            console.log("FIELD", fieldName);
+            // get the data
+            const dataDocs = await firestore.get({ collection: 'tx_ui', limit, where: [fieldName[0], '==', fieldName[1]] });
+            const checker = await firestore.get({ collection: 'tx_ui', limit: limit+1,  where: [fieldName[0], '==', fieldName[1]] });
+            console.log("CHECK3", dataDocs.size, checker.size);
+
+            // set state with the result if `isSubscribed` is true
+            if (isSubscribed) {
+                if (dataDocs.size === checker.size) {
+                    setAllDone1(true);
+                    setIsLoading2(false);
+                } else {
+                    setTxWatch([...dataDocs.docs.map(x => {
+                        return { id: x.id, ...x.data() }
+                    })]);
+                    setIsLoading2(false);
+                }
+            }
+        } */
+
+        // call the function
+        console.log("diff", rows.length, rowsPerPage)
+        if (rows.length <= rowsPerPage && !allDone) {
+            //console.log("ROWS", rows.length, rowsPerPage);
+            setIsLoading(true);
+            fetchData((rowsPerPage-rows.length)+1)
+                // make sure to catch any error
+                .catch(console.error);
+        } else if (rows.length <= ((page+1)*rowsPerPage) && !allDone) {
+            console.log("page call", page, rows.length, (page+1)*rowsPerPage, txWatch);
+            setIsLoading(true);
+            fetchData(((page+1)*rowsPerPage-rows.length)+1)
+                // make sure to catch any error
+                .catch(console.error);
+        } else if (allDone) {
+            console.log("ALL DATA RETRIEVED", txWatch.length);
+            setIsLoading(false);
+        } else {
+            console.log("OK");
+            setIsLoading(false);
+        }
+
+        // cancel any future `setData`
+        return () => isSubscribed = false;
+
+        // eslint-disable-next-line
+    }, [rowsPerPage, rows, page]);
+    //console.log(txWatch);
+
+    useEffect(() => {
+        let isSubscribed = true;
+
+        // declare the async data fetching function
+        const fetchData = async () => {
+            if (txWatch.length <= 6) return;
+            const limit = txWatch.length;
+
+            // get the data
+            const dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
+            console.log("calls order")
+
+            if (isSubscribed) {
+                console.log("CHECK2", dataDocs.size, limit);
+                if (dataDocs.size < limit) {
+                    setAllDone(true);
+                    setIsLoading(false);
+                }
+
+                //setTxWatch([...dataDocs.docs.map(x => {
+                 //   return { id: x.id, ...x.data() }
+                //})]);
+                setIsLoading(false);
+            }
+        }
+
+        // call the function
+        if (!allDone) {
+            setIsLoading(true);
+            fetchData()
+                // make sure to catch any error
+                .catch(console.error);
+        } else console.log("ALL DATA RETRIEVED", txWatch.length);
+
+        // cancel any future `setData`
+        return () => isSubscribed = false;
+
+        // eslint-disable-next-line
+    }, [order, orderBy]);
 
     useMemo(() => {
         const temp = []
@@ -254,6 +374,7 @@ function EnhancedTable(props) {
             action = 'Sale';
         } else if (to_use === 'Trades') {
             action = 'Trade';
+
         } else if (to_use === 'Purchases') {
             action = 'Purchase';
         } else {
@@ -311,6 +432,8 @@ function EnhancedTable(props) {
         setRows(temp);
 
     }, [to_use, hash, txWatch]);
+    //console.log(rows.length);
+    //console.log("TXWATCH", txWatch);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -347,34 +470,24 @@ function EnhancedTable(props) {
         setSelected(newSelected);
     };
 
-    const handleChangePage = async (event, newPage) => {
-        //console.log(newPage, page);
-        //console.log("SIZE",  (rows.length - (newPage*rowsPerPage)), rowsPerPage+1)
-        if (txWatch.length > 0 && newPage > page) {
-            //await getNext(txWatch[txWatch.length - 1].submitted_on, rowsPerPage+500);
-            setPage(newPage);
-        } else {
-            setPage(newPage);
-        }
+    const handleChangePage = (event, newPage) => {
+        setPage((rows.length / rowsPerPage) > 1 ? newPage : page);
     };
 
-    const handleChangeRowsPerPage = async (event) => {
+    const handleChangeRowsPerPage = (event) => {
         const numEntries = parseInt(event.target.value, 10);
-        if (numEntries > rows.length) {
-            const need = (numEntries - rows.length)+1;
-            if (txWatch) {
-                //await getNext(txWatch[txWatch.length - 1].submitted_on, need);
-            }
-        }
-        setRowsPerPage(numEntries);
-        setPage(0);
+        let predictedPage = rows.length >= (page*rowsPerPage)+1 ? (page*rowsPerPage)+1 : rows.length - 1;
+        const rem = predictedPage % numEntries;
 
+        predictedPage = rem === 0 ? (predictedPage / numEntries) - 1 : Math.floor(predictedPage / numEntries);
+
+        setRowsPerPage(numEntries);
+        setPage(Math.floor(rows.length / numEntries) < page ? predictedPage : page);
     };
 
     const handleChangeDense = (event) => {
         setDense(event.target.checked);
     };
-
 
     const isSelected = (name) => selected.indexOf(name) !== -1;
 
@@ -408,7 +521,6 @@ function EnhancedTable(props) {
                                 .map((row, index) => {
                                     const isItemSelected = isSelected(row.hash);
                                     const labelId = `enhanced-table-checkbox-${index}`;
-
                                     return (
                                         <TableRow
                                             hover
@@ -464,6 +576,7 @@ function EnhancedTable(props) {
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
+                { isLoading && <LinearProgress color="secondary"/> }
             </Paper>
             <FormControlLabel
                 control={<Switch checked={dense} onChange={handleChangeDense} />}
@@ -661,6 +774,6 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'] }
+        { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'], limit: 6 }
     ])
 )(EnhancedTable);
