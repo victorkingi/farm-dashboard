@@ -265,6 +265,7 @@ function EnhancedTable(props) {
             const dataDocsFrom = await firestore.get({ collection: 'tx_ui', where: [['type', '==', 'Trade'], ['data.from', '==', to_use.toUpperCase()]] });
             const dataDocsTo = await firestore.get({ collection: 'tx_ui', where: [['type', '==', 'Trade'], ['data.to', '==', to_use.toUpperCase()]] });
             console.log("got", to_use);
+
             // set state with the result if `isSubscribed` is true
             if(isSubscribed) {
                 console.log("check1", dataDocsTo.size, dataDocsFrom.size);
@@ -282,11 +283,8 @@ function EnhancedTable(props) {
         }
 
         setIsLoading(true);
-        fetchData()
-            // make sure to catch any error
-            .catch(console.error);
+        fetchData().catch(console.error);
 
-        // cancel any future `setData`
         return () => isSubscribed = false;
 
         // eslint-disable-next-line
