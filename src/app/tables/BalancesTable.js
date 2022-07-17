@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import numeral from 'numeral';
 import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
+import LinearProgress from '@mui/material/LinearProgress';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -214,9 +215,11 @@ const EnhancedTableToolbar = (props) => {
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
 };
+let __user = localStorage.getItem('name');
+if(__user) __user = __user.toUpperCase();
 
 function EnhancedTable(props) {
-    const { tx_ui, to_use } = props;
+    const { to_use, firestore } = props;
 
     const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
@@ -226,25 +229,70 @@ function EnhancedTable(props) {
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [rows, setRows] = useState([]);
+    const [txWatch, setTxWatch] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useMemo(() => {
-        if (tx_ui) {
-            const temp = []
-            let local_txs = {}
+        const temp = []
+        let local_txs = {}
 
-            for (const tx of tx_ui) {
-                if (tx.data.from === to_use.toUpperCase() || tx.data.to === to_use.toUpperCase()) {
-                    local_txs = {
-                        ...local_txs,
-                        [tx.hash]: tx
-                    };
-                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                }
+        for (let tx of Object.entries(txWatch)) {
+            tx = tx[1];
+            if (tx.data.from === to_use.toUpperCase() || tx.data.to === to_use.toUpperCase()) {
+                local_txs = {
+                    ...local_txs,
+                    [tx.hash]: tx
+                };
+                temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
             }
-            setTxs(local_txs);
-            setRows(temp);
         }
-    }, [to_use, tx_ui]);
+        setTxs(local_txs);
+        setRows(temp);
+    }, [to_use, txWatch]);
+
+    useMemo(() => {
+        setPage(Math.floor(rows.length / rowsPerPage) < page ? Math.floor(rows.length / rowsPerPage) : page);
+
+        // eslint-disable-next-line
+    }, [rows.length]);
+
+    useEffect(() => {
+        let isSubscribed = true;
+
+        // declare the async data fetching function
+        const fetchData = async () => {
+            // get the data
+            const dataDocsFrom = await firestore.get({ collection: 'tx_ui', where: [['type', '==', 'Trade'], ['data.from', '==', to_use.toUpperCase()]] });
+            const dataDocsTo = await firestore.get({ collection: 'tx_ui', where: [['type', '==', 'Trade'], ['data.to', '==', to_use.toUpperCase()]] });
+            console.log("got", to_use);
+            // set state with the result if `isSubscribed` is true
+            if(isSubscribed) {
+                console.log("check1", dataDocsTo.size, dataDocsFrom.size);
+                const data = [];
+                dataDocsFrom.docs.forEach((tx) => {
+                    data.push(tx.data());
+                });
+
+                dataDocsTo.docs.forEach((tx_) => {
+                    data.push(tx_.data());
+                });
+                setTxWatch(data);
+                setIsLoading(false);
+            }
+        }
+
+        setIsLoading(true);
+        fetchData()
+            // make sure to catch any error
+            .catch(console.error);
+
+        // cancel any future `setData`
+        return () => isSubscribed = false;
+
+        // eslint-disable-next-line
+    }, [to_use]);
+
+    console.log(to_use, txWatch);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -382,203 +430,55 @@ function EnhancedTable(props) {
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
+                { isLoading && <LinearProgress color="secondary"/> }
             </Paper>
             <FormControlLabel
                 control={<Switch checked={dense} onChange={handleChangeDense} />}
                 label="Dense padding"
             />
             {selected.map((item) => {
-                const type = txs[item].type;
                 const prevValues = txs[item].data.prev_values;
-
-                if (type === 'Eggs Collected') {
-                    return (
-                        <div key={item}>
-                            <Card variant="outlined">
-                                <React.Fragment>
-                                    <CardContent>
-                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            Eggs: {item.slice(0, 5)}
-                                            <br />
-                                            Date: {txs[item].data.date.locale.slice(0,20)}
-                                        </Typography>
-                                        <Typography variant="h5" component="div">
-                                            Collected {txs[item].data.trays_collected.split(',')[0]} tray(s) and {txs[item].data.trays_collected.split(',')[1]} egg(s)
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            A1: {txs[item].data.a1}
-                                            <br />
-                                            A2: {txs[item].data.a2}
-                                            <br />
-                                            B1: {txs[item].data.b1}
-                                            <br />
-                                            B2: {txs[item].data.b2}
-                                            <br />
-                                            C1: {txs[item].data.c1}
-                                            <br />
-                                            C2: {txs[item].data.c2}
-                                            <br />
-                                            House: {txs[item].data.house}
-                                            <br />
-                                            Broken: {txs[item].data.broken}
-                                            <br />
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Submitted by {txs[item].data.by.toLowerCase()}
-                                        </Typography>
-                                    </CardContent>
-                                </React.Fragment>
-                            </Card>
-                            <br />
-                        </div>
-                    )
-                }
-                else if (type === 'Trade') {
-                    return (
-                        <div key={item}>
-                            <Card variant="outlined">
-                                <React.Fragment>
-                                    <CardContent>
-                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            Trade: {item.slice(0, 5)}
-                                            <br />
-                                            Date: {txs[item].data.date.locale.slice(0,20)}
-                                        </Typography>
-                                        <Typography variant="h5" component="div">
-                                            {txs[item].data.sale_hash === '' &&  txs[item].data.purchase_hash === '' ? 'Physical Trade' : `Tied to the ${txs[item].data.sale_hash !== '' ? `sale at ${txs[item].data.sale_hash.slice(0, 5)}` : `purchase at ${txs[item].data.purchase_hash.slice(0, 5)}`}`}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            From: {txs[item].data.from.toLowerCase()}
-                                            <br />
-                                            To: {txs[item].data.to.toLowerCase()}
-                                            <br />
-                                            Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
-                                            <br />
-                                            {txs[item].data.reason !== '' && txs[item].data.reason.toLowerCase()}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Submitted by {txs[item].data.by.toLowerCase()}
-                                        </Typography>
-                                    </CardContent>
-                                </React.Fragment>
-                            </Card>
-                            <br />
-                        </div>
-                    )
-                }
-                else if (type === 'Sale') {
-                    return (
-                        <div key={item}>
-                            <Card variant="outlined">
-                                <React.Fragment>
-                                    <CardContent>
-                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            Sale: {item.slice(0, 5)}
-                                            <br />
-                                            Date: {txs[item].data.date.locale.slice(0,20)}
-                                        </Typography>
-                                        <Typography variant="h5" component="div">
-                                            {txs[item].data.section === txs[item].data.buyer ? txs[item].data.section.toLowerCase() : `${txs[item].data.section.toLowerCase() === 'sother' ? 'other' : txs[item].data.section.toLowerCase()}, ${txs[item].data.buyer.toLowerCase()}`}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {numeral(txs[item].data.tray_no).format("0,0")} Tray(s) at Ksh. {numeral(txs[item].data.tray_price).format("0,0")}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Submitted by {txs[item].data.by.toLowerCase()}
-                                        </Typography>
-                                    </CardContent>
-                                </React.Fragment>
-                            </Card>
-                            <br />
-                        </div>
-                    )
-                }
-                else if (type === 'Purchase') {
-                    return (
-                        <div key={item}>
-                            <Card variant="outlined">
-                                <React.Fragment>
-                                    <CardContent>
-                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            Purchase: {item.slice(0, 5)}
-                                            <br />
-                                            Date: {txs[item].data.date.locale.slice(0,20)}
-                                        </Typography>
-                                        <Typography variant="h5" component="div">
-                                            {`${txs[item].data.section.toLowerCase() === 'pother' ? 'other,' : txs[item].data.section.toLowerCase() === 'ppurity' ? 'Purity:' : txs[item].data.section.toLowerCase()+','} ${txs[item].data.item_name.toLowerCase()}`}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {numeral(txs[item].data.item_no).format("0,0")} Item(s) at Ksh. {numeral(txs[item].data.item_price).format("0,0")}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Submitted by {txs[item].data.by.toLowerCase()}
-                                        </Typography>
-                                    </CardContent>
-                                </React.Fragment>
-                            </Card>
-                            <br />
-                        </div>
-                    )
-                }
-                else if (type === 'Dead or Sick') {
-                    return (
-                        <div key={item}>
-                            <Card variant="outlined">
-                                <React.Fragment>
-                                    <CardContent>
-                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            {txs[item].data.section.toLowerCase()}: {item.slice(0, 5)}
-                                            <br />
-                                            Date: {txs[item].data.date.locale.slice(0,20)}
-                                        </Typography>
-                                        <Typography variant="h5" component="div">
-                                            {`${txs[item].data.section.toLowerCase()}, ${txs[item].data.location.toLowerCase()}`}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {numeral(txs[item].data.number).format("0,0")} {txs[item].data.section.toLowerCase()}
-                                            <br />
-                                            {txs[item].data.reason.toLowerCase()}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Submitted by {txs[item].data.by.toLowerCase()}
-                                        </Typography>
-                                    </CardContent>
-                                </React.Fragment>
-                            </Card>
-                            <br />
-                        </div>
-                    )
-                }
-                return <div key={0} />
+                return (
+                    <div key={item}>
+                        <Card variant="outlined">
+                            <React.Fragment>
+                                <CardContent>
+                                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                        Trade: {item.slice(0, 5)}
+                                        <br />
+                                        Date: {txs[item].data.date.locale.slice(0,20)}
+                                    </Typography>
+                                    <Typography variant="h5" component="div">
+                                        {txs[item].data.sale_hash === '' &&  txs[item].data.purchase_hash === '' ? 'Physical Trade' : `Tied to the ${txs[item].data.sale_hash !== '' ? `sale at ${txs[item].data.sale_hash.slice(0, 5)}` : `purchase at ${txs[item].data.purchase_hash.slice(0, 5)}`}`}
+                                    </Typography>
+                                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                        From: {txs[item].data.from.toLowerCase()}
+                                        <br />
+                                        To: {txs[item].data.to.toLowerCase()}
+                                        <br />
+                                        Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
+                                        <br />
+                                        {txs[item].data.reason !== '' && txs[item].data.reason.toLowerCase()}
+                                    </Typography>
+                                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                        {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                    </Typography>
+                                    <Typography variant="body2">
+                                        Submitted by {txs[item].data.by.toLowerCase()}
+                                    </Typography>
+                                </CardContent>
+                            </React.Fragment>
+                        </Card>
+                        <br />
+                    </div>
+                )
             })}
         </Box>
     );
 }
 
-const mapStateToProps = (state) => {
-    return {
-        tx_ui: state.firestore.ordered.tx_ui
-    }
-}
 
 export default compose(
-    connect(mapStateToProps),
-    firestoreConnect([
-        { collection: 'tx_ui', where: [['type', '==', 'Trade']] }
-    ])
+    connect(),
+    firestoreConnect([])
 )(EnhancedTable);

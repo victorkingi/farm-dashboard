@@ -237,7 +237,7 @@ function EnhancedTable(props) {
     const [rows, setRows] = useState([]);
     const [allDone, setAllDone] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [haveHash, setHaveHash] = useState(false);
+    const [indexerChanged, setIndexerChanged] = useState(false);
     const orderBy_ = `${(orderBy === 'type' || orderBy === 'date' || orderBy === 'status' || orderBy === 'hash') ? orderBy : orderBy === 'subm' ? 'submitted_on' : null}`;
 
     useMemo(() => {
@@ -259,7 +259,7 @@ function EnhancedTable(props) {
 
             // get the data
             console.log("NAME", to_use)
-            console.log([getFieldName(to_use)[0], '==', getFieldName(to_use)[1]], [orderBy_, order] )
+            console.log([getFieldName(to_use)[0], '==', getFieldName(to_use)[1]], [orderBy_, order])
             let dataDocs;
             if (to_use === '') dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
             else {
@@ -291,22 +291,23 @@ function EnhancedTable(props) {
 
         // call the function
         console.log("diff", rows.length, rowsPerPage)
-        if (rows.length <= rowsPerPage && !allDone && !haveHash) {
+        if ((rows.length <= rowsPerPage && !allDone) || indexerChanged) {
             //console.log("ROWS", rows.length, rowsPerPage);
             setIsLoading(true);
+            setIndexerChanged(false);
             fetchData((rowsPerPage-rows.length)+1)
                 // make sure to catch any error
                 .catch(console.error);
-        } else if (rows.length <= ((page+1)*rowsPerPage) && !allDone && !haveHash) {
+        } else if (rows.length <= ((page+1)*rowsPerPage) && !allDone) {
             console.log("page call", page, rows.length, (page+1)*rowsPerPage, txWatch);
             setIsLoading(true);
             fetchData(((page+1)*rowsPerPage-rows.length)+1)
                 // make sure to catch any error
                 .catch(console.error);
-        } else if (allDone && !haveHash) {
+        } else if (allDone) {
             console.log("ALL DATA RETRIEVED", txWatch.length);
             setIsLoading(false);
-        } else if (!haveHash) {
+        } else {
             console.log("OK");
             setIsLoading(false);
         }
@@ -315,7 +316,8 @@ function EnhancedTable(props) {
         return () => isSubscribed = false;
 
         // eslint-disable-next-line
-    }, [rowsPerPage, rows, page]);
+    }, [rowsPerPage, rows, page, to_use]);
+
 
     useEffect(() => {
         let isSubscribed = true;
@@ -356,12 +358,12 @@ function EnhancedTable(props) {
         }
 
         // call the function
-        if (!allDone && !haveHash) {
+        if (!allDone) {
             setIsLoading(true);
             fetchData()
                 // make sure to catch any error
                 .catch(console.error);
-        } else if (!haveHash) {
+        } else {
             console.log("ALL DATA RETRIEVED", txWatch.length);
             setIsLoading(false);
         }
@@ -442,6 +444,7 @@ function EnhancedTable(props) {
 
     useMemo(() => {
         setAllDone(false);
+        setIndexerChanged(true);
 
         // eslint-disable-next-line
     }, [to_use]);
@@ -469,6 +472,12 @@ function EnhancedTable(props) {
 
         // eslint-disable-next-line
     }, [hash]); */
+
+    useMemo(() => {
+        setPage(Math.floor(rows.length / rowsPerPage) < page ? Math.floor(rows.length / rowsPerPage) : page);
+
+        // eslint-disable-next-line
+    }, [rows.length]);
 
 
     const handleRequestSort = (event, property) => {
