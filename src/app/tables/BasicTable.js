@@ -60,6 +60,7 @@ function BasicTable() {
                                   id='hash'
                                   placeholder='Input id'
                                   value={hash}
+                                  disabled={true}
                               />
                           </Form.Group>
                       </form>

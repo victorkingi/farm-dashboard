@@ -217,10 +217,9 @@ EnhancedTableToolbar.propTypes = {
 };
 
 const getFieldName = (to_use) => {
-    if (to_use === '') return '';
     if (to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Eggs Collected'
     || to_use === 'Trades' || to_use === 'Dead or Sick') return ['type', `${(to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Trades') ? to_use.slice(0, to_use.length-1) : to_use}`]
-    if (to_use.startsWith('Submitted by ')) return ['data.by', `${to_use.slice(13, to_use.length).toUpperCase()}`];
+    if (to_use.startsWith('Submitted by ')) return ['by', `${to_use.slice(13, to_use.length).toUpperCase()}`];
     return ['data.section', `${to_use === 'Pay Purity' ? 'PPURITY' : to_use === 'Other Sales' ? 'SOTHER' : to_use === 'Other Purchases' ? 'POTHER' : to_use === 'Thika Farmers' ? 'THIKAFARMERS' : to_use.toUpperCase() }`]
 }
 
@@ -238,6 +237,7 @@ function EnhancedTable(props) {
     const [rows, setRows] = useState([]);
     const [allDone, setAllDone] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [haveHash, setHaveHash] = useState(false);
     const orderBy_ = `${(orderBy === 'type' || orderBy === 'date' || orderBy === 'status' || orderBy === 'hash') ? orderBy : orderBy === 'subm' ? 'submitted_on' : null}`;
 
     useMemo(() => {
@@ -247,7 +247,6 @@ function EnhancedTable(props) {
                 data.push(tx);
             }
             setTxWatch(data);
-            setIsLoading(false);
         }
     }, [tx_ui]);
 
@@ -257,64 +256,57 @@ function EnhancedTable(props) {
         // declare the async data fetching function
         const fetchData = async (num) => {
             const limit = num+txWatch.length;
-            // get the data
-            const dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
-            console.log("called rows")
-            // set state with the result if `isSubscribed` is true
 
+            // get the data
+            console.log("NAME", to_use)
+            console.log([getFieldName(to_use)[0], '==', getFieldName(to_use)[1]], [orderBy_, order] )
+            let dataDocs;
+            if (to_use === '') dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
+            else {
+                const field = getFieldName(to_use)[0];
+                if (field === orderBy_) {
+                    console.log('same rows', field);
+                    dataDocs = await firestore.get({
+                        collection: 'tx_ui',
+                        limit,
+                        where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]]
+                    });
+                } else {
+                    console.log('not same rows', field, orderBy_);
+                    dataDocs = await firestore.get({
+                        collection: 'tx_ui',
+                        limit,
+                        where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
+                        orderBy: [orderBy_, order]
+                    });
+                }
+            }
+
+            // set state with the result if `isSubscribed` is true
             if(isSubscribed) {
                 console.log("check1", dataDocs.size, limit);
-                if (dataDocs.size < limit) {
-                    setAllDone(true);
-                }
-                //setTxWatch([...dataDocs.docs.map(x => {
-                //    return { id: x.id, ...x.data() }
-                //})]);
-                console.log("cleaned done");
+                if (dataDocs.size < limit) setAllDone(true);
             }
         }
 
-        /*const fetchSpecificData = async (num) => {
-            const limit = num+txWatch.length;
-            const fieldName = getFieldName(to_use);
-            console.log("FIELD", fieldName);
-            // get the data
-            const dataDocs = await firestore.get({ collection: 'tx_ui', limit, where: [fieldName[0], '==', fieldName[1]] });
-            const checker = await firestore.get({ collection: 'tx_ui', limit: limit+1,  where: [fieldName[0], '==', fieldName[1]] });
-            console.log("CHECK3", dataDocs.size, checker.size);
-
-            // set state with the result if `isSubscribed` is true
-            if (isSubscribed) {
-                if (dataDocs.size === checker.size) {
-                    setAllDone1(true);
-                    setIsLoading2(false);
-                } else {
-                    setTxWatch([...dataDocs.docs.map(x => {
-                        return { id: x.id, ...x.data() }
-                    })]);
-                    setIsLoading2(false);
-                }
-            }
-        } */
-
         // call the function
         console.log("diff", rows.length, rowsPerPage)
-        if (rows.length <= rowsPerPage && !allDone) {
+        if (rows.length <= rowsPerPage && !allDone && !haveHash) {
             //console.log("ROWS", rows.length, rowsPerPage);
             setIsLoading(true);
             fetchData((rowsPerPage-rows.length)+1)
                 // make sure to catch any error
                 .catch(console.error);
-        } else if (rows.length <= ((page+1)*rowsPerPage) && !allDone) {
+        } else if (rows.length <= ((page+1)*rowsPerPage) && !allDone && !haveHash) {
             console.log("page call", page, rows.length, (page+1)*rowsPerPage, txWatch);
             setIsLoading(true);
             fetchData(((page+1)*rowsPerPage-rows.length)+1)
                 // make sure to catch any error
                 .catch(console.error);
-        } else if (allDone) {
+        } else if (allDone && !haveHash) {
             console.log("ALL DATA RETRIEVED", txWatch.length);
             setIsLoading(false);
-        } else {
+        } else if (!haveHash) {
             console.log("OK");
             setIsLoading(false);
         }
@@ -324,7 +316,6 @@ function EnhancedTable(props) {
 
         // eslint-disable-next-line
     }, [rowsPerPage, rows, page]);
-    //console.log(txWatch);
 
     useEffect(() => {
         let isSubscribed = true;
@@ -335,30 +326,45 @@ function EnhancedTable(props) {
             const limit = txWatch.length;
 
             // get the data
-            const dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
-            console.log("calls order")
+            console.log("NAME order", to_use)
+            let dataDocs;
+            if (to_use === '') dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
+            else {
+                const field = getFieldName(to_use)[0];
+                if (field === orderBy_) {
+                    console.log('same', field);
+                    dataDocs = await firestore.get({
+                        collection: 'tx_ui',
+                        limit,
+                        orderBy: [orderBy_, order]
+                    });
+                } else {
+                    console.log('not same', field, orderBy_);
+                    dataDocs = await firestore.get({
+                        collection: 'tx_ui',
+                        limit,
+                        where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
+                        orderBy: [orderBy_, order]
+                    });
+                }
+            }
 
             if (isSubscribed) {
                 console.log("CHECK2", dataDocs.size, limit);
-                if (dataDocs.size < limit) {
-                    setAllDone(true);
-                    setIsLoading(false);
-                }
-
-                //setTxWatch([...dataDocs.docs.map(x => {
-                 //   return { id: x.id, ...x.data() }
-                //})]);
-                setIsLoading(false);
+                if (dataDocs.size < limit) setAllDone(true);
             }
         }
 
         // call the function
-        if (!allDone) {
+        if (!allDone && !haveHash) {
             setIsLoading(true);
             fetchData()
                 // make sure to catch any error
                 .catch(console.error);
-        } else console.log("ALL DATA RETRIEVED", txWatch.length);
+        } else if (!haveHash) {
+            console.log("ALL DATA RETRIEVED", txWatch.length);
+            setIsLoading(false);
+        }
 
         // cancel any future `setData`
         return () => isSubscribed = false;
@@ -394,46 +400,76 @@ function EnhancedTable(props) {
                     setPage(0);
                 }
             }
-            else if (action === '') {
-                if (tx.type === 'Trade') {
-                    if (!(tx.data.sale_hash === '' && tx.data.purchase_hash === '')) continue;
-                }
-                temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            }
-            else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            else if (action === tx.type) {
-                if (action === 'Trade') {
-                    if (tx.data.sale_hash === '' && tx.data.purchase_hash === '') {
-                        temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                    }
-                } else {
+            else if (tx.type !== 'Trade') {
+                if (action === '') {
                     temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                 }
-            } else if (action === 'Feeds') {
-                if (tx.type === 'Purchase' && tx.data.section === 'FEEDS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            } else if (action === 'Pay Purity') {
-                if (tx.type === 'Purchase' && tx.data.section === 'PPURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            } else if (action === 'Thika Farmers') {
-                if (tx.type === 'Sale' && tx.data.section === 'THIKAFARMERS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            } else if (action === 'Cakes') {
-                if (tx.type === 'Sale' && tx.data.section === 'CAKES') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            } else if (action === 'Duka') {
-                if (tx.type === 'Sale' && tx.data.section === 'DUKA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            } else if (action === 'Other Sales') {
-                if (tx.type === 'Sale' && tx.data.section === 'SOTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-            } else if (action === 'Other Purchases') {
-                if (tx.type === 'Purchase' && tx.data.section === 'POTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                else if (action === tx.type) {
+                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                }
+                else if (action === 'Feeds') {
+                    if (tx.type === 'Purchase' && tx.data.section === 'FEEDS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                }
+                else if (action === 'Pay Purity') {
+                    if (tx.type === 'Purchase' && tx.data.section === 'PPURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                }
+                else if (action === 'Thika Farmers') {
+                    if (tx.type === 'Sale' && tx.data.section === 'THIKAFARMERS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                }
+                else if (action === 'Cakes') {
+                    if (tx.type === 'Sale' && tx.data.section === 'CAKES') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                } else if (action === 'Duka') {
+                    if (tx.type === 'Sale' && tx.data.section === 'DUKA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                }
+                else if (action === 'Other Sales') {
+                    if (tx.type === 'Sale' && tx.data.section === 'SOTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                } else if (action === 'Other Purchases') {
+                    if (tx.type === 'Purchase' && tx.data.section === 'POTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                }
+            }
+            else if (tx.type === 'Trade') {
+                if (tx.data.sale_hash === '' && tx.data.purchase_hash === '') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
             }
         }
         setTxs(local_txs);
         setRows(temp);
 
     }, [to_use, hash, txWatch]);
-    //console.log(rows.length);
-    //console.log("TXWATCH", txWatch);
+
+    useMemo(() => {
+        setAllDone(false);
+
+        // eslint-disable-next-line
+    }, [to_use]);
+
+    /*useMemo(() => {
+        let isSubscribed = true;
+
+        const fetchHash = async () => {
+            // get the data
+            console.log("Hash", hash)
+            const dataDocs = await firestore.get({ collection: 'tx_ui', where: ['hash', '==', hash] });
+            if (dataDocs.size === 1) setHaveHash(true);
+
+            // set state with the result if `isSubscribed` is true
+            if(isSubscribed) {
+                if (dataDocs.size === 0) console.log("hash not found", hash);
+                if (dataDocs.size === 1) setHaveHash(true);
+            }
+        }
+        const is_valid_hash = /^[a-f0-9]{5}$/.test(hash);
+
+        //if (is_valid_hash && !haveHash) fetchHash().catch(console.error);
+
+        return () => isSubscribed = false;
+
+        // eslint-disable-next-line
+    }, [hash]); */
+
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -471,6 +507,7 @@ function EnhancedTable(props) {
     };
 
     const handleChangePage = (event, newPage) => {
+        console.log("page prev", page, newPage);
         setPage((rows.length / rowsPerPage) > 1 ? newPage : page);
     };
 
