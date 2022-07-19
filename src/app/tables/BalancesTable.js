@@ -264,7 +264,6 @@ function EnhancedTable(props) {
             // get the data
             const dataDocsFrom = await firestore.get({ collection: 'tx_ui', where: [['type', '==', 'Trade'], ['data.from', '==', to_use.toUpperCase()]] });
             const dataDocsTo = await firestore.get({ collection: 'tx_ui', where: [['type', '==', 'Trade'], ['data.to', '==', to_use.toUpperCase()]] });
-            console.log("got", to_use);
 
             // set state with the result if `isSubscribed` is true
             if(isSubscribed) {
@@ -289,8 +288,6 @@ function EnhancedTable(props) {
 
         // eslint-disable-next-line
     }, [to_use]);
-
-    console.log(to_use, txWatch);
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';

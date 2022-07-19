@@ -318,7 +318,6 @@ function EnhancedTable(props) {
         // eslint-disable-next-line
     }, [rowsPerPage, rows, page, to_use]);
 
-
     useEffect(() => {
         let isSubscribed = true;
 
@@ -449,36 +448,11 @@ function EnhancedTable(props) {
         // eslint-disable-next-line
     }, [to_use]);
 
-    /*useMemo(() => {
-        let isSubscribed = true;
-
-        const fetchHash = async () => {
-            // get the data
-            console.log("Hash", hash)
-            const dataDocs = await firestore.get({ collection: 'tx_ui', where: ['hash', '==', hash] });
-            if (dataDocs.size === 1) setHaveHash(true);
-
-            // set state with the result if `isSubscribed` is true
-            if(isSubscribed) {
-                if (dataDocs.size === 0) console.log("hash not found", hash);
-                if (dataDocs.size === 1) setHaveHash(true);
-            }
-        }
-        const is_valid_hash = /^[a-f0-9]{5}$/.test(hash);
-
-        //if (is_valid_hash && !haveHash) fetchHash().catch(console.error);
-
-        return () => isSubscribed = false;
-
-        // eslint-disable-next-line
-    }, [hash]); */
-
     useMemo(() => {
         setPage(Math.floor(rows.length / rowsPerPage) < page ? Math.floor(rows.length / rowsPerPage) : page);
 
         // eslint-disable-next-line
     }, [rows.length]);
-
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -616,6 +590,7 @@ function EnhancedTable(props) {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
+                    showFirstButton={true}
                     count={rows.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
