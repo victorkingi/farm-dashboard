@@ -252,17 +252,20 @@ function EnhancedTable(props) {
 
     useEffect(() => {
         let isSubscribed = true;
+        const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
+        console.log("ORDER", is_valid_hash);
 
         // declare the async data fetching function
         const fetchData = async (num) => {
             const limit = num+txWatch.length;
 
             // get the data
-            console.log("NAME", to_use)
-            console.log([getFieldName(to_use)[0], '==', getFieldName(to_use)[1]], [orderBy_, order])
             let dataDocs;
-            if (to_use === '') dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
-            else {
+            if (is_valid_hash) {
+                dataDocs = await firestore.get({collection: 'tx_ui', where: ['hash', '==', hash]});
+            } else if (to_use === '') {
+                dataDocs = await firestore.get({collection: 'tx_ui', limit, orderBy: [orderBy_, order]});
+            } else {
                 const field = getFieldName(to_use)[0];
                 if (field === orderBy_) {
                     console.log('same rows', field);
@@ -285,30 +288,42 @@ function EnhancedTable(props) {
             // set state with the result if `isSubscribed` is true
             if(isSubscribed) {
                 console.log("check1", dataDocs.size, limit);
-                if (dataDocs.size < limit) setAllDone(true);
+                if (is_valid_hash) setAllDone(true);
+                else if (dataDocs.size < limit) setAllDone(true);
             }
         }
 
         // call the function
-        console.log("diff", rows.length, rowsPerPage)
-        if ((rows.length <= rowsPerPage && !allDone) || indexerChanged) {
-            //console.log("ROWS", rows.length, rowsPerPage);
+        //console.log("diff", rows.length, rowsPerPage)
+        console.log(is_valid_hash, allDone);
+        if (is_valid_hash && !allDone) {
+            console.log("hash ok");
+            if (tx_ui.length === 1 && tx_ui[0].id === hash) {
+                setAllDone(true);
+                setIsLoading(false);
+                return;
+            }
+            setIsLoading(true);
+            fetchData()
+                .catch(console.error);
+
+        } else if ((rows.length <= rowsPerPage && !allDone) || indexerChanged) {
             setIsLoading(true);
             setIndexerChanged(false);
             fetchData((rowsPerPage-rows.length)+1)
-                // make sure to catch any error
                 .catch(console.error);
+
         } else if (rows.length <= ((page+1)*rowsPerPage) && !allDone) {
-            console.log("page call", page, rows.length, (page+1)*rowsPerPage, txWatch);
             setIsLoading(true);
             fetchData(((page+1)*rowsPerPage-rows.length)+1)
-                // make sure to catch any error
                 .catch(console.error);
+
         } else if (allDone) {
             console.log("ALL DATA RETRIEVED", txWatch.length);
             setIsLoading(false);
+
         } else {
-            console.log("OK");
+            //console.log("OK");
             setIsLoading(false);
         }
 
@@ -316,10 +331,12 @@ function EnhancedTable(props) {
         return () => isSubscribed = false;
 
         // eslint-disable-next-line
-    }, [rowsPerPage, rows, page, to_use]);
+    }, [rowsPerPage, rows, page, to_use, hash]);
 
     useEffect(() => {
         let isSubscribed = true;
+        const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
+        console.log("ORDER", is_valid_hash);
 
         // declare the async data fetching function
         const fetchData = async () => {
@@ -327,7 +344,6 @@ function EnhancedTable(props) {
             const limit = txWatch.length;
 
             // get the data
-            console.log("NAME order", to_use)
             let dataDocs;
             if (to_use === '') dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
             else {
@@ -357,7 +373,11 @@ function EnhancedTable(props) {
         }
 
         // call the function
-        if (!allDone) {
+        if (is_valid_hash) {
+            console.log("order while hash is true");
+            setIsLoading(false);
+            return;
+        } else if (!allDone) {
             setIsLoading(true);
             fetchData()
                 // make sure to catch any error
@@ -387,7 +407,7 @@ function EnhancedTable(props) {
         } else {
             action = to_use
         }
-        const is_valid_hash = /^[a-f0-9]{5}$/.test(hash);
+        const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
 
         for(let tx of Object.entries(txWatch)) {
             tx = tx[1];
@@ -396,7 +416,7 @@ function EnhancedTable(props) {
                 [tx.hash]: tx
             };
             if (is_valid_hash) {
-                if (tx.hash.slice(0, 5) === hash) {
+                if (tx.hash === hash) {
                     temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                     setPage(0);
                 }
@@ -447,6 +467,12 @@ function EnhancedTable(props) {
 
         // eslint-disable-next-line
     }, [to_use]);
+
+    useMemo(() => {
+        setAllDone(false);
+
+        // eslint-disable-next-line
+    }, [hash]);
 
     useMemo(() => {
         setPage(Math.floor(rows.length / rowsPerPage) < page ? Math.floor(rows.length / rowsPerPage) : page);
@@ -614,8 +640,6 @@ function EnhancedTable(props) {
                                 <React.Fragment>
                                     <CardContent>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            Eggs: {item.slice(0, 5)}
-                                            <br />
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
@@ -645,6 +669,9 @@ function EnhancedTable(props) {
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            id: {item}
+                                        </Typography>
                                     </CardContent>
                                 </React.Fragment>
                             </Card>
@@ -659,8 +686,6 @@ function EnhancedTable(props) {
                                 <React.Fragment>
                                     <CardContent>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            Trade: {item.slice(0, 5)}
-                                            <br />
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
@@ -681,6 +706,9 @@ function EnhancedTable(props) {
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            id: {item}
+                                        </Typography>
                                     </CardContent>
                                 </React.Fragment>
                             </Card>
@@ -695,8 +723,6 @@ function EnhancedTable(props) {
                                 <React.Fragment>
                                     <CardContent>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            Sale: {item.slice(0, 5)}
-                                            <br />
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
@@ -710,6 +736,9 @@ function EnhancedTable(props) {
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            id: {item}
                                         </Typography>
                                     </CardContent>
                                 </React.Fragment>
@@ -725,8 +754,6 @@ function EnhancedTable(props) {
                                 <React.Fragment>
                                     <CardContent>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            Purchase: {item.slice(0, 5)}
-                                            <br />
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
@@ -740,6 +767,9 @@ function EnhancedTable(props) {
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            id: {item}
                                         </Typography>
                                     </CardContent>
                                 </React.Fragment>
@@ -755,7 +785,7 @@ function EnhancedTable(props) {
                                 <React.Fragment>
                                     <CardContent>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            {txs[item].data.section.toLowerCase()}: {item.slice(0, 5)}
+                                            {txs[item].data.section.toLowerCase()}
                                             <br />
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
@@ -772,6 +802,9 @@ function EnhancedTable(props) {
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            id: {item}
                                         </Typography>
                                     </CardContent>
                                 </React.Fragment>

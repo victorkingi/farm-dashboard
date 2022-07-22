@@ -99,7 +99,7 @@ const headCells = [
         id: 'hash',
         numeric: true,
         disablePadding: false,
-        label: 'Hash',
+        label: 'i.d',
     },
 ];
 
@@ -432,15 +432,13 @@ function EnhancedTable(props) {
                 label="Dense padding"
             />
             {selected.map((item) => {
-                const prevValues = txs[item].data.prev_values;
+                const prevValues = txs[item]?.data?.prev_values;
                 return (
                     <div key={item}>
                         <Card variant="outlined">
                             <React.Fragment>
                                 <CardContent>
                                     <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                        Trade: {item.slice(0, 5)}
-                                        <br />
                                         Date: {txs[item].data.date.locale.slice(0,20)}
                                     </Typography>
                                     <Typography variant="h5" component="div">
@@ -460,6 +458,16 @@ function EnhancedTable(props) {
                                     </Typography>
                                     <Typography variant="body2">
                                         Submitted by {txs[item].data.by.toLowerCase()}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                        {txs[item].data.sale_hash === '' &&  txs[item].data.purchase_hash === '' ? `id: ${item}`
+                                            : (
+                                            <span>
+                                                id: {item}
+                                                <br />
+                                                {txs[item].data.sale_hash !== '' ? `sale id: ${txs[item].data.sale_hash}` : `purchase id: ${txs[item].data.purchase_hash}`}
+                                            </span>
+                                            )}
                                     </Typography>
                                 </CardContent>
                             </React.Fragment>

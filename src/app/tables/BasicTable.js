@@ -52,7 +52,7 @@ function BasicTable() {
                               </DropdownButton>
                           </Form.Group>
                           <Form.Group>
-                              <label htmlFor='hash'>Input specific id (5 digit code)</label>
+                              <label htmlFor='hash'>Input specific id (64 digit code)</label>
                               <Form.Control
                                   type='text'
                                   onChange={handleHashChange}
@@ -60,7 +60,6 @@ function BasicTable() {
                                   id='hash'
                                   placeholder='Input id'
                                   value={hash}
-                                  disabled={true}
                               />
                           </Form.Group>
                       </form>
