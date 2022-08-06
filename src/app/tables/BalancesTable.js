@@ -29,6 +29,8 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import { BrowserView, MobileView } from 'react-device-detect';
+
 
 function createData(name, date, subm, status, hash) {
     return {
@@ -416,15 +418,30 @@ function EnhancedTable(props) {
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+                <BrowserView>
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25]}
+                        component="div"
+                        showFirstButton={true}
+                        count={rows.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
+                </BrowserView>
+                <MobileView>
+                    <TablePagination
+                        rowsPerPageOptions={[]}
+                        component="div"
+                        showFirstButton={true}
+                        count={rows.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
+                </MobileView>
                 { isLoading && <LinearProgress color="secondary"/> }
             </Paper>
             <FormControlLabel
@@ -432,49 +449,65 @@ function EnhancedTable(props) {
                 label="Dense padding"
             />
             {selected.map((item) => {
-                const prevValues = txs[item]?.data?.prev_values;
-                return (
-                    <div key={item}>
-                        <Card variant="outlined">
-                            <React.Fragment>
-                                <CardContent>
-                                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                        Date: {txs[item].data.date.locale.slice(0,20)}
-                                    </Typography>
-                                    <Typography variant="h5" component="div">
-                                        {txs[item].data.sale_hash === '' &&  txs[item].data.purchase_hash === '' ? 'Physical Trade' : `Tied to the ${txs[item].data.sale_hash !== '' ? `sale at ${txs[item].data.sale_hash.slice(0, 5)}` : `purchase at ${txs[item].data.purchase_hash.slice(0, 5)}`}`}
-                                    </Typography>
-                                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                        From: {txs[item].data.from.toLowerCase()}
-                                        <br />
-                                        To: {txs[item].data.to.toLowerCase()}
-                                        <br />
-                                        Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
-                                        <br />
-                                        {txs[item].data.reason !== '' && txs[item].data.reason.toLowerCase()}
-                                    </Typography>
-                                    <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                        {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
-                                    </Typography>
-                                    <Typography variant="body2">
-                                        Submitted by {txs[item].data.by.toLowerCase()}
-                                    </Typography>
-                                    <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                        {txs[item].data.sale_hash === '' &&  txs[item].data.purchase_hash === '' ? `id: ${item}`
-                                            : (
-                                            <span>
-                                                id: {item}
-                                                <br />
-                                                {txs[item].data.sale_hash !== '' ? `sale id: ${txs[item].data.sale_hash}` : `purchase id: ${txs[item].data.purchase_hash}`}
+                if (txs[item]?.data) {
+                    const prevValues = txs[item].data.prev_values;
+                    return (
+                        <div key={item}>
+                            <Card variant="outlined">
+                                <React.Fragment>
+                                    <CardContent>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            Date: {txs[item].data.date.locale.slice(0,20)}
+                                        </Typography>
+                                        <Typography variant="h5" component="div">
+                                            {txs[item].data.sale_hash === '' &&  txs[item].data.purchase_hash === '' ? 'Physical Trade' : `Tied to the ${txs[item].data.sale_hash !== '' ? `sale at ${txs[item].data.sale_hash.slice(0, 5)}` : `purchase at ${txs[item].data.purchase_hash.slice(0, 5)}`}`}
+                                        </Typography>
+                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                            From: {txs[item].data.from.toLowerCase()}
+                                            <br />
+                                            To: {txs[item].data.to.toLowerCase()}
+                                            <br />
+                                            Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
+                                            <br />
+                                            {txs[item].data.reason !== '' && txs[item].data.reason.toLowerCase()}
+                                        </Typography>
+                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                        </Typography>
+                                        <Typography variant="body2">
+                                            Submitted by {txs[item].data.by.toLowerCase()}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                                            {txs[item].data.sale_hash === '' &&  txs[item].data.purchase_hash === '' ? (
+                                                <span>
+                                                    id: {item.slice(0, 32)}<br />{item.slice(32)}
+                                                </span>
+                                            ) : (
+                                                <span>
+                                                id: {item.slice(0, 32)}<br />
+                                                    {item.slice(32)}
+                                                    <br />
+                                                    {txs[item].data.sale_hash !== '' ? (
+                                                        <span>
+                                                            sale id: {txs[item].data.sale_hash.slice(0, 32)}<br />{txs[item].data.sale_hash.slice(32)}
+                                                        </span>
+                                                    ) : (
+                                                        <span>
+                                                            purchase id: {txs[item].data.purchase_hash.slice(0, 32)}<br />{txs[item].data.purchase_hash.slice(32)}
+                                                        </span>
+                                                    )}
                                             </span>
                                             )}
-                                    </Typography>
-                                </CardContent>
-                            </React.Fragment>
-                        </Card>
-                        <br />
-                    </div>
-                )
+                                        </Typography>
+                                    </CardContent>
+                                </React.Fragment>
+                            </Card>
+                            <br />
+                        </div>
+                    )
+                } else {
+                    return <div />
+                }
             })}
         </Box>
     );

@@ -29,6 +29,8 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { visuallyHidden } from '@mui/utils';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import { BrowserView, MobileView } from 'react-device-detect';
+
 
 function createData(name, date, subm, status, hash) {
     return {
@@ -613,16 +615,30 @@ function EnhancedTable(props) {
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    showFirstButton={true}
-                    count={rows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
+                <BrowserView>
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25]}
+                        component="div"
+                        showFirstButton={true}
+                        count={rows.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
+                </BrowserView>
+                <MobileView>
+                    <TablePagination
+                        rowsPerPageOptions={[]}
+                        component="div"
+                        showFirstButton={true}
+                        count={rows.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                    />
+                </MobileView>
                 { isLoading && <LinearProgress color="secondary"/> }
             </Paper>
             <FormControlLabel
@@ -670,7 +686,8 @@ function EnhancedTable(props) {
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            id: {item}
+                                            id: {item.slice(0, 32)}<br />
+                                            {item.slice(32)}
                                         </Typography>
                                     </CardContent>
                                 </React.Fragment>
@@ -707,7 +724,8 @@ function EnhancedTable(props) {
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            id: {item}
+                                            id: {item.slice(0, 32)}<br />
+                                            {item.slice(32)}
                                         </Typography>
                                     </CardContent>
                                 </React.Fragment>
@@ -738,7 +756,8 @@ function EnhancedTable(props) {
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            id: {item}
+                                            id: {item.slice(0, 32)}<br />
+                                            {item.slice(32)}
                                         </Typography>
                                     </CardContent>
                                 </React.Fragment>
@@ -769,7 +788,8 @@ function EnhancedTable(props) {
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            id: {item}
+                                            id: {item.slice(0, 32)}<br />
+                                            {item.slice(32)}
                                         </Typography>
                                     </CardContent>
                                 </React.Fragment>
@@ -804,7 +824,8 @@ function EnhancedTable(props) {
                                             Submitted by {txs[item].data.by.toLowerCase()}
                                         </Typography>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            id: {item}
+                                            id: {item.slice(0, 32)}<br />
+                                            {item.slice(32)}
                                         </Typography>
                                     </CardContent>
                                 </React.Fragment>
