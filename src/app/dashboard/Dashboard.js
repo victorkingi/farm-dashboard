@@ -457,33 +457,33 @@ function Dashboard(props) {
                    <table className="table">
                      <thead>
                      <tr>
-                       <th>
-                         <div className="form-check form-check-muted m-0">
-                           <label className="form-check-label">
-                             <input
-                                 disabled={disable}
-                                 type="checkbox"
-                                 className="form-check-input"
-                                 defaultValue={0}
-                                 onChange={() => {
-                                   setAllChecked(!allChecked);
-                                   addAllEntries(!allChecked);
-                                 }}
-                                 checked={allChecked}
-                                 id="pending"
-                                 name="pending"
-                             />
-                             <i className="input-helper"/>
-                           </label>
-                         </div>
-                       </th>
-                       <th> Transaction State </th>
-                       <th> From </th>
-                       <th> To </th>
-                       <th> Amount </th>
-                       <th> Category </th>
-                       <th> Section </th>
-                       <th> Date </th>
+                         <th>
+                             <div className="form-check form-check-muted m-0">
+                               <label className="form-check-label">
+                                 <input
+                                     disabled={disable}
+                                     type="checkbox"
+                                     className="form-check-input"
+                                     defaultValue={0}
+                                     onChange={() => {
+                                       setAllChecked(!allChecked);
+                                       addAllEntries(!allChecked);
+                                     }}
+                                     checked={allChecked}
+                                     id="pending"
+                                     name="pending"
+                                 />
+                                 <i className="input-helper"/>
+                               </label>
+                             </div>
+                         </th>
+                         <th> Date </th>
+                         <th> Transaction State </th>
+                         <th> From </th>
+                         <th> To </th>
+                         <th> Amount </th>
+                         <th> Category </th>
+                         <th> Section </th>
                      </tr>
                      </thead>
                      <tbody>
@@ -510,6 +510,7 @@ function Dashboard(props) {
                                              </label>
                                          </div>
                                      </td>
+                                     <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                      <td>
                                          {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
                                          {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
@@ -526,7 +527,6 @@ function Dashboard(props) {
                                      <td />
                                      <td />
                                      <td />
-                                     <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                  </tr>
                              )
                          }
@@ -616,15 +616,15 @@ function Dashboard(props) {
 
 const mapStateToProps = function(state) {
   return {
-    dashboard: state.firestore.ordered.dashboard_data,
-    pend: state.firestore.ordered.pending_transactions,
+      dashboard: state.firestore.ordered.dashboard_data,
+      pend: state.firestore.ordered.pending_transactions
   }
 }
 
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-      {collection: 'dashboard_data'},
-      {collection: 'pending_transactions' },
+        {collection: 'dashboard_data'},
+        {collection: 'pending_transactions' }
     ])
 )(Dashboard);

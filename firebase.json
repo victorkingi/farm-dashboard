@@ -10,7 +10,7 @@
   },
   "hosting": {
     "public": "build",
-    "target": "poultryfarm.web.app",
+    "target": "poultryfarm1.web.app",
     "ignore": [
       "firebase.json",
       "**/.*",

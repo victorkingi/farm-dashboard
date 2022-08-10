@@ -124,7 +124,7 @@ function Login(props) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
-    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
+    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$?%^&*])(?=.{8,})/;
 
     if (!emailRegex.test(state.email)) {
       setError('Invalid email format');
@@ -158,9 +158,8 @@ function Login(props) {
             });
           })
           .catch((err) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            let errorM = errorCode && errorMessage ? `${errorCode}: ${errorMessage}` : `Login failed: probably incorrect password`;
+            const errorMessage = err.message;
+            let errorM = errorMessage.slice(0, errorMessage.length-1);
             props.signIn(null, err);
             submit.style.display = 'block';
             load.style.display = 'none';

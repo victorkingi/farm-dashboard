@@ -88,7 +88,7 @@ registerRoute(
 
 registerRoute(
     ({url}) => url.origin === 'https://firebasestorage.googleapis.com' &&
-        url.pathname.startsWith('/v0/b/poultry101-6b1ed.appspot.com/o/'),
+        url.pathname.startsWith('/v0/b/poultry101-f1fa0.appspot.com/o/'),
     new CacheFirst({
         cacheName: 'store-cache',
         plugins: [

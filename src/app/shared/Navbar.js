@@ -84,7 +84,7 @@ function Navbar(props) {
           }
 
           const uploadFile = () => {
-            const uploadImagesRef = storageRef.child(`dead_sick/${key.substring(5)}`);
+            const uploadImagesRef = storageRef.child(`dead_sick/${key}`);
             const metadata = {
               contentType: `image/${getExt(key.substring(5))}`
             }
@@ -155,66 +155,64 @@ function Navbar(props) {
                     default:
                   }
                 },
-                () => {
-                  uploadTask.snapshot.ref.getDownloadURL().then( url => {
-                    console.log('done')
-                    firestore.get({ collection: 'pending_upload', where: ['file_name', '==', key] }).then( query => {
-                      if (query.size === 0) {
-                        setOpen(false);
-                        setError("Uploaded file doesn't have a doc");
-                        setOpenError(true);
+                async () => {
+                  const url = await uploadTask.snapshot.ref.getDownloadURL();
+                  console.log('done')
+                  const query = await firestore.get({ collection: 'pending_upload', where: ['file_name', '==', key] });
+                  if (query.size === 0) {
+                    setOpen(false);
+                    setError("Uploaded file doesn't have a doc");
+                    setOpenError(true);
 
-                        const index = uploadLock.indexOf(key);
-                        if (index === -1) {
-                          console.log("Unknown entry being deleted");
-                          return;
-                        }
-                        uploadLock.splice(index, 1);
-                        return;
+                    const index = uploadLock.indexOf(key);
+                    if (index === -1) {
+                      console.log("Unknown entry being deleted");
+                      return;
+                    }
+                    uploadLock.splice(index, 1);
+                    return;
+                  }
+                  else if (query.size > 1) {
+                    setOpen(false);
+                    setError("More than one match: " + query.size + " found");
+                    setOpenError(true);
 
-                      } else if (query.size > 1) {
-                        setOpen(false);
-                        setError("More than one match: " + query.size + " found");
-                        setOpenError(true);
+                    const index = uploadLock.indexOf(key);
+                    if (index === -1) {
+                      console.log("Unknown entry being deleted");
+                      return;
+                    }
+                    uploadLock.splice(index, 1);
+                    return;
+                  }
+                  for (const doc of query.docs) {
+                    await doc.ref.update({ url });
+                    const myDocQuery = await firestore.get({ collection: 'pending_upload', id: doc.id })
+                    myDocQuery.forEach(doc_ => {
+                      // delete local doc
+                      db.collection('dead_sick').doc({file_name: key}).delete();
 
-                        const index = uploadLock.indexOf(key);
-                        if (index === -1) {
-                          console.log("Unknown entry being deleted");
-                          return;
-                        }
-                        uploadLock.splice(index, 1);
+                      // add cloud doc
+                      const to_add = doc_.data();
+                      delete to_add.photo;
+                      firestore.add({ collection: 'pending_transactions' }, to_add);
+
+                      // delete temp cloud doc
+                      doc.ref.delete();
+
+                      setOpenError(false);
+                      let imageName = key;
+                      if (key.length > 10) imageName = imageName.substring(5, 10) + '...' + imageName.substr(-4);
+                      setSuccess(`Image ${imageName} uploaded`);
+                      setOpen(true);
+                      const index = uploadLock.indexOf(key);
+                      if (index === -1) {
+                        console.log("Unknown entry being deleted");
                         return;
                       }
-                      query.forEach( doc => {
-                        doc.ref.update({
-                          url
-                        }).then(() => {
-                          // delete local doc
-                          db.collection('dead_sick').doc({file_name: key}).delete();
-
-                          // add cloud doc
-                          const to_add = doc.data();
-                          delete to_add.photo;
-                          firestore.add({ collection: 'pending_transactions' }, to_add);
-
-                          // delete temp cloud doc
-                          doc.ref.delete();
-
-                          setOpenError(false);
-                          let imageName = key;
-                          if (key.length > 10) imageName = imageName.substring(5, 10) + '...' + imageName.substr(-4);
-                          setSuccess(`Image ${imageName} uploaded`);
-                          setOpen(true);
-                          const index = uploadLock.indexOf(key);
-                          if (index === -1) {
-                            console.log("Unknown entry being deleted");
-                            return;
-                          }
-                          uploadLock.splice(index, 1);
-                        });
-                      });
-                    })
-                  })
+                      uploadLock.splice(index, 1);
+                    });
+                  }
                 });
           }
           uploadFile();
@@ -254,7 +252,7 @@ function Navbar(props) {
     return (
       <nav className="navbar p-0 fixed-top d-flex flex-row">
         <div className="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
-          <Link className="navbar-brand brand-logo-mini"  to="/"><img src={"https://firebasestorage.googleapis.com/v0/b/poultry101-6b1ed.appspot.com/o/logo256.png?alt=media&token=25b09b36-23e6-4c62-9207-667d99541df4"} alt="logo" /></Link>
+          <Link className="navbar-brand brand-logo-mini"  to="/"><img src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/logo256.png?alt=media&token=6fb3850c-2e33-46ed-bc2b-4b63d83fee72"} alt="logo" /></Link>
         </div>
         <div className="navbar-menu-wrapper flex-grow d-flex align-items-stretch">
           <button className="navbar-dark align-self-center" type="button" onClick={ () => window.location.reload() }>
@@ -329,7 +327,7 @@ function Navbar(props) {
             <Dropdown alignRight as="li" className="nav-item">
               <Dropdown.Toggle as="a" className="nav-link cursor-pointer no-caret">
                 <div className="navbar-profile">
-                  <img className="img-xs rounded-circle" src={"https://firebasestorage.googleapis.com/v0/b/poultry101-6b1ed.appspot.com/o/user.png?alt=media&token=e9a7afc0-27d9-4285-8e34-7b530b141c42"} alt="profile" />
+                  <img className="img-xs rounded-circle" src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/user.png?alt=media&token=0814728c-7abc-4794-8c77-8dba329568b6"} alt="profile" />
                   <p className="mb-0 d-none d-sm-block navbar-profile-name">Hi, {user.__name}</p>
                   <i className="mdi mdi-menu-down d-none d-sm-block"/>
                 </div>
