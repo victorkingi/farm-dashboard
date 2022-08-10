@@ -255,7 +255,6 @@ function EnhancedTable(props) {
     useEffect(() => {
         let isSubscribed = true;
         const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
-        console.log("ORDER", is_valid_hash);
 
         // declare the async data fetching function
         const fetchData = async (num) => {
@@ -297,7 +296,6 @@ function EnhancedTable(props) {
 
         // call the function
         //console.log("diff", rows.length, rowsPerPage)
-        console.log(is_valid_hash, allDone);
         if (is_valid_hash && !allDone) {
             console.log("hash ok");
             if (tx_ui.length === 1 && tx_ui[0].id === hash) {
@@ -310,12 +308,14 @@ function EnhancedTable(props) {
                 .catch(console.error);
 
         } else if ((rows.length <= rowsPerPage && !allDone) || indexerChanged) {
+            console.log('row change');
             setIsLoading(true);
             setIndexerChanged(false);
             fetchData((rowsPerPage-rows.length)+1)
                 .catch(console.error);
 
         } else if (rows.length <= ((page+1)*rowsPerPage) && !allDone) {
+            console.log('page change');
             setIsLoading(true);
             fetchData(((page+1)*rowsPerPage-rows.length)+1)
                 .catch(console.error);
@@ -338,11 +338,10 @@ function EnhancedTable(props) {
     useEffect(() => {
         let isSubscribed = true;
         const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
-        console.log("ORDER", is_valid_hash);
 
         // declare the async data fetching function
         const fetchData = async () => {
-            if (txWatch.length <= 6) return;
+            if (txWatch.length <= 6 && orderBy === 'date' && order === 'desc') return;
             const limit = txWatch.length;
 
             // get the data
@@ -569,6 +568,15 @@ function EnhancedTable(props) {
                                 .map((row, index) => {
                                     const isItemSelected = isSelected(row.hash);
                                     const labelId = `enhanced-table-checkbox-${index}`;
+                                    const data = txs[row.hash]?.data;
+                                    const by = data.by.toLowerCase();
+                                    const toPrint = row.name === 'Eggs Collected' ? `(${by}) trays ${data.trays_collected}`
+                                        : row.name === 'Dead or Sick'
+                                            ? `(${by}) ${numeral(data.number).format(',')} ${data.section.toLowerCase()}`
+                                            : row.name === 'Sale' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.tray_no).format(',')}@${numeral(data.tray_price).format(',')}`
+                                                : row.name === 'Purchase' ? `(${by}) ${data.item_name.toLowerCase()} ${numeral(data.item_no).format(',')}@${numeral(data.item_price).format(',')}`
+                                                    : row.name === 'Trade' ? `from ${data.from.toLowerCase()} to ${data.to.toLowerCase()}` : '';
+
                                     return (
                                         <TableRow
                                             hover
@@ -594,7 +602,7 @@ function EnhancedTable(props) {
                                                 scope="row"
                                                 padding="none"
                                             >
-                                                {row.name}
+                                                {row.name} {toPrint}
                                             </TableCell>
                                             <TableCell align="right">{moment.unix(row.date).format("ddd ll")}</TableCell>
                                             <TableCell align="right">{moment.unix(row.subm).format("ddd ll")}</TableCell>
@@ -849,6 +857,6 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'], limit: 6 }
+        { collection: 'tx_ui', orderBy: ['date.unix', 'desc'], limit: 6 }
     ])
 )(EnhancedTable);
