@@ -14,13 +14,18 @@ import { Offline, Online } from 'react-detect-offline';
 import { firebase } from '../../services/api/fbConfig';
 import Predictionary from 'predictionary';
 import ed from 'edit-distance';
+import  SHA256 from 'crypto-js/sha256';
+import MerkleTree from 'merkletreejs';
+import Localbase from "localbase";
+
+const skip = ['THIKAFARMERS', 'CAKES', 'DUKA'];
+
 
 function autoCorrectBuyerName(values) {
   let insert, remove, update;
   insert = remove = () => { return 1; };
   update = (stringA, stringB) => { return stringA !== stringB ? 1 : 0; };
   let predictionary = Predictionary.instance();
-  const skip = ['THIKAFARMERS', 'CAKES', 'DUKA'];
   const chosen = [
     'Eton',
     "Sang'",
@@ -71,6 +76,7 @@ function InputSell(props) {
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
   const [openWarn, setOpenWarn] = useState(false);
+  const [warnMsg, setWarnMsg] = useState('');
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [defPaid, setDefPaid] = useState(false);
@@ -194,8 +200,10 @@ function InputSell(props) {
     let proceed = parameterChecks(values);
     if (proceed) {
       const returned = autoCorrectBuyerName(values);
+      console.log("returned", returned, values.buyerName);
       if (typeof returned === 'string') {
-        if (returned !== values.buyerName) {
+        if (skip.includes(returned)) values.buyerName = returned;
+        if (returned.toLowerCase() !== values.buyerName.toLowerCase()) {
           setState({
             ...state,
             prevBuyer: values.buyerName,
@@ -204,20 +212,44 @@ function InputSell(props) {
           values.prevBuyer = values.buyerName;
           values.buyerName = returned;
           setOpenError(false);
+          setWarnMsg(`Autocorrected buyer name from ${state.prevBuyer} to ${state.buyerName}`);
           setOpenWarn(true);
           await new Promise(r => setTimeout(r, 4000));
         }
         values.buyerName = values.buyerName.toUpperCase();
-        props.inputSell(values, false);
-        setOpenError(false);
-        setOpenWarn(false);
-        setOpen(true);
+
+        const db = new Localbase('ver_data');
+        db.collection('hashes').doc({ id: 1 }).get().then(document => {
+          const leaves = document.hashes;
+          const tree = new MerkleTree(leaves, SHA256);
+          const root = tree.getRoot().toString('hex');
+          const leaf = SHA256(`${values.trayNo}${values.buyerName.toUpperCase()}${values.date.getTime() / 1000}${values.section.toUpperCase()}`).toString();
+          console.log(`${values.trayNo}${values.buyerName.toUpperCase()}${values.date.getTime() / 1000}${values.section.toUpperCase()}`)
+          console.log(leaf);
+          const proof = tree.getProof(leaf);
+          const isAvail = tree.verify(proof, leaf, root);
+          console.log(isAvail);
+          if(isAvail) {
+            setWarnMsg('Entry already exists but will be replaced');
+            setOpenError(false);
+            setOpen(false);
+            setOpenWarn(true);
+            props.inputSell(values);
+          } else {
+            props.inputSell(values);
+            setOpenError(false);
+            setOpenWarn(false);
+            setOpen(true);
+          }
+        });
       } else {
-        props.inputSell(values, true);
         setError('Buyer not recognized');
         setOpenError(true);
       }
     }
+    const cleanState = state;
+    delete cleanState.prevBuyer;
+    setState(cleanState);
   };
 
   const handleDate = (date) => {
@@ -233,6 +265,7 @@ function InputSell(props) {
     }
     setOpen(false);
     setOpenError(false);
+    setOpenWarn(false);
   };
 
   const handleSelect = (e) => {
@@ -415,20 +448,20 @@ function InputSell(props) {
         </div>
       </div>
       <Snackbar open={openWarn} autoHideDuration={4000} onClose={handleClose}>
-        <Alert onClose={handleClose} severity='warning'>
-          Autocorrected buyer name from {state.prevBuyer} to {state.buyerName}
+        <Alert severity='warning'>
+          {warnMsg}
         </Alert>
       </Snackbar>
       <Online>
         <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-          <Alert onClose={handleClose} severity='success'>
+          <Alert severity='success'>
             Data Submitted
           </Alert>
         </Snackbar>
       </Online>
       <Offline>
         <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
-          <Alert onClose={handleClose} severity='warning'>
+          <Alert severity='warning'>
             Data will be submitted automatically when back online
           </Alert>
         </Snackbar>
@@ -442,7 +475,7 @@ function InputSell(props) {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    inputSell: (sale, isUnknownBuyer) => dispatch(inputSell(sale, isUnknownBuyer))
+    inputSell: sale => dispatch(inputSell(sale))
   };
 };
 

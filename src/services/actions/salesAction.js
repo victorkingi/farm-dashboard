@@ -14,17 +14,15 @@ export const getSectionAddr = (section) => {
  * trays sold, - from current trays and use the result as value
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  * @param values
- * @param isUnknownBuyer
  */
-export const inputSell = (values, isUnknownBuyer) => {
+export const inputSell = (values) => {
   return (dispatch, getState, {
     getFirebase,
     getFirestore
   }) => {
     const firestore = getFirestore();
-    if (!isUnknownBuyer) {
-      if (JSON.parse(values.status)) {
-        firestore.collection('pending_transactions')
+    if (JSON.parse(values.status)) {
+      firestore.collection('pending_transactions')
           .add({
             values: values,
             submittedOn: new Date()
@@ -45,6 +43,5 @@ export const inputSell = (values, isUnknownBuyer) => {
           values
         });
       }
-    }
   };
 }

@@ -225,6 +225,8 @@ const getFieldName = (to_use) => {
     return ['data.section', `${to_use === 'Pay Purity' ? 'PPURITY' : to_use === 'Other Sales' ? 'SOTHER' : to_use === 'Other Purchases' ? 'POTHER' : to_use === 'Thika Farmers' ? 'THIKAFARMERS' : to_use.toUpperCase() }`]
 }
 
+let isRun = false;
+
 function EnhancedTable(props) {
     const { tx_ui, to_use, hash, firestore } = props;
 
@@ -336,12 +338,19 @@ function EnhancedTable(props) {
     }, [rowsPerPage, rows, page, to_use, hash]);
 
     useEffect(() => {
+        if (orderBy === 'date' && order === 'desc') isRun = false;
+        // eslint-disable-next-line
+    }, [order]);
+
+    useEffect(() => {
         let isSubscribed = true;
         const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
 
         // declare the async data fetching function
         const fetchData = async () => {
-            if (txWatch.length <= 6 && orderBy === 'date' && order === 'desc') return;
+            console.log("stopped", txWatch.length <= 6 && orderBy === 'date' && order === 'desc')
+            if (txWatch.length <= 6 && orderBy === 'date' && order === 'desc' && isRun) return;
+            isRun = true;
             const limit = txWatch.length;
 
             // get the data

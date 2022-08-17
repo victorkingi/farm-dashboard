@@ -10,7 +10,8 @@ import {sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
-import {firestore} from "../../services/api/fbConfig";
+import Localbase from "localbase";
+
 
 export function getRanColor() {
   const ranR = Math.floor((Math.random()*255)+1).toString(16);
@@ -19,8 +20,9 @@ export function getRanColor() {
   return ("#"+ranR+ranG+ranB).length === 6 ? "#0"+ranR+ranG+ranB : "#"+ranR+ranG+ranB;
 }
 
+let isRun = false;
 function Dashboard(props) {
-  const { dashboard, pend } = props;
+  const { dashboard, pend, firebase, firestore, verify } = props;
 
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
@@ -42,6 +44,47 @@ function Dashboard(props) {
       setDash(dashboard[0]);
     }
   }, [dashboard]);
+
+  useMemo(() => {
+      let isSubscribed = true;
+      const db = new Localbase('ver_data');
+
+      const writeToDb = async (db) => {
+          console.log("Writing to DB...");
+          const verDoc = await firestore.get({ collection: 'verification_data' });
+          verDoc.docs.forEach((doc_) => {
+              if (doc_.id !== 'verification') return;
+              const data = doc_.data();
+              const hashes = new Array(...data.hashes).sort();
+              db.collection('hashes').delete().then(() => {
+                  db.collection('hashes').add({id: 1, hashes, root: verify.root.root });
+              }).catch(() => {
+                  db.collection('hashes').add({id: 1, hashes, root: verify.root.root });
+              });
+          });
+      }
+
+      const updateHashes = async () => {
+          const doc = await db.collection('hashes').doc({id: 1}).get();
+          if (doc) {
+              if (doc.root === verify.root.root) {
+                  console.log("root hashes match no update needed");
+                  return;
+              }
+              await writeToDb(db);
+          } else {
+              await writeToDb(db);
+          }
+      }
+      if (isSubscribed && verify?.root && !isRun) {
+          isRun = true;
+          updateHashes();
+      }
+
+      return () => isSubscribed = false;
+
+      //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verify]);
 
   useEffect(() => {
     let total = 0;
@@ -90,6 +133,17 @@ function Dashboard(props) {
         firestore.collection("pending_transactions").doc(key)
             .get().then(async (doc) => {
           if (doc.exists) {
+              const data = doc.data();
+              const category = data.category;
+              if (category === 'deadSick') {
+                  // also delete image
+                  const fileName = data.file_name;
+                  const storage = firebase.storage();
+                  const storageRef = storage.ref();
+                  const imageRef = storageRef.child(`dead_sick/${fileName}`);
+                  await imageRef.delete();
+                  console.log(fileName, "deleted");
+              }
             await doc.ref.delete();
           } else {
             const err = new Error("Invalid data!");
@@ -477,13 +531,12 @@ function Dashboard(props) {
                                </label>
                              </div>
                          </th>
+                         <th> Status </th>
                          <th> Date </th>
-                         <th> Transaction State </th>
+                         <th> Name </th>
                          <th> From </th>
                          <th> To </th>
                          <th> Amount </th>
-                         <th> Category </th>
-                         <th> Section </th>
                      </tr>
                      </thead>
                      <tbody>
@@ -510,30 +563,23 @@ function Dashboard(props) {
                                              </label>
                                          </div>
                                      </td>
-                                     <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                      <td>
                                          {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
                                          {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
                                          {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
                                      </td>
-                                     <td>
-                                         <div className="d-flex">
-                                  <span className="pl-2">
-                                    {'Dead or Sick'}
-                                  </span>
-                                         </div>
-                                     </td>
-                                     <td />
-                                     <td />
-                                     <td />
-                                     <td />
+                                     <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
+                                     <td>{item.section} Chicken(s)</td>
+                                     <td>N/A</td>
+                                     <td>N/A</td>
+                                     <td>N/A</td>
                                  </tr>
                              )
                          }
 
                          return (
                            <tr key={item.id}>
-                             <td>
+                               <td>
                                <div className="form-check form-check-muted m-0">
                                  <label className="form-check-label">
                                    <input disabled={disCheckBox} type="checkbox"
@@ -547,34 +593,16 @@ function Dashboard(props) {
                                  </label>
                                </div>
                              </td>
-                             <td>
-                               {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
-                               {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
-                               {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
-                             </td>
-                             <td>
-                               <div className="d-flex">
-                                  <span className="pl-2">
-                                    {item.values.category !== "send" && item.values.category !== "borrow" && 'Miner'}
-                                    {item.values.category === "send" && item?.values?.name && sanitize_string(item?.values?.name)}
-                                    {item.values.category === "borrow" && sanitize_string(item?.values?.borrower)}
-                                  </span>
-                               </div>
-                             </td>
-                             <td>
-                               {item.values.category !== "send" && item.values.category !== "buys" && item.values.category !== "borrow"
-                                   && item.values.section !== "THIKA_FARMERS" && item.values.section !== "DUKA"
-                                   && sanitize_string(item?.values?.name)}
-                               {item.values.section === "THIKA_FARMERS" && "Thika Farmers"}
-                               {item.values.section === "DUKA" && "Jeff Duka"}
-                               {item.values.category === "send" && item?.values?.receiver && sanitize_string(item?.values?.receiver)}
-                               {item.values.category === "borrow" && sanitize_string(item?.values?.get_from)}
-                               {item.values.category === "buys" && sanitize_string(item?.values?.section)}
-                             </td>
-                             <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
-                             <td> {sanitize_string(item.values?.category)} </td>
-                             <td> {sanitize_string(item.values?.section || item.values?.category)} </td>
-                             <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
+                               <td>
+                                   {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
+                                   {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
+                                   {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
+                               </td>
+                               <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
+                               <td> {sanitize_string(item.values?.category, item.values?.buyerName || item.values?.itemName)} </td>
+                               <td>{(item.values?.category !== 'sales' && item.values?.category !== 'buys' && (item.values.name ? item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase() : item.values?.borrower.charAt(0)+item.values?.borrower.slice(1).toLowerCase())) || 'Miner'}</td>
+                               <td>{item.values?.receiver ? item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase() : item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase()}</td>
+                               <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
                            </tr>
                          )
                      })}
@@ -600,11 +628,21 @@ function Dashboard(props) {
              </Snackbar>
            </Online>
            <Offline>
-             <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
-               <Alert onClose={handleClose} severity="warning">
-                 Accepted. Rewinding will happen when back online
-               </Alert>
-             </Snackbar>
+               <Snackbar
+                   open={open} autoHideDuration={5000}
+                   onClose={handleClose}
+                   key={'topcenter'}>
+                   <Alert onClose={handleClose} severity="warning">
+                       Accepted. Rewinding will happen when back online
+                   </Alert>
+               </Snackbar>
+               <Snackbar
+                   open={error} autoHideDuration={5000}
+                   onClose={handleClose}>
+                   <Alert onClose={handleClose} severity="danger">
+                       {errM}
+                   </Alert>
+               </Snackbar>
            </Offline>
          </div>
        </div>
@@ -617,7 +655,8 @@ function Dashboard(props) {
 const mapStateToProps = function(state) {
   return {
       dashboard: state.firestore.ordered.dashboard_data,
-      pend: state.firestore.ordered.pending_transactions
+      pend: state.firestore.ordered.pending_transactions,
+      verify: state.firestore.data.verification_data
   }
 }
 
@@ -625,6 +664,7 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect([
         {collection: 'dashboard_data'},
-        {collection: 'pending_transactions' }
+        {collection: 'pending_transactions' },
+        {collection: 'verification_data', doc: 'root'}
     ])
 )(Dashboard);

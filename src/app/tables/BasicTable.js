@@ -14,7 +14,8 @@ function BasicTable() {
     }
 
     const handleHashChange = (e) => {
-        setHash(e.target.value);
+        const cleanedHash = e.target.value.replace(/\s+/g, '').replace(/(\r\n|\n|\r)/gm, '');
+        setHash(cleanedHash);
     }
 
     return (

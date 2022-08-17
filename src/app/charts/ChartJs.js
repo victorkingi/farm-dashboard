@@ -4,6 +4,7 @@ import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
+import { MobileView, BrowserView } from 'react-device-detect';
 
 function ChartJs(props) {
     const { dashboard } = props;
@@ -22,6 +23,73 @@ function ChartJs(props) {
             yAxes: [{
                 gridLines: {
                     color: "rgba(204, 204, 204,0.1)"
+                }
+            }],
+            xAxes: [{
+                gridLines: {
+                    color: "rgba(204, 204, 204,0.1)"
+                }
+            }]
+        }
+    });
+
+    const [mobProfitMonthAO, ] = useState({
+        plugins: {
+            filler: {
+                propagate: true
+            }
+        },
+        scales: {
+            yAxes: [{
+                gridLines: {
+                    color: "rgba(204, 204, 204,0.1)"
+                },
+                ticks: {
+                    stepSize: 100000
+                }
+            }],
+            xAxes: [{
+                gridLines: {
+                    color: "rgba(204, 204, 204,0.1)"
+                }
+            }]
+        }
+    });
+    const [mobLayingAO, ] = useState({
+        plugins: {
+            filler: {
+                propagate: true
+            }
+        },
+        scales: {
+            yAxes: [{
+                gridLines: {
+                    color: "rgba(204, 204, 204,0.1)"
+                },
+                ticks: {
+                    stepSize: 100
+                }
+            }],
+            xAxes: [{
+                gridLines: {
+                    color: "rgba(204, 204, 204,0.1)"
+                }
+            }]
+        }
+    });
+    const [mobProfitWeekAO, ] = useState({
+        plugins: {
+            filler: {
+                propagate: true
+            }
+        },
+        scales: {
+            yAxes: [{
+                gridLines: {
+                    color: "rgba(204, 204, 204,0.1)"
+                },
+                ticks: {
+                    stepSize: 60000
                 }
             }],
             xAxes: [{
@@ -99,36 +167,78 @@ function ChartJs(props) {
                     </ol>
                 </nav>
             </div>
-            <div className="row">
-                <div className="col-md grid-margin stretch-card">
-                    <div className="card">
-                        <div className="card-body">
-                            <h4 className="card-title">Laying Percentage per Week, Exact to Given</h4>
-                            <Line data={dataset1} options={areaOptions} />
+            <BrowserView>
+                <div className="row">
+                    <div className="col-md grid-margin stretch-card">
+                        <div className="card">
+                            <div className="card-body">
+                                <h4 className="card-title">Laying Percentage per Week, Exact to Given</h4>
+                                <Line data={dataset1} options={areaOptions} />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-md grid-margin stretch-card">
-                    <div className="card">
-                        <div className="card-body">
-                            <h4 className="card-title">Profit per Week</h4>
-                            <Line data={dataset2} options={areaOptions} />
+            </BrowserView>
+            <MobileView>
+                <div className="row">
+                    <div className="col-md grid-margin stretch-card">
+                        <div className="card">
+                            <div className="card-body">
+                                <h4 className="card-title">Laying Percentage per Week, Exact to Given</h4>
+                                <Line data={dataset1} options={mobLayingAO} />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-md grid-margin stretch-card">
-                    <div className="card">
-                        <div className="card-body">
-                            <h4 className="card-title">Profit per Month</h4>
-                            <Line data={dataset3} options={areaOptions} />
+            </MobileView>
+            <BrowserView>
+                <div className="row">
+                    <div className="col-md grid-margin stretch-card">
+                        <div className="card">
+                            <div className="card-body">
+                                <h4 className="card-title">Profit per Week</h4>
+                                <Line data={dataset2} options={areaOptions} />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </BrowserView>
+            <MobileView>
+                <div className="row">
+                    <div className="col-md grid-margin stretch-card">
+                        <div className="card">
+                            <div className="card-body">
+                                <h4 className="card-title">Profit per Week</h4>
+                                <Line data={dataset2} options={mobProfitWeekAO} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </MobileView>
+            <BrowserView>
+                <div className="row">
+                    <div className="col-md grid-margin stretch-card">
+                        <div className="card">
+                            <div className="card-body">
+                                <h4 className="card-title">Profit per Month</h4>
+                                <Line data={dataset3} options={areaOptions} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </BrowserView>
+            <MobileView>
+                <div className="row">
+                    <div className="col-md grid-margin stretch-card">
+                        <div className="card">
+                            <div className="card-body">
+                                <h4 className="card-title">Profit per Month</h4>
+                                <Line data={dataset3} options={mobProfitMonthAO} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </MobileView>
         </div>
     )
 }
