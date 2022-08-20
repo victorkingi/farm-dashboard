@@ -31,3 +31,4 @@ functions/node_modules/
 functions/.gitignore
 functions/yarn.lock
 .idea
+src/services/api/fbConfig.js
