@@ -40,6 +40,7 @@ function Row(props) {
         total += parseFloat(historyRow.amount) * parseFloat(historyRow.tPrice);
         trayNo += parseInt(historyRow.amount);
     }
+    //i
 
     return (
         <React.Fragment>
