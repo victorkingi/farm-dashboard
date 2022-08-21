@@ -11,13 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        name: bip, boop!
-      - run: yarn install && yarn build
-        name: some building here and there...
+      - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
-        name: you get a new update, everyone gets a new update
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_POULTRY101_6B1ED }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_POULTRY101_F1FA0 }}'
           channelId: live
-          projectId: poultry101-6b1ed
+          projectId: poultry101-f1fa0

@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
@@ -20,6 +20,9 @@ import {firestoreConnect} from 'react-redux-firebase';
 import {Redirect} from "react-router-dom";
 import {hasPaidLate} from "../../services/actions/moneyAction";
 import numeral from 'numeral';
+import {Offline, Online} from "react-detect-offline";
+import Snackbar from "@material-ui/core/Snackbar";
+import {Alert} from "../form-elements/InputEggs";
 
 const useRowStyles = makeStyles({
     root: {
@@ -40,7 +43,6 @@ function Row(props) {
         total += parseFloat(historyRow.amount) * parseFloat(historyRow.tPrice);
         trayNo += parseInt(historyRow.amount);
     }
-    //i
 
     return (
         <React.Fragment>
@@ -137,6 +139,10 @@ export default compose(
         {collection: 'late_payment', orderBy: ['submittedOn', 'desc']}
     ])
 )(function AnneDebt(props) {
+    const [open, setOpen] = useState(false);
+    const [error, setError] = useState(false);
+    const [errM, setErrM] = useState('');
+
     const user = useMemo(function() {
         const __user = localStorage.getItem('user') || false;
 
@@ -148,67 +154,80 @@ export default compose(
             <Redirect to="/user-pages/login-1"/>
         )
     }
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setError(false);
+        setErrM('');
+        setOpen(false);
+    };
 
-    if (props.pending?.length > 0) {
-        const handleClick = () => {
-            const load = document.getElementById("load");
-            const submit = document.getElementById("submit");
-            submit.style.display = "none";
-            load.style.display = "block";
-            for (let i = 0; i < props.pending?.length; i++) {
-                if (props.pending[i].values.section === "CAKES") {
-                    props.hasPaidLate(props.pending[i]);
+    const handleClick = async () => {
+        const submit = document.getElementById("submit");
+        submit.disabled = true;
+        for (let i = 0; i < props.pending?.length; i++) {
+            if (props.pending[i].values.section === "CAKES") {
+                const res = await props.hasPaidLate(props.pending[i].id);
+                if (res === 'ok') {
+                    setError(false);
+                    setOpen(true);
+                } else {
+                    setOpen(false);
+                    setErrM("Entry no longer exists");
+                    setError(true);
+                    return 0;
                 }
             }
-            window.alert("Data submitted");
-            submit.style.display = "block";
-            load.style.display = "none";
         }
-        const getValues = () => {
-            const arr = []
-            for (let i = 0; i < props.pending?.length; i++) {
-                if (props.pending[i].values.section === "CAKES") {
-                    arr.push(props.pending[i].values);
-                }
+        setOpen(true);
+    }
+    const getValues = () => {
+        const arr = []
+        for (let i = 0; i < props.pending?.length; i++) {
+            if (props.pending[i].values.section === "CAKES") {
+                arr.push(props.pending[i].values);
             }
-            return arr;
         }
-        function createData() {
-            const monthNames = ["January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            ];
-            const fin_ar = [];
-            let history = [];
-            let total = 0;
-            const used = getValues();
-            for (let p = 0; p < 12; p++) {
-                for (let i = 0; i < used.length; i++) {
-                    if (used[i].date.toDate().getMonth() === p) {
-                        const getDate = used[i].date.toDate().toLocaleDateString();
-                        history.push({
-                            date: getDate,
-                            amount: parseInt(used[i].trayNo),
-                            tPrice: parseFloat(used[i].trayPrice)
-                        });
-                        total += parseFloat(used[i].trayPrice) * parseInt(used[i].trayNo);
-                    }
-                }
-                if (history.length > 0) {
-                    fin_ar.push({
-                        month: monthNames[p],
-                        history,
+        return arr;
+    }
+    function createData() {
+        const monthNames = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        const fin_ar = [];
+        let history = [];
+        let total = 0;
+        const used = getValues();
+        for (let p = 0; p < 12; p++) {
+            for (let i = 0; i < used.length; i++) {
+                if (used[i].date.toDate().getMonth() === p) {
+                    const getDate = used[i].date.toDate().toLocaleDateString();
+                    history.push({
+                        date: getDate,
+                        amount: parseInt(used[i].trayNo),
+                        tPrice: parseFloat(used[i].trayPrice)
                     });
+                    total += parseFloat(used[i].trayPrice) * parseInt(used[i].trayNo);
                 }
-                history = [];
             }
-            return {
-                fin_ar,
-                total
+            if (history.length > 0) {
+                fin_ar.push({
+                    month: monthNames[p],
+                    history,
+                });
             }
+            history = [];
         }
+        return {
+            fin_ar,
+            total
+        }
+    }
 
-        const rows = createData();
+    const rows = createData();
 
+    if (props.pending?.length) {
         return (
             <div style={{paddingLeft: "3%", paddingRight: "3%", paddingTop: "10px" }}>
                 <TableContainer style={{
@@ -245,82 +264,34 @@ export default compose(
 
                 </TableContainer>
                 <div style={{paddingLeft: "35%", paddingTop: "10px"}}>
-                    <div style={{display: 'none'}} id='load'>
-                        <div className="preloader-wrapper small active">
-                            <div className="spinner-layer spinner-blue">
-                                <div className="circle-clipper left">
-                                    <div className="circle"/>
-                                </div>
-                                <div className="gap-patch">
-                                    <div className="circle"/>
-                                </div>
-                                <div className="circle-clipper right">
-                                    <div className="circle"/>
-                                </div>
-                            </div>
-
-                            <div className="spinner-layer spinner-red">
-                                <div className="circle-clipper left">
-                                    <div className="circle"/>
-                                </div>
-                                <div className="gap-patch">
-                                    <div className="circle"/>
-                                </div>
-                                <div className="circle-clipper right">
-                                    <div className="circle"/>
-                                </div>
-                            </div>
-
-                            <div className="spinner-layer spinner-yellow">
-                                <div className="circle-clipper left">
-                                    <div className="circle"/>
-                                </div>
-                                <div className="gap-patch">
-                                    <div className="circle"/>
-                                </div>
-                                <div className="circle-clipper right">
-                                    <div className="circle"/>
-                                </div>
-                            </div>
-
-                            <div className="spinner-layer spinner-green">
-                                <div className="circle-clipper left">
-                                    <div className="circle"/>
-                                </div>
-                                <div className="gap-patch">
-                                    <div className="circle"/>
-                                </div>
-                                <div className="circle-clipper right">
-                                    <div className="circle"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="submit">
-                        <button type="submit"
-                                onClick={(event) => {
-                                    handleClick(event);
-                                }} className="border-cleaner btn pink lighten-2 z-depth-0">Cleared
-                        </button>
-                    </div>
+                    <button type="button" disabled={false} className="btn btn-primary" onClick={handleClick} id='submit'>
+                        Payment Received
+                    </button>
                 </div>
-            </div>
-        );
-    } else if (props.pending?.length === 0) {
-        return (
-            <div className="dashboard container">
-                <div className="row">
-                    <div className="col s12 m6">
-                        <h5>No pending transactions...</h5>
-                    </div>
-                </div>
-            </div>
-        );
-    } else {
-        return (
-            <div className="progress">
-                <div className="indeterminate"/>
+                <Online>
+                    <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
+                        <Alert onClose={handleClose} severity="success">
+                            Accepted and moved
+                        </Alert>
+                    </Snackbar>
+                </Online>
+                <Offline>
+                    <Snackbar
+                        open={open} autoHideDuration={5000}
+                        onClose={handleClose}
+                        key={'topcenter'}>
+                        <Alert onClose={handleClose} severity="warning">
+                            Accepted. Will be moved when back online
+                        </Alert>
+                    </Snackbar>
+                </Offline>
+                <Snackbar open={error} autoHideDuration={5000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="error">
+                        {errM}
+                    </Alert>
+                </Snackbar>
             </div>
         );
     }
+    return <div />
 });

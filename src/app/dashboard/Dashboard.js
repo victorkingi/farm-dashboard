@@ -22,7 +22,7 @@ export function getRanColor() {
 
 let isRun = false;
 function Dashboard(props) {
-  const { dashboard, pend, firebase, firestore, verify } = props;
+  const { dashboard, pend, firebase, firestore, verify, pendEggs } = props;
 
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
@@ -36,6 +36,10 @@ function Dashboard(props) {
   const [name, setName] = useState('');
   const [allChecked, setAllChecked] = useState(false);
   const [pendChecked, setPendChecked] = useState({});
+  const [allCheckedEggs, setAllCheckedEggs] = useState(false);
+  const [pendCheckedEggs, setPendCheckedEggs] = useState({});
+  const [disableEggs, setDisableEggs] = useState(false);
+
   let __user__ = localStorage.getItem('name');
   __user__ = __user__ !== null ? __user__.toUpperCase() : '';
 
@@ -93,7 +97,33 @@ function Dashboard(props) {
     }
     if (total === pend?.length - 1 && total !== 0) setAllChecked(true);
     else setAllChecked(false);
-  }, [pendChecked, pend]);
+  }, [pendChecked, pend])
+
+  useEffect(() => {
+        let total = 0;
+        for (const [, value] of Object.entries(pendCheckedEggs)) {
+            if (value) total += 1;
+        }
+        if (total === pendEggs?.length && total !== 0) setAllCheckedEggs(true);
+        else setAllCheckedEggs(false);
+  }, [pendCheckedEggs, pendEggs])
+
+  useEffect(() => {
+      setName(__user__);
+      if (pendEggs) {
+        if (pendEggs.length > 0) {
+            let allDisable  = false;
+            for (let k = 0; k < pendEggs.length; k++) {
+                if (pendEggs[k].submittedBy !== name) {
+                    allDisable = true;
+                    break;
+                }
+            }
+            setDisableEggs(allDisable);
+        }
+    }
+
+    }, [name, pendEggs, __user__]);
 
   useEffect(() => {
     setName(__user__);
@@ -124,36 +154,59 @@ function Dashboard(props) {
         setDisable(allDisable);
       }
     }
+
   }, [name, pend, __user__]);
 
   // undo write events to database
   const rollBack = () => {
-    for (const [key, value] of Object.entries(pendChecked)) {
-      if (value) {
-        firestore.collection("pending_transactions").doc(key)
-            .get().then(async (doc) => {
-          if (doc.exists) {
-              const data = doc.data();
-              const category = data.category;
-              if (category === 'deadSick') {
-                  // also delete image
-                  const fileName = data.file_name;
-                  const storage = firebase.storage();
-                  const storageRef = storage.ref();
-                  const imageRef = storageRef.child(`dead_sick/${fileName}`);
-                  await imageRef.delete();
-                  console.log(fileName, "deleted");
-              }
-            await doc.ref.delete();
-          } else {
-            const err = new Error("Invalid data!");
-            setOpen(false);
-            setErrM("The reference no longer exists, it probably didn't have a clean EXIT_DEL instruction");
-            setError(true);
-            throw err;
+      for (const [key, value] of Object.entries(pendCheckedEggs)) {
+          if (value) {
+              firestore.collection("pend_eggs_collected").doc(key)
+                  .get().then(async (doc) => {
+                  if (doc.exists) {
+                      await doc.ref.delete();
+                      setError(false);
+                      setOpen(true);
+                      setAllCheckedEggs(false);
+                  } else {
+                      const err = new Error("Invalid data!");
+                      setOpen(false);
+                      setErrM("Entry no longer exists");
+                      setError(true);
+                      return err;
+                  }
+              });
           }
-        });
       }
+      for (const [key, value] of Object.entries(pendChecked)) {
+          if (value) {
+              firestore.collection("pending_transactions").doc(key)
+                .get().then(async (doc) => {
+              if (doc.exists) {
+                  const data = doc.data();
+                  const category = data.category;
+                  if (category === 'deadSick') {
+                      // also delete image
+                      const fileName = data.file_name;
+                      const storage = firebase.storage();
+                      const storageRef = storage.ref();
+                      const imageRef = storageRef.child(`dead_sick/${fileName}`);
+                      await imageRef.delete();
+                      console.log(fileName, "deleted");
+                  }
+                  await doc.ref.delete();
+                  setError(false);
+                  setOpen(true);
+                  setAllChecked(false);
+              } else {
+                const err = new Error("Invalid data!");
+                setOpen(false);
+                setErrM("Entry no longer exists");
+                setError(true);
+                return err;
+              }
+            });
+          }
     }
   }
 
@@ -173,6 +226,8 @@ function Dashboard(props) {
     if (reason === 'clickaway') {
       return;
     }
+    setError(false);
+    setErrM('');
     setOpen(false);
   };
 
@@ -191,7 +246,6 @@ function Dashboard(props) {
      const submit = document.getElementById(`rewind`);
      submit.disabled = true;
      rollBack();
-     setOpen(true);
    }
 
   const isRejected = (date) => {
@@ -235,6 +289,15 @@ function Dashboard(props) {
       }
       setPendChecked(allPend);
    }
+
+  const addAllEntriesEggs = (all) => {
+      if (!pendEggs) return 0;
+      const allPend = {};
+      for (let i = 0; i < pendEggs.length; i++) {
+          allPend[pendEggs[i].id] = all;
+      }
+      setPendCheckedEggs(allPend);
+  }
 
    const week_profit_change = dash.week_profit[last_week.toString()] - dash.week_profit[String(last_week-(7 * 24 * 60 * 60))];
    let week_profit_change_percent = (week_profit_change / dash.week_profit[String(last_week-(7 * 24 * 60 * 60))]) * 100;
@@ -507,7 +570,92 @@ function Dashboard(props) {
              <div className="card">
                <div className="card-body">
                  <h4 className="card-title">Pending Transactions</h4>
-                 <div className="table-responsive">
+                   { pendEggs && pendEggs?.length !== 0 &&
+                       <div className="table-responsive">
+                           <table className="table">
+                           <thead>
+                           <tr>
+                               <th>
+                                   <div className="form-check form-check-muted m-0">
+                                       <label className="form-check-label">
+                                           <input
+                                               disabled={disableEggs}
+                                               type="checkbox"
+                                               className="form-check-input"
+                                               defaultValue={0}
+                                               onChange={() => {
+                                                   setAllCheckedEggs(!allCheckedEggs);
+                                                   addAllEntriesEggs(!allCheckedEggs);
+                                               }}
+                                               checked={allCheckedEggs}
+                                               id="pendingEggs"
+                                               name="pendingEggs"
+                                           />
+                                           <i className="input-helper"/>
+                                       </label>
+                                   </div>
+                               </th>
+                               <th> Status</th>
+                               <th> Date</th>
+                               <th> Trays</th>
+                               <th> a1</th>
+                               <th> a2</th>
+                               <th> b1</th>
+                               <th> b2</th>
+                               <th> c1</th>
+                               <th> c2</th>
+                               <th> house</th>
+                               <th> broken</th>
+                               <th> by</th>
+                           </tr>
+                           </thead>
+                           <tbody>
+                           {pendEggs && pendEggs.map((item) => {
+                               let disCheckBox = name !== item.submittedBy;
+
+                               return (
+                                   <tr key={item.id}>
+                                       <td>
+                                           <div className="form-check form-check-muted m-0">
+                                               <label className="form-check-label">
+                                                   <input disabled={disCheckBox} type="checkbox"
+                                                          className="form-check-input" defaultValue={0}
+                                                          checked={pendCheckedEggs[item.id]}
+                                                          onChange={() => setPendCheckedEggs({
+                                                              ...pendCheckedEggs,
+                                                              [item.id]: !pendCheckedEggs[item.id]
+                                                          })}
+                                                          id={item.id} name={item.id}
+                                                   />
+                                                   <i className="input-helper"/>
+                                               </label>
+                                           </div>
+                                       </td>
+                                       <td>
+                                           {isRejected(item?.submittedOn?.toDate()) &&
+                                               <div className="badge badge-outline-danger">Rejected</div>}
+                                           {!isRejected(item?.submittedOn?.toDate()) &&
+                                               <div className="badge badge-outline-warning">Pending</div>}
+                                       </td>
+                                       <td> {moment(item.date_ * 1000).format("MMM Do YY")} </td>
+                                       <td> {item.trays_store} </td>
+                                       <td> {item.a1} </td>
+                                       <td> {item.a2} </td>
+                                       <td> {item.b1} </td>
+                                       <td> {item.b2} </td>
+                                       <td> {item.c1} </td>
+                                       <td> {item.c2} </td>
+                                       <td> {item.house} </td>
+                                       <td> {item.broken} </td>
+                                       <td> {item.submittedBy.charAt(0) + item.submittedBy.slice(1).toLowerCase()} </td>
+                                   </tr>
+                               )
+                           })}
+                           </tbody>
+                       </table>
+                       </div>
+                   }
+                   <div className="table-responsive">
                    <table className="table">
                      <thead>
                      <tr>
@@ -594,9 +742,9 @@ function Dashboard(props) {
                                </div>
                              </td>
                                <td>
-                                   {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
+                                   {(isRejected(item?.submittedOn?.toDate()) || item.weirdName) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
                                    {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
-                                   {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
+                                   {!isRejected(item?.submittedOn?.toDate()) && !item.weirdName && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
                                </td>
                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                <td> {sanitize_string(item.values?.category, item.values?.buyerName || item.values?.itemName)} </td>
@@ -612,22 +760,17 @@ function Dashboard(props) {
                </div>
              </div>
            </div>
-           <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='rewind'>
+         <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='rewind'>
              Rewind
-           </button>
-           <Online>
+         </button>
+         <Online>
              <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
                <Alert onClose={handleClose} severity="success">
-                 Accepted. Pending Transactions will be rewinded
+                 Accepted. Rewinded entries
                </Alert>
              </Snackbar>
-             <Snackbar open={error} autoHideDuration={5000} onClose={handleClose}>
-               <Alert onClose={handleClose} severity="danger">
-                 {errM}
-               </Alert>
-             </Snackbar>
-           </Online>
-           <Offline>
+         </Online>
+         <Offline>
                <Snackbar
                    open={open} autoHideDuration={5000}
                    onClose={handleClose}
@@ -636,14 +779,14 @@ function Dashboard(props) {
                        Accepted. Rewinding will happen when back online
                    </Alert>
                </Snackbar>
-               <Snackbar
-                   open={error} autoHideDuration={5000}
-                   onClose={handleClose}>
-                   <Alert onClose={handleClose} severity="danger">
-                       {errM}
-                   </Alert>
-               </Snackbar>
-           </Offline>
+         </Offline>
+         <Snackbar
+             open={error} autoHideDuration={5000}
+             onClose={handleClose}>
+             <Alert onClose={handleClose} severity="error">
+                 {errM}
+             </Alert>
+         </Snackbar>
          </div>
        </div>
    );
@@ -656,7 +799,8 @@ const mapStateToProps = function(state) {
   return {
       dashboard: state.firestore.ordered.dashboard_data,
       pend: state.firestore.ordered.pending_transactions,
-      verify: state.firestore.data.verification_data
+      verify: state.firestore.data.verification_data,
+      pendEggs: state.firestore.ordered.pend_eggs_collected
   }
 }
 
@@ -665,6 +809,7 @@ export default compose(
     firestoreConnect([
         {collection: 'dashboard_data'},
         {collection: 'pending_transactions' },
+        {collection: 'pend_eggs_collected', orderBy: ['date_', 'asc']},
         {collection: 'verification_data', doc: 'root'}
     ])
 )(Dashboard);

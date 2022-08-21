@@ -39,36 +39,3 @@ export const signOut = function(){
         });
     }
 }
-
-export const signUp = function(newUser) {
-    return (dispatch, getState, {getFirebase, getFirestore}) => {
-        const firebase = getFirebase();
-        const firestore = getFirestore();
-
-        firebase.auth().createUserWithEmailAndPassword(newUser.email, newUser.password)
-            .then((resp) => {
-                firebase.auth().onAuthStateChanged(function(user) {
-                    if (user) {
-                        if (!user.displayName) {
-                            user.updateProfile({
-                                displayName: `${newUser.firstName} ${newUser.lastName}`
-                            });
-                        }
-                    }
-                });
-
-                return firestore.collection('users').doc(resp.user.uid).set({
-                    firstName: newUser.firstName,
-                    lastName: newUser.lastName,
-                    initials: newUser.firstName[0] + newUser.lastName[0],
-                    email: newUser.email
-                })
-            }).then((user) => {
-            const _user = user.user.email;
-            dispatch({type: 'SIGNUP_SUCCESS', _user})
-        }).catch(err => {
-            dispatch({type: 'SIGNUP_ERROR', err})
-        });
-    }
-}
-

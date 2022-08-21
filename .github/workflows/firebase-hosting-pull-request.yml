@@ -13,5 +13,5 @@ jobs:
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_POULTRY101_6B1ED }}'
-          projectId: poultry101-6b1ed
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_POULTRY101_F1FA0 }}'
+          projectId: poultry101-f1fa0
