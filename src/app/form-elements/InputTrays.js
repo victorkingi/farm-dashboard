@@ -11,6 +11,7 @@ import {firestore} from '../../services/api/fbConfig';
 let today = new Date();
 today.setHours(0, 0, 0, 0);
 today = Math.floor(today.getTime() / 1000);
+const name = localStorage.getItem('name');
 
 function InputTrays() {
     const [open, setOpen] = useState(false);
@@ -52,6 +53,10 @@ function InputTrays() {
                 return -1;
             }
             firestore.doc(`trays/exact`)
+                .update({
+                    [today]: state
+                });
+            firestore.doc(`trays/by`)
                 .update({
                     [today]: state
                 });
