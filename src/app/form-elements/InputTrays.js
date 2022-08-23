@@ -29,7 +29,7 @@ function InputTrays() {
                 setOpen(false);
                 setError("Different Timezone detected. Cannot handle input");
                 setOpenError(true);
-                return -1;
+		return -1;
             }
             firestore.doc(`trays/exact`)
                 .update({
