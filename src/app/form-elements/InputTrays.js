@@ -11,7 +11,7 @@ import {firestore} from '../../services/api/fbConfig';
 let today = new Date();
 today.setHours(0, 0, 0, 0);
 today = Math.floor(today.getTime() / 1000);
-const name = localStorage.getItem('name');
+const name = localStorage.getItem('name') || '';
 
 function InputTrays() {
     const [open, setOpen] = useState(false);
@@ -34,6 +34,10 @@ function InputTrays() {
             firestore.doc(`trays/exact`)
                 .update({
                     [today]: -1
+                });
+	    firestore.doc(`trays/by`)
+                .update({
+                    [today]: name
                 });
             setOpenError(false);
             setOpenM('Value deleted');
@@ -58,7 +62,7 @@ function InputTrays() {
                 });
             firestore.doc(`trays/by`)
                 .update({
-                    [today]: state
+                    [today]: name
                 });
             setOpenError(false);
             setOpenM('Data Submitted');
