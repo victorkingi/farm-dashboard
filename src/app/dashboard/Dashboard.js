@@ -60,10 +60,11 @@ function Dashboard(props) {
               if (doc_.id !== 'verification') return;
               const data = doc_.data();
               const hashes = new Array(...data.hashes).sort();
+              const loss = data.loss;
               db.collection('hashes').delete().then(() => {
-                  db.collection('hashes').add({id: 1, hashes, root: verify.root.root });
+                  db.collection('hashes').add({id: 1, hashes, loss, root: verify.root.root });
               }).catch(() => {
-                  db.collection('hashes').add({id: 1, hashes, root: verify.root.root });
+                  db.collection('hashes').add({id: 1, hashes, loss, root: verify.root.root });
               });
           });
       }

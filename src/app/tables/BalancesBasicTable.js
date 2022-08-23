@@ -29,7 +29,7 @@ function BasicTable({ accounts }) {
                 <h3 className="page-title">All Balances</h3>
                 <nav aria-label="breadcrumb">
                     <ol className="breadcrumb">
-                        <li className="breadcrumb-item"><a href="!#" onClick={event => event.preventDefault()}>Tables</a></li>
+                        <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => event.preventDefault()}>Tables</a></li>
                         <li className="breadcrumb-item active" aria-current="page">All Balances</li>
                     </ol>
                 </nav>

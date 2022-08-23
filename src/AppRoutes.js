@@ -9,6 +9,7 @@ const Buttons = lazy(() => import('./app/basic-ui/Buttons'));
 const Dropdowns = lazy(() => import('./app/basic-ui/Dropdowns'));
 const Typography = lazy(() => import('./app/basic-ui/Typography'));
 
+const InputTrays = lazy(() => import('./app/form-elements/InputTrays'));
 const InputSell = lazy(() => import('./app/form-elements/InputSell'));
 const InputPurchase = lazy(() => import('./app/form-elements/InputPurchase'));
 const InputMoney = lazy(() => import('./app/form-elements/InputMoney'));
@@ -42,6 +43,7 @@ function AppRoutes() {
           <Route path="/basic-ui/dropdowns" component={ Dropdowns } />
           <Route path="/basic-ui/typography" component={ Typography } />
 
+          <Route path="/inputs/trays" component={ InputTrays } />
           <Route path="/inputs/sale" component={ InputSell } />
           <Route path="/inputs/ds" component={ InputDeadSick } />
           <Route path="/inputs/purchase" component={ InputPurchase } />

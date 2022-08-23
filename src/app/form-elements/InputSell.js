@@ -19,6 +19,7 @@ import MerkleTree from 'merkletreejs';
 import Localbase from "localbase";
 
 const skip = ['THIKAFARMERS', 'CAKES', 'DUKA'];
+const db = new Localbase('ver_data');
 
 
 function autoCorrectBuyerName(values) {
@@ -71,7 +72,8 @@ function InputSell(props) {
     date: new Date(),
     section: 'Choose Section',
     buyerName: '',
-    trayPrice: '300'
+    trayPrice: '350',
+    trayNo: '1'
   });
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
@@ -92,6 +94,19 @@ function InputSell(props) {
       setDefPaid(false);
     }
   }, [state, name]);
+
+  useEffect(() => {
+    db.collection('hashes').doc({ id: 1 }).get().then(document => {
+      let amount = parseInt(document.loss.amount);
+      if (amount !== 0) {
+        if (amount < 0) amount *= -1;
+        const price = Math.round(amount/parseInt(state.trayNo));
+        if (price > 300 || isNaN(price)) setState({...state, trayPrice: `${isNaN(price) ? 350 : price}`})
+        else setState({...state, trayPrice: '350'})
+      }
+    });
+          // eslint-disable-next-line
+  }, [state.trayNo]);
 
   const checkDate = (date) => {
     if (date.getTime() > new Date().getTime()) {
@@ -218,7 +233,6 @@ function InputSell(props) {
         }
         values.buyerName = values.buyerName.toUpperCase();
 
-        const db = new Localbase('ver_data');
         db.collection('hashes').doc({ id: 1 }).get().then(document => {
           const leaves = document.hashes;
           const tree = new MerkleTree(leaves, SHA256);
@@ -385,6 +399,7 @@ function InputSell(props) {
                 <Form.Control
                   type='text'
                   onChange={handleSelect}
+                  value={state.trayNo}
                   className='form-control'
                   id='trayNo'
                   placeholder='Number of Trays'

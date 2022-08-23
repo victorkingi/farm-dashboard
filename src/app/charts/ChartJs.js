@@ -94,7 +94,7 @@ function ChartJs(props) {
                 </h3>
                 <nav aria-label="breadcrumb">
                     <ol className="breadcrumb">
-                    <li className="breadcrumb-item"><a href="!#" onClick={event => event.preventDefault()}>Charts</a></li>
+                    <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => event.preventDefault()}>Charts</a></li>
                     <li className="breadcrumb-item active" aria-current="page">Charts</li>
                     </ol>
                 </nav>
