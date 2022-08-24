@@ -299,10 +299,24 @@ function Dashboard(props) {
       }
       setPendCheckedEggs(allPend);
   }
+  let week_profit_change;
+  let month_profit_change;
+  if (dash.week_profit[last_week.toString()] >= 0) {
+      week_profit_change = dash.week_profit[last_week.toString()] - dash.week_profit[String(last_week - (7 * 24 * 60 * 60))];
+  } else {
+      week_profit_change = dash.week_profit[last_week.toString()] - dash.week_profit[String(last_week - (7 * 24 * 60 * 60))];
+      week_profit_change *= -1;
+  }
 
-   const week_profit_change = dash.week_profit[last_week.toString()] - dash.week_profit[String(last_week-(7 * 24 * 60 * 60))];
    let week_profit_change_percent = (week_profit_change / dash.week_profit[String(last_week-(7 * 24 * 60 * 60))]) * 100;
-   const month_profit_change = dash.month_profit[last_month.toString()] - dash.month_profit[String(last_month-(28 * 24 * 60 * 60))];
+
+   if (dash.month_profit[last_month.toString()] >= 0) {
+       month_profit_change = dash.month_profit[last_month.toString()] - dash.month_profit[String(last_month-(28 * 24 * 60 * 60))];
+   } else {
+       month_profit_change = dash.month_profit[last_month.toString()] - dash.month_profit[String(last_month-(28 * 24 * 60 * 60))];
+       month_profit_change *= -1;
+   }
+
    let month_profit_change_percent = (month_profit_change / dash.month_profit[String(last_month-(28 * 24 * 60 * 60))]) * 100;
    month_profit_change_percent = isNaN(month_profit_change_percent) ? 100 : month_profit_change_percent;
    week_profit_change_percent = isNaN(week_profit_change_percent) ? 100 : week_profit_change_percent;
