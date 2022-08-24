@@ -157,11 +157,11 @@ function Navbar(props) {
                 },
                 async () => {
                   const url = await uploadTask.snapshot.ref.getDownloadURL();
-                  console.log('done')
+                  console.log('done', url);
                   const query = await firestore.get({ collection: 'pending_upload', where: ['file_name', '==', key] });
                   if (query.size === 0) {
                     setOpen(false);
-                    setError("Uploaded file doesn't have a doc");
+                    setError("Uploaded file doesn't have a reference");
                     setOpenError(true);
 
                     const index = uploadLock.indexOf(key);
@@ -186,32 +186,30 @@ function Navbar(props) {
                     return;
                   }
                   for (const doc of query.docs) {
-                    await doc.ref.update({ url });
-                    const myDocQuery = await firestore.get({ collection: 'pending_upload', id: doc.id })
-                    myDocQuery.forEach(doc_ => {
-                      // delete local doc
-                      db.collection('dead_sick').doc({file_name: key}).delete();
+                    let to_add = doc.data();
+                    let to_del_id = doc.id;
+                    console.log("to be deleted", to_del_id);
+                    delete to_add.photo;
+                    to_add = {
+                      ...to_add,
+                      url
+                    }
+                    // delete local doc
+                    db.collection('dead_sick').doc({file_name: key}).delete();
+                    firestore.add({ collection: 'pending_transactions' }, to_add);
+                    firestore.delete({ collection: 'pending_upload', doc: to_del_id });
 
-                      // add cloud doc
-                      const to_add = doc_.data();
-                      delete to_add.photo;
-                      firestore.add({ collection: 'pending_transactions' }, to_add);
-
-                      // delete temp cloud doc
-                      doc.ref.delete();
-
-                      setOpenError(false);
-                      let imageName = key;
-                      if (key.length > 10) imageName = imageName.substring(5, 10) + '...' + imageName.substr(-4);
-                      setSuccess(`Image ${imageName} uploaded`);
-                      setOpen(true);
-                      const index = uploadLock.indexOf(key);
-                      if (index === -1) {
-                        console.log("Unknown entry being deleted");
-                        return;
-                      }
-                      uploadLock.splice(index, 1);
-                    });
+                    setOpenError(false);
+                    let imageName = key;
+                    if (key.length > 10) imageName = imageName.substring(5, 10) + '...' + imageName.substr(-4);
+                    setSuccess(`Image ${imageName} uploaded`);
+                    setOpen(true);
+                    const index = uploadLock.indexOf(key);
+                    if (index === -1) {
+                      console.log("Unknown entry being deleted");
+                      return;
+                    }
+                    uploadLock.splice(index, 1);
                   }
                 });
           }
