@@ -324,7 +324,151 @@ function Dashboard(props) {
    return (
        <div>
          <div className="row">
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">KSh {numeral(dash.week_profit[last_week.toString()]).format("0,0.00")}</h3>
+                                     <p className={`text-${week_profit_change_percent
+                                     < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                                         {week_profit_change_percent < 0
+                                             ? numeral(week_profit_change_percent).format("0,0.0")
+                                             : '+'.concat(numeral(week_profit_change_percent).format("0,0.0"))}%
+                                     </p>
+                                 </div>
+                             </div>
+                             <div className="col-3">
+                                 <div
+                                     className={`icon icon-box-${week_profit_change_percent < 0 ? 'danger' : 'success'}`}>
+                      <span
+                          className={`mdi mdi-arrow-${week_profit_change_percent < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-muted font-weight-normal">Week Profit</h6>
+                     </div>
+                 </div>
+             </div>
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">{!done1 &&
+                                         <CountUp
+                                             start={0}
+                                             end={dash.laying.week['1']}
+                                             duration={2.75}
+                                             delay={1}
+                                             onEnd={() => setDone1(true)}
+                                         />}{done1 && numeral(dash.laying.week['1']).format("0.00")}%</h3>
+                                     <p className={`text-${ dash.laying.week['0']
+                                     < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                                         {dash.laying.week['0'] < 0
+                                             ? numeral(dash.laying.week['0']).format("0,0.0")
+                                             : '+'.concat(numeral(dash.laying.week['0']).format("0,0.0"))}%
+                                     </p>
+                                 </div>
+
+                             </div>
+                             <div className="col-3">
+                                 <div
+                                     className={`icon icon-box-${dash.laying.week['0'] < 0 ? 'danger' : 'success'}`}>
+                      <span
+                          className={`mdi mdi-arrow-${dash.laying.week['0'] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-muted font-weight-normal">Last Week Laying Percentage</h6>
+                     </div>
+                 </div>
+             </div>
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">KSh {numeral(dash.month_profit[last_month.toString()]).format("0,0.00")}</h3>
+                                     <p className={`text-${month_profit_change_percent
+                                     < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                                         {month_profit_change_percent < 0
+                                             ? numeral(month_profit_change_percent).format("0,0.0")
+                                             : '+'.concat(numeral(month_profit_change_percent).format("0,0.0"))}%
+                                     </p>
+                                 </div>
+                             </div>
+                             <div className="col-3">
+                                 <div
+                                     className={`icon icon-box-${month_profit_change_percent < 0 ? 'danger' : 'success'}`}>
+                      <span
+                          className={`mdi mdi-arrow-${month_profit_change_percent < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-muted font-weight-normal">Month Profit</h6>
+                     </div>
+                 </div>
+             </div>
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">{numeral(dash.birds).format("0,0")}</h3>
+                                     <p className={`text-success ml-2 mb-0 font-weight-medium`}>
+                                         {'+'.concat(numeral().format("0,0.0"))}%
+                                     </p>
+                                 </div>
+                             </div>
+                             <div className="col-3">
+                                 <div
+                                     className={`icon icon-box-success`}>
+                      <span
+                          className={`mdi mdi-arrow-top-right icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-muted font-weight-normal">Total Birds</h6>
+                     </div>
+                 </div>
+             </div>
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">Ksh {!done4 &&
+                                         <CountUp
+                                             start={Math.abs(dash.owe[name] - 1000)}
+                                             end={dash.owe[name]}
+                                             duration={2.75}
+                                             delay={1}
+                                             onEnd={() => setDone4(true)}
+                                         />}{done4 && numeral(dash.owe[name]).format("0,0")}</h3>
+                                     <p className={`text-success ml-2 mb-0 font-weight-medium`}>
+                                         {'+'.concat(numeral().format("0,0.0"))}%
+                                     </p>
+                                 </div>
+                             </div>
+                             <div className="col-3">
+                                 <div
+                                     className={`icon icon-box-success`}>
+                    <span
+                        className={`mdi mdi-arrow-top-right icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-muted font-weight-normal">Current Debt</h6>
+                     </div>
+                 </div>
+             </div>
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
              <div className="card">
                <div className="card-body">
                  <div className="row">
@@ -355,73 +499,7 @@ function Dashboard(props) {
                </div>
              </div>
            </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-               <div className="card">
-                 <div className="card-body">
-                       <div className="row">
-                         <div className="col-9">
-                           <div className="d-flex align-items-center align-self-start">
-                             <h3 className="mb-0">Ksh {!done4 &&
-                                 <CountUp
-                                     start={Math.abs(dash.owe[name] - 1000)}
-                                     end={dash.owe[name]}
-                                     duration={2.75}
-                                     delay={1}
-                                     onEnd={() => setDone4(true)}
-                                 />}{done4 && numeral(dash.owe[name]).format("0,0")}</h3>
-                             <p className={`text-success ml-2 mb-0 font-weight-medium`}>
-                               {'+'.concat(numeral().format("0,0.0"))}%
-                             </p>
-                           </div>
-                         </div>
-                         <div className="col-3">
-                           <div
-                               className={`icon icon-box-success`}>
-                    <span
-                        className={`mdi mdi-arrow-top-right icon-item`}/>
-                           </div>
-                         </div>
-                       </div>
-                   <h6 className="text-muted font-weight-normal">Current Debt</h6>
-                 </div>
-               </div>
-           </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-             <div className="card">
-               <div className="card-body">
-                     <div className="row">
-                       <div className="col-9">
-                         <div className="d-flex align-items-center align-self-start">
-                           <h3 className="mb-0">{!done1 &&
-                               <CountUp
-                                   start={0}
-                                   end={dash.laying.week['1']}
-                                   duration={2.75}
-                                   delay={1}
-                                   onEnd={() => setDone1(true)}
-                               />}{done1 && numeral(dash.laying.week['1']).format("0.00")}%</h3>
-                           <p className={`text-${ dash.laying.week['0']
-                           < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                             {dash.laying.week['0'] < 0
-                                 ? numeral(dash.laying.week['0']).format("0,0.0")
-                                 : '+'.concat(numeral(dash.laying.week['0']).format("0,0.0"))}%
-                           </p>
-                         </div>
-
-                       </div>
-                       <div className="col-3">
-                         <div
-                             className={`icon icon-box-${dash.laying.week['0'] < 0 ? 'danger' : 'success'}`}>
-                      <span
-                          className={`mdi mdi-arrow-${dash.laying.week['0'] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
-                         </div>
-                       </div>
-                     </div>
-                 <h6 className="text-muted font-weight-normal">Last Week Laying Percentage</h6>
-               </div>
-             </div>
-           </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
              <div className="card">
                <div className="card-body">
                      <div className="row">
@@ -445,7 +523,7 @@ function Dashboard(props) {
                </div>
              </div>
            </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
              <div className="card">
                <div className="card-body">
                      <div className="row">
@@ -469,7 +547,7 @@ function Dashboard(props) {
                </div>
              </div>
            </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
                  <div className="card">
                    <div className="card-body">
                      <div className="row">
@@ -497,87 +575,9 @@ function Dashboard(props) {
                          </div>
                        </div>
                      </div>
-                     <h6 className="text-muted font-weight-normal">Trays and Eggs in Store</h6>
+                       <h6 className="text-muted font-weight-normal">Trays and Eggs in Store</h6>
                    </div>
                  </div>
-               </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-                 <div className="card">
-                   <div className="card-body">
-                     <div className="row">
-                       <div className="col-9">
-                         <div className="d-flex align-items-center align-self-start">
-                           <h3 className="mb-0">KSh {numeral(dash.week_profit[last_week.toString()]).format("0,0.00")}</h3>
-                           <p className={`text-${week_profit_change_percent
-                           < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                             {week_profit_change_percent < 0
-                                 ? numeral(week_profit_change_percent).format("0,0.0")
-                                 : '+'.concat(numeral(week_profit_change_percent).format("0,0.0"))}%
-                           </p>
-                         </div>
-                       </div>
-                       <div className="col-3">
-                         <div
-                             className={`icon icon-box-${week_profit_change_percent < 0 ? 'danger' : 'success'}`}>
-                      <span
-                          className={`mdi mdi-arrow-${week_profit_change_percent < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
-                         </div>
-                       </div>
-                     </div>
-                     <h6 className="text-muted font-weight-normal">Week Profit</h6>
-                   </div>
-                 </div>
-               </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-             <div className="card">
-               <div className="card-body">
-                 <div className="row">
-                   <div className="col-9">
-                     <div className="d-flex align-items-center align-self-start">
-                       <h3 className="mb-0">KSh {numeral(dash.month_profit[last_month.toString()]).format("0,0.00")}</h3>
-                       <p className={`text-${month_profit_change_percent
-                       < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                         {month_profit_change_percent < 0
-                             ? numeral(month_profit_change_percent).format("0,0.0")
-                             : '+'.concat(numeral(month_profit_change_percent).format("0,0.0"))}%
-                       </p>
-                     </div>
-                   </div>
-                   <div className="col-3">
-                     <div
-                         className={`icon icon-box-${month_profit_change_percent < 0 ? 'danger' : 'success'}`}>
-                      <span
-                          className={`mdi mdi-arrow-${month_profit_change_percent < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
-                     </div>
-                   </div>
-                 </div>
-                 <h6 className="text-muted font-weight-normal">Month Profit</h6>
-               </div>
-             </div>
-           </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-             <div className="card">
-               <div className="card-body">
-                 <div className="row">
-                   <div className="col-9">
-                     <div className="d-flex align-items-center align-self-start">
-                       <h3 className="mb-0">{numeral(dash.birds).format("0,0")}</h3>
-                       <p className={`text-success ml-2 mb-0 font-weight-medium`}>
-                         {'+'.concat(numeral().format("0,0.0"))}%
-                       </p>
-                     </div>
-                   </div>
-                   <div className="col-3">
-                     <div
-                         className={`icon icon-box-success`}>
-                      <span
-                          className={`mdi mdi-arrow-top-right icon-item`}/>
-                     </div>
-                   </div>
-                 </div>
-                 <h6 className="text-muted font-weight-normal">Total Birds</h6>
-               </div>
-             </div>
            </div>
          </div>
          <div className="row ">
