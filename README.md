@@ -4,10 +4,9 @@ A data keeping offline-first, reactjs web app for farmers.<br/>
 
 **NB:- Requires Node version v14.20.0 LTS and npm 6.14.17**
 
-### Install instructions
-1. remove `preinstall` line in `package.json` then run npm install.
-2. return the `preinstall` line and run npm install again.
-3. start by running `npm run start`.
+#### Runing on localhost
+1. Run `npm install` or `yarn`.
+2. start by running `npm run start` or `yarn start`.
 
 
 Credit given to [Corona React Admin Template](https://github.com/BootstrapDash/corona-react-free-admin-template)
