@@ -23,7 +23,8 @@ function InputMoney(props) {
     const [state, setState] = useState({
         from: 'From',
         to: 'To',
-        category: 'send'
+        category: 'send',
+        reason: ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
