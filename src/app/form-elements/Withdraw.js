@@ -8,12 +8,15 @@ import {Alert} from "./InputEggs";
 import {sendMoney} from "../../services/actions/moneyAction";
 import {Offline, Online} from "react-detect-offline";
 import {firebase} from '../../services/api/fbConfig';
+import Dropdown from "react-bootstrap/Dropdown";
+import DropdownButton from "react-bootstrap/DropdownButton";
 
 function Withdraw(props) {
     const [state, setState] = useState({
-        from: 'From',
-        to: 'To',
-        category: 'send'
+        name: "My Balance",
+        receiver: 'To',
+        category: 'send',
+        reason: 'WITHDRAW'
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -41,22 +44,33 @@ function Withdraw(props) {
                 break;
             }
         }
+
+        if (!state.pass) {
+            setError('Empty password provided');
+            setOpenError(true);
+            return;
+        }
+
         firebase.auth().onAuthStateChanged((user_) => {
             if (user_) {
-                state.name = user_
+                const curUser = user_
                     .displayName.substring(0,
                         user_.displayName.lastIndexOf(' ')).toUpperCase();
-                state.receiver = `WITHDRAW_${state.name}`;
-                delete state.from;
-                delete state.to;
+                const values = {
+                    ...state
+                };
+                values.receiver = `WITHDRAW_${curUser}`;
+                values.name = values.name === 'Bank' ? 'BANK' : curUser;
+                values.initiator = curUser;
 
                 const user = firebase.auth().currentUser;
                 const credential = firebase.auth.AuthCredential
-                    .fromJSON({ email: user_.email, password: state.pass })
+                    .fromJSON({ email: user_.email, password: values.pass });
                 user.reauthenticateWithCredential(credential)
                     .then(() => {
+                        delete values.pass;
                         delete state.pass;
-                        props.sendMoney(state);
+                        props.sendMoney(values);
                         setOpenError(false);
                         setOpen(true);
                     }).catch((error) => {
@@ -86,6 +100,11 @@ function Withdraw(props) {
             setState({
                 ...state,
                 [e.target.id]: e.target.value
+            });
+        } else {
+            setState({
+                ...state,
+                name: e
             });
         }
     }
@@ -120,15 +139,26 @@ function Withdraw(props) {
                 <div className="card">
                     <div className="card-body">
                         <h4 className="card-title">Withdraw</h4>
-                        <p className="card-description"> Enter withdrawal amount </p>
+                        <p className="card-description"> Withdraw from</p>
                         <form className="forms-sample">
+                            <DropdownButton
+                                alignRight
+                                title={state.name}
+                                id="name"
+                                onSelect={handleSelect}
+                            >
+                                <Dropdown.Item eventKey="My Balance">My Balance</Dropdown.Item>
+                                <Dropdown.Divider />
+                                <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
+                            </DropdownButton>
+                            <br />
                             <Form.Group>
                                 <label htmlFor="amount">Amount</label>
                                 <Form.Control type="number" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="amount">Re-enter Password</label>
-                                <Form.Control type="password" onChange={handleSelect} className="form-control" id="pass" placeholder="Enter User Password" />
+                                <Form.Control type="password" value={state.pass || ''} onChange={handleSelect} className="form-control" id="pass" placeholder="Enter User Password" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                         </form>

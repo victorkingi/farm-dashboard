@@ -24,12 +24,13 @@ export const sendMoney = (values) => {
         const firebase = getFirebase();
         const firestore = getFirestore();
 
-        if (values.receiver === "BANK") {
+        if (values.receiver.startsWith("WITHDRAW")) {
             return firebase.auth().onAuthStateChanged(user => {
                 if (user) {
                     return user.getIdTokenResult().then(idToken => {
                         if (!idToken.claims.admin) {
-                            return Promise.reject("ERROR: You are not an admin!");
+                            window.alert("You are not an admin");
+                            return -1;
                         } else {
                             firestore.collection("pending_transactions").add({
                                 values,

@@ -11,3 +11,4 @@ A data keeping offline-first, reactjs web app for farmers.<br/>
 
 Credit given to [Corona React Admin Template](https://github.com/BootstrapDash/corona-react-free-admin-template)
 by bootstrapDash for providing a base template to start on.
+

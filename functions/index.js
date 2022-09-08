@@ -1,10 +1,9 @@
 const admin = require('firebase-admin');
-const serviceAccount = require("./poultry101-6b1ed-4070627cf0bc.json");
-// hello
+const serviceAccount = require("");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: "poultry101-6b1ed.appspot.com"
+  storageBucket: ""
 });
 
 // // Create and Deploy Your First Cloud Functions

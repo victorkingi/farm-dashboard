@@ -135,21 +135,15 @@ function Dashboard(props) {
           //if we come across the first one where name isn't name break loop
           if (pend[k].id === 'cleared') continue;
           if (pend[k].values?.name) {
-            if (pend[k].values?.name !== name
-                && pend[k].values?.name !== "ANNE") {
-              allDisable = true;
-              break;
+            if (pend[k].values?.name !== __user__
+                && pend[k].values?.name !== "ANNE" && pend[k].values?.name !== "BANK") {
+                allDisable = true;
+                break;
             }
           }
-          if (pend[k].submittedBy !== name) {
+          if (pend[k].submittedBy && pend[k].submittedBy !== __user__) {
               allDisable = true;
               break;
-          }
-          if (pend[k].values?.from) {
-            if (pend[k].values?.from !== name) {
-              allDisable = true;
-              break;
-            }
           }
         }
         setDisable(allDisable);
@@ -704,9 +698,9 @@ function Dashboard(props) {
                      </thead>
                      <tbody>
                      {pend && pend.map((item) => {
-                         let disCheckBox = name !== (item.values?.name
-                                 || item.values?.from)
-                             && item?.values?.name !== "ANNE";
+                         let disCheckBox = name !== item.values?.name;
+                         disCheckBox = disCheckBox && "ANNE" !== item.values?.name;
+                         disCheckBox = disCheckBox && "BANK" !== item.values?.name;
                          if (item.id === "cleared") return null;
                          if (item.category === 'deadSick') {
                              disCheckBox = name !== item.submittedBy;
@@ -762,9 +756,9 @@ function Dashboard(props) {
                                    {!isRejected(item?.submittedOn?.toDate()) && !item.weirdName && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
                                </td>
                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
-                               <td> {sanitize_string(item.values?.category, item.values?.buyerName || item.values?.itemName)} </td>
-                               <td>{(item.values?.category !== 'sales' && item.values?.category !== 'buys' && (item.values.name ? item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase() : item.values?.borrower.charAt(0)+item.values?.borrower.slice(1).toLowerCase())) || 'Miner'}</td>
-                               <td>{item.values?.receiver ? item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase() : item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase()}</td>
+                               <td> {item.values?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item.values?.category, item.values?.buyerName || item.values?.itemName)} </td>
+                               <td>{(item.values?.category !== 'sales' && item.values?.category !== 'buys' && (item.values?.name && item.values?.reason !== "WITHDRAW" ? (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.name === item.values?.initiator ? 'Balance' : 'Bank') : (item.values?.borrower && item.values?.borrower.charAt(0)+item.values?.borrower.slice(1).toLowerCase()))) || 'Miner'}</td>
+                               <td>{item.values?.receiver && item.values?.reason !== "WITHDRAW" ? (item.values?.receiver && item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.initiator && item.values?.initiator.charAt(0)+item.values?.initiator.slice(1).toLowerCase()) : (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase())}</td>
                                <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
                            </tr>
                          )
