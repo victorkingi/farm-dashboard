@@ -26,6 +26,9 @@ package-lock.json
 firestore.indexes.json
 firestore.rules
 firebase-debug.log
+pubsub-debug.log
+ui-debug.log
+firestore-debug.log
 storage.rules
 yarn.lock
 functions/node_modules/
