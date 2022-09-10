@@ -243,21 +243,6 @@ function Dashboard(props) {
      rollBack();
    }
 
-  const isRejected = (date) => {
-     if (date) {
-       const today = new Date().getTime();
-       let toMine = new Date(date);
-       toMine.setHours(3, 0, 0, 0);
-       // if mine time is < submittedOn then choose next date, else choose today
-       if (toMine.getTime() < date.getTime()) {
-         toMine.setDate(toMine.getDate()+1);
-       }
-       return toMine.getTime() < today;
-     } else {
-       return false;
-     }
-   }
-
   if (JSON.stringify(dash) !== JSON.stringify({})) {
    const name = localStorage.getItem('name').toUpperCase();
    const weeks = Object.keys(dash.week_profit);
@@ -641,10 +626,7 @@ function Dashboard(props) {
                                            </div>
                                        </td>
                                        <td>
-                                           {isRejected(item?.submittedOn?.toDate()) &&
-                                               <div className="badge badge-outline-danger">Rejected</div>}
-                                           {!isRejected(item?.submittedOn?.toDate()) &&
-                                               <div className="badge badge-outline-warning">Pending</div>}
+                                           {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : <div className="badge badge-outline-warning">Pending</div>}
                                        </td>
                                        <td> {moment(item.date_ * 1000).format("MMM Do YY")} </td>
                                        <td> {item.trays_store} </td>
@@ -721,9 +703,7 @@ function Dashboard(props) {
                                          </div>
                                      </td>
                                      <td>
-                                         {isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
-                                         {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
-                                         {!isRejected(item?.submittedOn?.toDate()) && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
+                                         {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : <div className="badge badge-outline-warning">Pending</div> }
                                      </td>
                                      <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                      <td>{item.section} Chicken(s)</td>
@@ -751,9 +731,7 @@ function Dashboard(props) {
                                </div>
                              </td>
                                <td>
-                                   {(isRejected(item?.submittedOn?.toDate()) || item.weirdName) && !item?.rejected && <div className="badge badge-outline-danger">Rejected</div>}
-                                   {isRejected(item?.submittedOn?.toDate()) && item?.rejected && <div className="badge badge-outline-info">Rejected</div>}
-                                   {!isRejected(item?.submittedOn?.toDate()) && !item.weirdName && !item?.rejected && <div className="badge badge-outline-warning">Pending</div>}
+                                   {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : <div className="badge badge-outline-warning">Pending</div>}
                                </td>
                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                <td> {item.values?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item.values?.category, item.values?.buyerName || item.values?.itemName)} </td>
