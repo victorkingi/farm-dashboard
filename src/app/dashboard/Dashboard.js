@@ -280,23 +280,23 @@ function Dashboard(props) {
   }
   let week_profit_change;
   let month_profit_change;
-  if (dash.week_profit[last_week.toString()] >= 0) {
-      week_profit_change = dash.week_profit[last_week.toString()] - dash.week_profit[String(last_week - (7 * 24 * 60 * 60))];
-  } else {
-      week_profit_change = dash.week_profit[last_week.toString()] - dash.week_profit[String(last_week - (7 * 24 * 60 * 60))];
-      week_profit_change *= -1;
-  }
+  let week_2 = dash.week_profit[last_week.toString()];
+  let week_1 = dash.week_profit[String(last_week - (7 * 24 * 60 * 60))];
+   // (-500/1000); (500/1000); 500--1000= (-1*1500/(1000)); -500--1000=(-1*500/(-1000)); -500-1000=(-1500/1000); -1500--1000=(-1*-500/(-1000))
+  if ((week_2 >= 0 && week_1 >= 0) || (week_2 < 0 && week_1 >= 0)) week_profit_change = week_2 - week_1;
+  else week_profit_change = -1 * (week_2 - week_1);
+  // 1000, 500; 500, 1000; -1000, 500; -1000, -500; 1000, -500; -1000, -1500;
+  // drop pos  incr pos  incr neg/pos  incr neg    drop pos/neg   drop neg
 
-   let week_profit_change_percent = (week_profit_change / dash.week_profit[String(last_week-(7 * 24 * 60 * 60))]) * 100;
+   let week_profit_change_percent = (week_profit_change / week_1) * 100;
 
-   if (dash.month_profit[last_month.toString()] >= 0) {
-       month_profit_change = dash.month_profit[last_month.toString()] - dash.month_profit[String(last_month-(28 * 24 * 60 * 60))];
-   } else {
-       month_profit_change = dash.month_profit[last_month.toString()] - dash.month_profit[String(last_month-(28 * 24 * 60 * 60))];
-       month_profit_change *= -1;
-   }
+   let month_2 = dash.month_profit[last_month.toString()]
+   let month_1 = dash.month_profit[String(last_month-(28 * 24 * 60 * 60))];
 
-   let month_profit_change_percent = (month_profit_change / dash.month_profit[String(last_month-(28 * 24 * 60 * 60))]) * 100;
+   if ((month_2 >= 0 && month_1 >= 0) || (month_2 < 0 && month_1 >= 0)) month_profit_change = month_2 - month_1;
+   else month_profit_change = -1 * (month_2 - month_1);
+
+   let month_profit_change_percent = (month_profit_change / month_1) * 100;
    month_profit_change_percent = isNaN(month_profit_change_percent) ? 100 : month_profit_change_percent;
    week_profit_change_percent = isNaN(week_profit_change_percent) ? 100 : week_profit_change_percent;
 
