@@ -371,6 +371,17 @@ function EnhancedTable(props) {
                                 .map((row, index) => {
                                     const isItemSelected = isSelected(row.hash);
                                     const labelId = `enhanced-table-checkbox-${index}`;
+                                    const data = txs[row.hash]?.data;
+                                    let from = data.from.toLowerCase();
+                                    let to = data.to.toLowerCase();
+                                    from = from.split('_');
+                                    to = to.split('_');
+                                    if (from.length === 2) from = from[0]+' '+from[1];
+                                    else from = from[0];
+                                    if (to.length === 2) to = to[0]+' '+to[1];
+                                    else to = to[0];
+
+                                    const toPrint = `from ${from} to ${to}`;
 
                                     return (
                                         <TableRow
@@ -397,7 +408,7 @@ function EnhancedTable(props) {
                                                 scope="row"
                                                 padding="none"
                                             >
-                                                {row.name}
+                                                {row.name} {toPrint}
                                             </TableCell>
                                             <TableCell align="right">{moment.unix(row.date).format("ddd ll")}</TableCell>
                                             <TableCell align="right">{moment.unix(row.subm).format("ddd ll")}</TableCell>

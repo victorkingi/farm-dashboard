@@ -578,13 +578,27 @@ function EnhancedTable(props) {
                                     const isItemSelected = isSelected(row.hash);
                                     const labelId = `enhanced-table-checkbox-${index}`;
                                     const data = txs[row.hash]?.data;
+
+                                    let from;
+                                    let to;
+                                    if (row.name === 'Trade') {
+                                        from = data.from.toLowerCase();
+                                        to = data.to.toLowerCase();
+                                        from = from.split('_');
+                                        to = to.split('_');
+                                        if (from.length === 2) from = from[0]+' '+from[1];
+                                        else from = from[0];
+                                        if (to.length === 2) to = to[0]+' '+to[1];
+                                        else to = to[0];
+                                    }
+
                                     const by = data.by.toLowerCase();
                                     const toPrint = row.name === 'Eggs Collected' ? `(${by}) trays ${data.trays_collected}`
                                         : row.name === 'Dead or Sick'
                                             ? `(${by}) ${numeral(data.number).format(',')} ${data.section.toLowerCase()}`
                                             : row.name === 'Sale' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.tray_no).format(',')}@${numeral(data.tray_price).format(',')}`
                                                 : row.name === 'Purchase' ? `(${by}) ${data.item_name.toLowerCase()} ${numeral(data.item_no).format(',')}@${numeral(data.item_price).format(',')}`
-                                                    : row.name === 'Trade' ? `from ${data.from.toLowerCase()} to ${data.to.toLowerCase()}` : '';
+                                                    : row.name === 'Trade' ? `from ${from} to ${to}` : '';
 
                                     return (
                                         <TableRow
