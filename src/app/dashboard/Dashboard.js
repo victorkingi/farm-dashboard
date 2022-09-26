@@ -592,13 +592,7 @@ function Dashboard(props) {
                                <th> Status</th>
                                <th> Date</th>
                                <th> Trays</th>
-                               <th> a1</th>
-                               <th> a2</th>
-                               <th> b1</th>
-                               <th> b2</th>
-                               <th> c1</th>
-                               <th> c2</th>
-                               <th> house</th>
+                               <th> eggs</th>
                                <th> broken</th>
                                <th> by</th>
                            </tr>
@@ -630,13 +624,7 @@ function Dashboard(props) {
                                        </td>
                                        <td> {moment(item.date_ * 1000).format("MMM Do YY")} </td>
                                        <td> {item.trays_store} </td>
-                                       <td> {item.a1} </td>
-                                       <td> {item.a2} </td>
-                                       <td> {item.b1} </td>
-                                       <td> {item.b2} </td>
-                                       <td> {item.c1} </td>
-                                       <td> {item.c2} </td>
-                                       <td> {item.house} </td>
+                                       <td> {item.eggs.slice(0, item.eggs.length-1)} </td>
                                        <td> {item.broken} </td>
                                        <td> {item.submittedBy.charAt(0) + item.submittedBy.slice(1).toLowerCase()} </td>
                                    </tr>

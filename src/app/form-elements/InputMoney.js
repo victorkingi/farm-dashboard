@@ -10,6 +10,7 @@ import {Alert} from "./InputEggs";
 import {sendMoney} from "../../services/actions/moneyAction";
 import {Offline, Online} from "react-detect-offline";
 import {firebase} from '../../services/api/fbConfig';
+import DatePicker from "react-datepicker";
 
 const cleanSendReceive = (str, name) => {
     let str1 = str.toUpperCase();
@@ -24,7 +25,8 @@ function InputMoney(props) {
         from: 'From',
         to: 'To',
         category: 'send',
-        reason: ''
+        reason: '',
+        date: new Date()
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -52,7 +54,7 @@ function InputMoney(props) {
             setOpenError(true);
             return false;
         }
-        return true;
+        return checkDate(values.date);
     }
 
     const handleSubmit = (e) => {
@@ -101,6 +103,9 @@ function InputMoney(props) {
         values.receiver = cleanSendReceive(values.receiver, name);
         values.name = cleanSendReceive(values.name, name);
         values.initiator = cleanSendReceive(values.initiator, name);
+        let date = new Date(values.date);
+        date.setHours(0,0,0,0);
+        values.date = date;
         console.log(values);
         let proceed = parameterSendingChecks(values);
         if (proceed) {
@@ -140,6 +145,23 @@ function InputMoney(props) {
         }
     }
 
+    const checkDate = (date) => {
+        if (date.getTime() > new Date().getTime()) {
+            setError('Invalid date');
+            setOpenError(true);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    const handleDate = (date) => {
+        setState({
+            ...state,
+            date: date
+        });
+    };
+
     const componentDidMount = () => {
         bsCustomFileInput.init()
     }
@@ -172,6 +194,15 @@ function InputMoney(props) {
                             <h4 className="card-title">Input Money</h4>
                             <p className="card-description"> Enter money sent </p>
                             <form className="forms-sample">
+                                <label htmlFor="date">Date</label>
+                                <Form.Group>
+                                    <DatePicker
+                                        selected={state.date}
+                                        onChange={handleDate}
+                                        className='form-control'
+                                        id='date'
+                                    />
+                                </Form.Group>
                                 <DropdownButton
                                     alignRight
                                     title={state.from}

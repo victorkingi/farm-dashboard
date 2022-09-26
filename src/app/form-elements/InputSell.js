@@ -43,7 +43,6 @@ function autoCorrectBuyerName(values) {
     'Kinyanjui',
     'Benson',
     'Ben',
-    'Rose',
     'Gitonyi',
     'Muthomi',
     'Solomon'
@@ -73,7 +72,8 @@ function InputSell(props) {
     section: 'Choose Section',
     buyerName: '',
     trayPrice: '350',
-    trayNo: '1'
+    trayNo: '1',
+    receiver: localStorage.getItem('name')
   });
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
@@ -207,6 +207,12 @@ function InputSell(props) {
     };
     delete values.not_paid;
     delete values.paid;
+    if (!values.status && localStorage.getItem('name') !== values.receiver) {
+      setError('Sale should be paid if money was transferred');
+      setOpenError(true);
+      return -1;
+    }
+    values.receiver = values.receiver.toUpperCase()
     values.category = 'sales';
     values.section = getSectionAddr(values.section);
     let date = new Date(values.date);
@@ -313,6 +319,13 @@ function InputSell(props) {
       });
     }
   };
+
+  const handleTransfer = (e) => {
+    setState({
+      ...state,
+      receiver: e
+    });
+  }
 
   const componentDidMount = () => {
     bsCustomFileInput.init();
@@ -451,6 +464,23 @@ function InputSell(props) {
                   </div>
                 </Form.Group>
               </div>
+                <Form.Group>
+                  <label htmlFor='receiver'>Money transferred to</label>
+                  <DropdownButton
+                      alignRight
+                      title={state.receiver || 'Money transferred to'}
+                      id='receiver'
+                      onSelect={handleTransfer}
+                  >
+                    <Dropdown.Item eventKey="Victor">Victor</Dropdown.Item>
+                    <Dropdown.Item eventKey="Anne">Anne</Dropdown.Item>
+                    <Dropdown.Item eventKey="Jeff">Jeff</Dropdown.Item>
+                    <Dropdown.Item eventKey="Babra">Babra</Dropdown.Item>
+                    <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
+                  </DropdownButton>
+                </Form.Group>
               <button
                 type='submit'
                 className='btn btn-primary mr-2'

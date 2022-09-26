@@ -20,14 +20,22 @@ function InputPurchase(props) {
         section: 'Choose Section',
         objectNo: '',
         itemName: '',
+        vendorName: '',
         category: 'buys'
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+    const [isFeeds, setIsFeeds] = useState(false);
+
     let name = firebase.auth().currentUser?.displayName || '';
     name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
+
+    useEffect(() => {
+        if (state.section === "Feeds") setIsFeeds(true);
+        else setIsFeeds(false);
+    }, [state.section]);
 
     const checkDate = (date) => {
         if (date.getTime() > new Date().getTime()) {
@@ -43,7 +51,20 @@ function InputPurchase(props) {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         if (values.itemName) {
             values.itemName = values.itemName.charAt(0).toUpperCase().concat(values
-                .itemName.substring(1));
+                .itemName.substring(1).toLowerCase());
+        }
+        if (values.section === 'FEEDS') {
+            const validVendors = ["KINYANJUI", "THIKA FARMERS"];
+            const validFeeds = ["LAYERS", "CHICK", "GROWERS", "STARTER"];
+            values.vendorName = values.vendorName.toUpperCase();
+            if (!validVendors.includes(values.vendorName)) {
+                console.log("invalid vendor name");
+                return false;
+            }
+            if (!validFeeds.includes(values.itemName.toUpperCase())) {
+                console.log("invalid feeds name");
+                return false;
+            }
         }
         if (values.itemName && values.section === "PPURITY") {
             const regex = /^([A-Z][a-z]{2},)+$/;
@@ -127,6 +148,8 @@ function InputPurchase(props) {
             ...state,
             name
         };
+        if (values.section !== "Feeds") delete values.vendorName;
+
         values.section = getSectionAddr(values.section);
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
@@ -137,6 +160,10 @@ function InputPurchase(props) {
             props.inputPurchase(values);
             setOpenError(false);
             setOpen(true);
+        } else {
+            setOpenError(true);
+            setOpen(false);
+            setError("Some values might be wrong");
         }
     };
 
@@ -250,12 +277,20 @@ function InputPurchase(props) {
                                 onSelect={handleSelect}
                             >
                                 <Dropdown.Item eventKey="Feeds">Feeds</Dropdown.Item>
-                                <Dropdown.Item eventKey="Drug">Drug</Dropdown.Item>
+                                <Dropdown.Item eventKey="Drugs">Drugs</Dropdown.Item>
                                 <Dropdown.Item eventKey="Other Purchase">Other Purchase</Dropdown.Item>
                                 <Dropdown.Divider />
                                 <Dropdown.Item eventKey="Pay Purity">Pay Purity</Dropdown.Item>
                             </DropdownButton>
                             <br />
+                            {isFeeds &&
+                                <Form.Group>
+                                <label htmlFor="itemName">Vendor Name</label>
+                                <Form.Control type="text"
+                                              onChange={handleSelect}
+                                              className="form-control" id="vendorName" placeholder="Feeds bought from" />
+                                </Form.Group>
+                            }
                             <Form.Group>
                                 <label htmlFor="itemName">Item Name</label>
                                 <Form.Control type="text"

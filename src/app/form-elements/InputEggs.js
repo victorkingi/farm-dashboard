@@ -45,19 +45,22 @@ function InputEggs(props) {
         e.preventDefault();
         const levelRegex = /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-5])$/;
         const trayStoreRegex = /^[0-9]+,([0-9]|1[0-9]|2[0-9])$/;
+        const eggsRegex = /^([0-9]+,){12}$/;
         const bagsRegex = /^[0-9]+$/.test(state.bags_store);
         const arr = Object.entries(state);
 
-        if (arr.length < 12) {
-            setError('All Inputs should be filled');
-            setOpenError(true);
-            return;
-        }
         for (let i = 0; i < arr.length; i++) {
             if (arr[i][1] === "" || !arr[i][1]) {
                 setError('All Inputs should be filled');
                 setOpenError(true);
                 return;
+            }
+            if (arr[i][0] === "eggs") {
+                if (!eggsRegex.test(arr[i][1])) {
+                    setError('eggs collected should be in this format [eggs,eggs,]');
+                    setOpenError(true);
+                    return;
+                }
             }
             if (arr[i][0] === "trays_store") {
                 if (!trayStoreRegex.test(arr[i][1])) {
@@ -159,32 +162,12 @@ function InputEggs(props) {
                                 />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="a1">A1</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="a1" placeholder="A1 Eggs" required />
+                                <label htmlFor="level">Level ordering</label>
+                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A1,B1,C1,A2,B2,C2,A3,B3,C3,A4,B4,C4" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="b1">B1</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="b1" placeholder="B1 Eggs" />
-                            </Form.Group>
-                            <Form.Group>
-                                <label htmlFor="c1">C1</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="c1" placeholder="C1 Eggs" />
-                            </Form.Group>
-                            <Form.Group>
-                                <label htmlFor="a2">A2</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="a2" placeholder="A2 Eggs" />
-                            </Form.Group>
-                            <Form.Group>
-                                <label htmlFor="b2">B2</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="b2" placeholder="B2 Eggs" />
-                            </Form.Group>
-                            <Form.Group>
-                                <label htmlFor="c2">C2</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="c2" placeholder="C2 Eggs" />
-                            </Form.Group>
-                            <Form.Group>
-                                <label htmlFor="house">House</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="house" placeholder="House Eggs" />
+                                <label htmlFor="eggs">Eggs</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs" placeholder="Number of eggs (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="broken">Broken</label>
