@@ -16,6 +16,7 @@ const InputMoney = lazy(() => import('./app/form-elements/InputMoney'));
 const InputDeadSick = lazy(() => import('./app/form-elements/InputDeadSick'));
 const InputBorrowed = lazy(() => import('./app/form-elements/InputBorrowed'));
 const InputEggs = lazy(() => import('./app/form-elements/InputEggs'));
+const InputChickenNo = lazy(() => import('./app/form-elements/InputChickenNo'));
 const Withdraw = lazy(() => import('./app/form-elements/Withdraw'));
 
 const AnneDebt = lazy(() => import('./app/tables/AnneDebt'));
@@ -49,6 +50,7 @@ function AppRoutes() {
           <Route path="/inputs/purchase" component={ InputPurchase } />
           <Route path="/inputs/borrow" component={ InputBorrowed } />
           <Route path="/inputs/eggs" component={ InputEggs } />
+          <Route path="/inputs/chknno" component={ InputChickenNo } />
           <Route path="/inputs/money" component={ InputMoney } />
           <Route path="/withdraw" component={ Withdraw }/>
 

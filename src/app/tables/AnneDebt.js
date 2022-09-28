@@ -227,41 +227,51 @@ export default compose(
 
     const rows = createData();
 
-    if (props.pending?.length) {
+    if (props.pending?.length >= 0) {
         return (
             <div style={{paddingLeft: "3%", paddingRight: "3%", paddingTop: "10px" }}>
                 <TableContainer style={{
                     borderRadius: "10px",
                     boxShadow: "0 6px 18px -9px rgba(0, 0, 0, 0.75)"
                 }} component={Paper}>
-                    <Table aria-label="collapsible table">
+                    {props.pending.length ? (
+                        <div>
+                            <Table aria-label="collapsible table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell/>
+                                        <TableCell>Month ({props.pending[0].values.date.toDate().getFullYear()})</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {rows.fin_ar.map((row) => (
+                                        <Row key={row.month} row={row}/>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            <Table aria-label="collapsible table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell align="left">
+                                            <b><em>Total:</em></b>
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            <b><em>Ksh.{numeral(rows.total).format("0,0")}</em></b>
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                </TableBody>
+                            </Table>
+                        </div>
+                    ) : <Table aria-label="collapsible table">
                         <TableHead>
                             <TableRow>
                                 <TableCell/>
-                                <TableCell>Month ({props.pending[0].values.date.toDate().getFullYear()})</TableCell>
+                                <TableCell>Month</TableCell>
                             </TableRow>
                         </TableHead>
-                        <TableBody>
-                            {rows.fin_ar.map((row) => (
-                                <Row key={row.month} row={row}/>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    <Table aria-label="collapsible table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell align="left">
-                                    <b><em>Total:</em></b>
-                                </TableCell>
-                                <TableCell align="right">
-                                    <b><em>Ksh.{numeral(rows.total).format("0,0")}</em></b>
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                        </TableBody>
-                    </Table>
-
+                    </Table>}
                 </TableContainer>
                 <div style={{paddingLeft: "35%", paddingTop: "10px"}}>
                     <button type="button" disabled={false} className="btn btn-primary" onClick={handleClick} id='submit'>

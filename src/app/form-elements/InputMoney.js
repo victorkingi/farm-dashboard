@@ -25,8 +25,8 @@ function InputMoney(props) {
         from: 'From',
         to: 'To',
         category: 'send',
-        reason: '',
-        date: new Date()
+        date: new Date(),
+        extra_data: ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -61,6 +61,7 @@ function InputMoney(props) {
         e.preventDefault();
         const priceAmountRegex = /^([\d]+)$/;
         const noZeroRegex = /^(0*)$/;
+        const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
 
         if (arr.length < 4) {
@@ -89,6 +90,11 @@ function InputMoney(props) {
                     return;
                 }
             }
+            if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+                setError('Extra info should only be letters/numbers or left empty');
+                setOpenError(true);
+                return;
+            }
         }
         let name = firebase.auth().currentUser.displayName;
         name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
@@ -112,6 +118,10 @@ function InputMoney(props) {
             props.sendMoney(values);
             setOpenError(false);
             setOpen(true);
+            setState({
+                ...state,
+                extra_data: ''
+            });
         }
     };
 
@@ -232,6 +242,10 @@ function InputMoney(props) {
                                 <Form.Group>
                                     <label htmlFor="amount">Amount</label>
                                     <Form.Control type="text" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
+                                </Form.Group>
+                                <Form.Group>
+                                    <label htmlFor="objectNo">Extra info (optional)</label>
+                                    <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>

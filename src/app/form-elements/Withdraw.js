@@ -16,7 +16,8 @@ function Withdraw(props) {
         name: "My Balance",
         receiver: 'To',
         category: 'send',
-        reason: 'WITHDRAW'
+        reason: 'WITHDRAW',
+        extra_data: ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -27,6 +28,7 @@ function Withdraw(props) {
         e.preventDefault();
         const priceAmountRegex = /^([\d]+)$/;
         const noZeroRegex = /^(0*)$/;
+        const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
 
         for (let i = 0; i < arr.length; i++) {
@@ -42,6 +44,11 @@ function Withdraw(props) {
                     return;
                 }
                 break;
+            }
+            if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+                setError('Extra info should only be letters/numbers or left empty');
+                setOpenError(true);
+                return;
             }
         }
 
@@ -73,6 +80,10 @@ function Withdraw(props) {
                         props.sendMoney(values);
                         setOpenError(false);
                         setOpen(true);
+                        setState({
+                            ...state,
+                            extra_data: ''
+                        });
                     }).catch((error) => {
                     setError(error.message.substring(0, error.message.lastIndexOf('.')));
                     setOpenError(true);
@@ -155,6 +166,10 @@ function Withdraw(props) {
                             <Form.Group>
                                 <label htmlFor="amount">Amount</label>
                                 <Form.Control type="number" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="objectNo">Extra info (optional)</label>
+                                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="amount">Re-enter Password</label>

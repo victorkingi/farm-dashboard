@@ -14,7 +14,8 @@ import {Offline, Online} from "react-detect-offline";
 function InputDeadSick(props) {
     const [state, setState] = useState({
         date: new Date(),
-        category: 'deadSick'
+        category: 'deadSick',
+        extra_data: ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -26,6 +27,9 @@ function InputDeadSick(props) {
         e.preventDefault();
         const numberRegex = /^([0-9]+)$/;
         const noZeroRegex = /^(0*)$/;
+        const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
+        const levelRegex = /^[a-z]([0-9])+$/;
+
         const arr = Object.entries(state);
         if (arr.length < 6) {
             setError('All Inputs should be filled');
@@ -46,10 +50,24 @@ function InputDeadSick(props) {
                 }
                 break;
             }
+            if (arr[i][0] === 'level' && !levelRegex.test(arr[i][1])) {
+                setError('Row name should be like this "a1"');
+                setOpenError(true);
+                return;
+            }
+            if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+                setError('Extra info should only be letters/numbers or left empty');
+                setOpenError(true);
+                return;
+            }
         }
         props.inputDeadSick(state, image);
         setOpenError(false);
         setOpen(true);
+        setState({
+            ...state,
+            extra_data: ''
+        });
     };
 
     const handleDate = (date) => {
@@ -155,18 +173,10 @@ function InputDeadSick(props) {
                                     <Dropdown.Item eventKey="Sick">Sick</Dropdown.Item>
                                 </DropdownButton>
                                 <br />
-                                <label htmlFor="location">Location</label>
-                                <DropdownButton
-                                    alignRight
-                                    title={state.place || ''}
-                                    id="location"
-                                    onSelect={handleSelect}
-                                >
-                                    <Dropdown.Item eventKey="Cage">Cage</Dropdown.Item>
-                                    <Dropdown.Divider />
-                                    <Dropdown.Item eventKey="House">House</Dropdown.Item>
-                                </DropdownButton>
-                                <br />
+                                <Form.Group>
+                                    <label htmlFor="chickenNo">Location</label>
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="level" placeholder="row name" />
+                                </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="chickenNo">Number of Chickens</label>
                                     <Form.Control type="text" onChange={handleSelect} className="form-control" id="chickenNo" placeholder="Number of Chickens" />
@@ -181,6 +191,10 @@ function InputDeadSick(props) {
                                         <Form.Control type="file" className="form-control visibility-hidden" id="photo" lang="es" onChange={handleSelect} />
                                         <label className="custom-file-label" htmlFor="photo">Upload image</label>
                                     </div>
+                                </Form.Group>
+                                <Form.Group>
+                                    <label htmlFor="objectNo">Extra info (optional)</label>
+                                    <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>

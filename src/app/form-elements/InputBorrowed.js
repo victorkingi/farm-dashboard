@@ -17,7 +17,8 @@ function InputBorrowed(props) {
         date: new Date(),
         borrower: 'Who Gives Out',
         get_from: 'Receive From',
-        category: 'borrow'
+        category: 'borrow',
+        extra_data: ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -90,10 +91,16 @@ function InputBorrowed(props) {
             name
         }
         let date = new Date(values.date);
+        const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         date.setHours(0,0,0,0);
         values.date = date;
         let from;
         let to;
+        if (!alphaNumRegex.test(values.extra_data)) {
+            setError('Extra info should only be letters/numbers or left empty');
+            setOpenError(true);
+            return;
+        }
         if (values.borrower.startsWith("From")) from = values.borrower.substring(4).toUpperCase();
         if (values.get_from.startsWith("Get")) to = values.get_from.substring(3).toUpperCase();
         values.borrower = from;
@@ -104,6 +111,10 @@ function InputBorrowed(props) {
             props.moneyBorrowed(values);
             setOpenError(false);
             setOpen(true);
+            setState({
+                ...state,
+                extra_data: ''
+            });
         }
     };
 
@@ -227,6 +238,10 @@ function InputBorrowed(props) {
                                 <Form.Group>
                                     <label htmlFor="purpose">Purpose</label>
                                     <Form.Control type="text" onChange={handleSelect} className="form-control" id="purpose" placeholder="Purpose" />
+                                </Form.Group>
+                                <Form.Group>
+                                    <label htmlFor="objectNo">Extra info (optional)</label>
+                                    <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>

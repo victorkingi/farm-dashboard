@@ -246,6 +246,10 @@ function EnhancedTable(props) {
 
     useMemo(() => {
         if (tx_ui) {
+            if (tx_ui.length === 0) {
+                setIsLoading(false);
+                return;
+            }
             const data = [];
             for (const tx of tx_ui) {
                 data.push(tx);
@@ -298,6 +302,7 @@ function EnhancedTable(props) {
 
         // call the function
         //console.log("diff", rows.length, rowsPerPage)
+
         if (is_valid_hash && !allDone) {
             console.log("hash ok");
             if (tx_ui.length === 1 && tx_ui[0].id === hash) {
@@ -470,6 +475,7 @@ function EnhancedTable(props) {
         setRows(temp);
 
     }, [to_use, hash, txWatch]);
+    console.log("hello")
 
     useMemo(() => {
         setAllDone(false);

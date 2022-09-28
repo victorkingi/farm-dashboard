@@ -73,7 +73,8 @@ function InputSell(props) {
     buyerName: '',
     trayPrice: '350',
     trayNo: '1',
-    receiver: localStorage.getItem('name')
+    receiver: localStorage.getItem('name'),
+    extra_data: ''
   });
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
@@ -151,6 +152,7 @@ function InputSell(props) {
     const arr = Object.entries(state);
     const trayRegex = /^([0-9]+)$/;
     const noZeroRegex = /^(0*)$/;
+    const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
 
     if (arr.length < 5) {
       setError('All Inputs should be filled');
@@ -194,6 +196,11 @@ function InputSell(props) {
           setOpenError(true);
           return;
         }
+      }
+      if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+        setError('Extra info should only be letters/numbers or left empty');
+        setOpenError(true);
+        return;
       }
     }
     let status = true;
@@ -255,11 +262,19 @@ function InputSell(props) {
             setOpen(false);
             setOpenWarn(true);
             props.inputSell(values);
+            setState({
+              ...state,
+              extra_data: ''
+            });
           } else {
             props.inputSell(values);
             setOpenError(false);
             setOpenWarn(false);
             setOpen(true);
+            setState({
+              ...state,
+              extra_data: ''
+            });
           }
         });
       } else {
@@ -481,6 +496,10 @@ function InputSell(props) {
                     <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
                   </DropdownButton>
                 </Form.Group>
+              <Form.Group>
+                <label htmlFor="objectNo">Extra info (optional)</label>
+                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
+              </Form.Group>
               <button
                 type='submit'
                 className='btn btn-primary mr-2'

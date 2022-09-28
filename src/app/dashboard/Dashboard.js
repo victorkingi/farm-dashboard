@@ -185,7 +185,7 @@ function Dashboard(props) {
                       const fileName = data.file_name;
                       const storage = firebase.storage();
                       const storageRef = storage.ref();
-                      const imageRef = storageRef.child(`dead_sick/${fileName}`);
+                      const imageRef = storageRef.child(`dead_sick_batch_2/${fileName}`);
                       await imageRef.delete();
                       console.log(fileName, "deleted");
                   }
@@ -243,7 +243,7 @@ function Dashboard(props) {
      rollBack();
    }
 
-  if (JSON.stringify(dash) !== JSON.stringify({})) {
+  if (JSON.stringify(dash) !== JSON.stringify({}) && dash?.week_profit) {
    const name = localStorage.getItem('name').toUpperCase();
    const weeks = Object.keys(dash.week_profit);
    const months = Object.keys(dash.month_profit);

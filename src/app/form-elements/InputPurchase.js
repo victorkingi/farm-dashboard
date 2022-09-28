@@ -21,7 +21,8 @@ function InputPurchase(props) {
         objectNo: '',
         itemName: '',
         vendorName: '',
-        category: 'buys'
+        category: 'buys',
+        extra_data: ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -123,6 +124,7 @@ function InputPurchase(props) {
     const handleSubmit = (e) => {
         e.preventDefault();
         const priceAmountRegex = /^([\d]+)$/;
+        const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
 
         if (arr.length < 6) {
@@ -138,8 +140,13 @@ function InputPurchase(props) {
                     return;
                 }
             }
-            if (arr[i][1] === "") {
+            if (arr[i][1] === "" && arr[i][0] === "vendorName" && state.section === "Feeds") {
                 setError('All Inputs should be filled');
+                setOpenError(true);
+                return;
+            }
+            if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+                setError('Extra info should only be letters/numbers or left empty');
                 setOpenError(true);
                 return;
             }
@@ -160,6 +167,10 @@ function InputPurchase(props) {
             props.inputPurchase(values);
             setOpenError(false);
             setOpen(true);
+            setState({
+                ...state,
+                extra_data: ''
+            });
         } else {
             setOpenError(true);
             setOpen(false);
@@ -304,6 +315,10 @@ function InputPurchase(props) {
                             <Form.Group>
                                 <label htmlFor="objectPrice">Price per Object</label>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="objectNo">Extra info (optional)</label>
+                                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                         </form>
