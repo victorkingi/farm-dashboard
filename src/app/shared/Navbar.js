@@ -84,7 +84,7 @@ function Navbar(props) {
           }
 
           const uploadFile = () => {
-            const uploadImagesRef = storageRef.child(`dead_sick/${key}`);
+            const uploadImagesRef = storageRef.child(`dead_sick_batch_2/${key}`);
             const metadata = {
               contentType: `image/${getExt(key.substring(5))}`
             }
