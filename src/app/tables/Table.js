@@ -751,7 +751,7 @@ function EnhancedTable(props) {
                                             <br />
                                             Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
                                             <br />
-                                            {txs[item].data.reason !== '' && txs[item].data.reason.toLowerCase()}
+                                            {txs[item].data.extra_data.toLowerCase().split(';')}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
