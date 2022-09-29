@@ -600,7 +600,7 @@ function EnhancedTable(props) {
                                     const by = data.by.toLowerCase();
                                     const toPrint = row.name === 'Eggs Collected' ? `(${by}) trays ${data.trays_collected}`
                                         : row.name === 'Dead or Sick'
-                                            ? `(${by}) ${numeral(data.number).format(',')} ${data.section.toLowerCase()}`
+                                            ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()}`
                                             : row.name === 'Sale' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.tray_no).format(',')}@${numeral(data.tray_price).format(',')}`
                                                 : row.name === 'Purchase' ? `(${by}) ${data.item_name.toLowerCase()} ${numeral(data.item_no).format(',')}@${numeral(data.item_price).format(',')}`
                                                     : row.name === 'Trade' ? `from ${from} to ${to}` : '';
@@ -700,20 +700,31 @@ function EnhancedTable(props) {
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             A1: {txs[item].data.a1}
                                             <br />
-                                            A2: {txs[item].data.a2}
-                                            <br />
                                             B1: {txs[item].data.b1}
-                                            <br />
-                                            B2: {txs[item].data.b2}
                                             <br />
                                             C1: {txs[item].data.c1}
                                             <br />
+                                            A2: {txs[item].data.a2}
+                                            <br />
+                                            B2: {txs[item].data.b2}
+                                            <br />
                                             C2: {txs[item].data.c2}
                                             <br />
-                                            House: {txs[item].data.house}
+                                            A3: {txs[item].data.a3}
+                                            <br />
+                                            B3: {txs[item].data.b3}
+                                            <br />
+                                            C3: {txs[item].data.c3}
+                                            <br />
+                                            A4: {txs[item].data.a4}
+                                            <br />
+                                            B4: {txs[item].data.b4}
+                                            <br />
+                                            C4: {txs[item].data.c4}
                                             <br />
                                             Broken: {txs[item].data.broken}
                                             <br />
+                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
@@ -751,7 +762,7 @@ function EnhancedTable(props) {
                                             <br />
                                             Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
                                             <br />
-                                            {txs[item].data.extra_data.toLowerCase().split(';')}
+                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
@@ -786,6 +797,8 @@ function EnhancedTable(props) {
                                             {numeral(txs[item].data.tray_no).format("0,0")} Tray(s) at Ksh. {numeral(txs[item].data.tray_price).format("0,0")}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
+                                            <br />
                                             {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
                                         </Typography>
                                         <Typography variant="body2">
@@ -816,6 +829,8 @@ function EnhancedTable(props) {
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {numeral(txs[item].data.item_no).format("0,0")} Item(s) at Ksh. {numeral(txs[item].data.item_price).format("0,0")}
+                                            <br />
+                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
@@ -841,17 +856,19 @@ function EnhancedTable(props) {
                                 <React.Fragment>
                                     <CardContent>
                                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                                            {txs[item].data.section.toLowerCase()}
+                                            {txs[item].data.state.toLowerCase()}
                                             <br />
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
-                                            {`${txs[item].data.section.toLowerCase()}, ${txs[item].data.location.toLowerCase()}`}
+                                            {`${txs[item].data.state.toLowerCase()}, ${txs[item].data.location.toLowerCase()}`}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {numeral(txs[item].data.number).format("0,0")} {txs[item].data.section.toLowerCase()}
+                                            {numeral(txs[item].data.number).format("0,0")} {txs[item].data.state.toLowerCase()}
                                             <br />
                                             {txs[item].data.reason.toLowerCase()}
+                                            <br />
+                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
