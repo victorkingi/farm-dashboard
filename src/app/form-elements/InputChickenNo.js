@@ -121,7 +121,7 @@ function InputChknNo() {
                         <form className="forms-sample">
                             <Form.Group>
                                 <label htmlFor="level">Level ordering</label>
-                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A1,B1,C1,A2,B2,C2,A3,B3,C3,A4,B4,C4" />
+                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A1,B1,C1,...,A4,B4,C4" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="chicken">Chickens</label>

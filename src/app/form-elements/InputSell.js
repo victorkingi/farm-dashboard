@@ -160,7 +160,7 @@ function InputSell(props) {
       return;
     }
     for (let i = 0; i < arr.length; i++) {
-      if (arr[i][1] === '') {
+      if (arr[i][1] === '' && arr[i][0] !== 'extra_data') {
         setError('All Inputs should be filled');
         setOpenError(true);
         return;

@@ -14,22 +14,6 @@ export function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-export function getLevelArray(obj) {
-    return Object.entries(obj);
-}
-
-function getFinalLevelArray(state) {
-    const arr = getLevelArray(state);
-    let newArr = [];
-    for (let i = 0; i < arr.length; i++) {
-        if (!(arr[i][0] === "eggs" || arr[i][0] === "date_"
-            || arr[i][0] === "trays_store" || arr[i][0] === "category")) {
-            newArr.push(arr[i][1]);
-        }
-    }
-    return newArr;
-}
-
 //
 function InputEggs(props) {
     const [state, setState] = useState({
@@ -44,15 +28,23 @@ function InputEggs(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const levelRegex = /^([0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|7[0-5])$/;
         const trayStoreRegex = /^[0-9]+,([0-9]|1[0-9]|2[0-9])$/;
         const eggsRegex = /^([0-9]+,){12}$/;
         const bagsRegex = /^[0-9]+$/.test(state.bags_store);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
-        const arr = Object.entries(state);
+        let temp = state;
+
+        if (state.eggs1 && state.eggs2 && state.eggs3 && state.eggs4) {
+            temp.eggs = state.eggs1 + state.eggs2 + state.eggs3 + state.eggs4;
+            delete temp.eggs1;
+            delete temp.eggs2;
+            delete temp.eggs3;
+            delete temp.eggs4;
+        }
+        const arr = Object.entries(temp);
 
         for (let i = 0; i < arr.length; i++) {
-            if (arr[i][1] === "" || !arr[i][1]) {
+            if ((arr[i][1] === "" || !arr[i][1]) && arr[i][0] !== "extra_data") {
                 setError('All Inputs should be filled');
                 setOpenError(true);
                 return;
@@ -78,15 +70,6 @@ function InputEggs(props) {
                 return;
             }
         }
-        const newArr = getFinalLevelArray(state);
-
-        for (let i = 0; i < newArr.length; i++) {
-            if (!levelRegex.test(newArr[i])) {
-                setError('All level inputs should range from 0-75');
-                setOpenError(true);
-                return;
-            }
-        }
         if (!bagsRegex) {
             setError('Bags entered should only be a number');
             setOpenError(true);
@@ -97,7 +80,7 @@ function InputEggs(props) {
             setOpenError(true);
             return;
         }
-        props.inputTray(state);
+        props.inputTray(temp);
         setOpenError(false);
         setOpen(true);
         setState({
@@ -174,11 +157,23 @@ function InputEggs(props) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="level">Level ordering</label>
-                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A1,B1,C1,A2,B2,C2,A3,B3,C3,A4,B4,C4" />
+                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A,B,C," />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="eggs">Eggs</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs" placeholder="Number of eggs (comma separated)" />
+                                <label htmlFor="eggs">Eggs column 1</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs1" placeholder="Number of eggs (comma separated)" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="eggs">Eggs column 2</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs2" placeholder="Number of eggs (comma separated)" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="eggs">Eggs column 3</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs3" placeholder="Number of eggs (comma separated)" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="eggs">Eggs column 4</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs4" placeholder="Number of eggs (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="broken">Broken</label>

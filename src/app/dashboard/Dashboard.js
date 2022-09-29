@@ -287,7 +287,6 @@ function Dashboard(props) {
   else week_profit_change = -1 * (week_2 - week_1);
   // 1000, 500; 500, 1000; -1000, 500; -1000, -500; 1000, -500; -1000, -1500;
   // drop pos  incr pos  incr neg/pos  incr neg    drop pos/neg   drop neg
-
    let week_profit_change_percent = (week_profit_change / week_1) * 100;
 
    let month_2 = dash.month_profit[last_month.toString()]
@@ -297,8 +296,8 @@ function Dashboard(props) {
    else month_profit_change = -1 * (month_2 - month_1);
 
    let month_profit_change_percent = (month_profit_change / month_1) * 100;
-   month_profit_change_percent = isNaN(month_profit_change_percent) ? 100 : month_profit_change_percent;
-   week_profit_change_percent = isNaN(week_profit_change_percent) ? 100 : week_profit_change_percent;
+   month_profit_change_percent = isNaN(month_profit_change_percent) || !isFinite(month_profit_change_percent) ? 100 : month_profit_change_percent;
+   week_profit_change_percent = isNaN(week_profit_change_percent) || !isFinite(week_profit_change_percent) ? 100 : week_profit_change_percent;
 
    return (
        <div>
@@ -314,7 +313,7 @@ function Dashboard(props) {
                                      < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                                          {week_profit_change_percent < 0
                                              ? numeral(week_profit_change_percent).format("0,0.0")
-                                             : '+'.concat(numeral(week_profit_change_percent).format("0,0.0"))}%
+                                             : '+'.concat(week_profit_change_percent)}%
                                      </p>
                                  </div>
                              </div>

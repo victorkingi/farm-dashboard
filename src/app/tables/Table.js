@@ -475,7 +475,6 @@ function EnhancedTable(props) {
         setRows(temp);
 
     }, [to_use, hash, txWatch]);
-    console.log("hello")
 
     useMemo(() => {
         setAllDone(false);
