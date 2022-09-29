@@ -15,7 +15,10 @@ function BasicTable({ accounts }) {
     useEffect(() => {
         if (accounts) {
             if(state.toUpperCase() in accounts[0]) setBal(accounts[0][state.toUpperCase()])
-            else console.log("not present", state.toUpperCase());
+            else {
+                setBal(0);
+                console.log("not present", state.toUpperCase());
+            }
         }
     }, [state, accounts]);
 
