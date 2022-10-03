@@ -32,7 +32,9 @@ function InputEggs(props) {
         const eggsRegex = /^([0-9]+,){12}$/;
         const bagsRegex = /^[0-9]+$/.test(state.bags_store);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
-        let temp = state;
+        const temp = {
+            ...state
+        };
 
         if (state.eggs1 && state.eggs2 && state.eggs3 && state.eggs4) {
             temp.eggs = state.eggs1 + state.eggs2 + state.eggs3 + state.eggs4;
