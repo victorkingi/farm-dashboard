@@ -298,6 +298,8 @@ function Dashboard(props) {
    let month_profit_change_percent = (month_profit_change / month_1) * 100;
    month_profit_change_percent = isNaN(month_profit_change_percent) || !isFinite(month_profit_change_percent) ? 100 : month_profit_change_percent;
    week_profit_change_percent = isNaN(week_profit_change_percent) || !isFinite(week_profit_change_percent) ? 100 : week_profit_change_percent;
+   week_profit_change_percent = Math.round(week_profit_change_percent*100) / 100;
+   month_profit_change_percent = Math.round(month_profit_change_percent*100) / 100;
 
    return (
        <div>
