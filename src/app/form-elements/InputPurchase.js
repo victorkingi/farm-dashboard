@@ -22,6 +22,7 @@ function InputPurchase(props) {
         itemName: '',
         vendorName: '',
         category: 'buys',
+        paid_by: 'Bank',
         extra_data: ''
     });
     const [open, setOpen] = useState(false);
@@ -239,6 +240,13 @@ function InputPurchase(props) {
         // eslint-disable-next-line
     }, [state.itemName]);
 
+    const handlePaidBy = (e) => {
+        setState({
+            ...state,
+            paid_by: e
+        });
+    }
+
     const componentDidMount = () => {
         bsCustomFileInput.init()
     }
@@ -315,6 +323,23 @@ function InputPurchase(props) {
                             <Form.Group>
                                 <label htmlFor="objectPrice">Price per Object</label>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor='receiver'>Paid by</label>
+                                <DropdownButton
+                                    alignRight
+                                    title={state.paid_by}
+                                    id='paid_by'
+                                    onSelect={handlePaidBy}
+                                >
+                                    <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
+                                    <Dropdown.Divider />
+                                    <Dropdown.Item eventKey="Victor">Victor</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Anne">Anne</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Jeff">Jeff</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Babra">Babra</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
+                                </DropdownButton>
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="objectNo">Extra info (optional)</label>

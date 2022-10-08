@@ -479,23 +479,23 @@ function InputSell(props) {
                   </div>
                 </Form.Group>
               </div>
-                <Form.Group>
-                  <label htmlFor='receiver'>Money transferred to</label>
-                  <DropdownButton
-                      alignRight
-                      title={state.receiver || 'Money transferred to'}
-                      id='receiver'
-                      onSelect={handleTransfer}
-                  >
-                    <Dropdown.Item eventKey="Victor">Victor</Dropdown.Item>
-                    <Dropdown.Item eventKey="Anne">Anne</Dropdown.Item>
-                    <Dropdown.Item eventKey="Jeff">Jeff</Dropdown.Item>
-                    <Dropdown.Item eventKey="Babra">Babra</Dropdown.Item>
-                    <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
-                    <Dropdown.Divider />
-                    <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
-                  </DropdownButton>
-                </Form.Group>
+              <Form.Group>
+                <label htmlFor='receiver'>Money transferred to</label>
+                <DropdownButton
+                    alignRight
+                    title={state.receiver}
+                    id='receiver'
+                    onSelect={handleTransfer}
+                >
+                  <Dropdown.Item eventKey="Victor">Victor</Dropdown.Item>
+                  <Dropdown.Item eventKey="Anne">Anne</Dropdown.Item>
+                  <Dropdown.Item eventKey="Jeff">Jeff</Dropdown.Item>
+                  <Dropdown.Item eventKey="Babra">Babra</Dropdown.Item>
+                  <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
+                  <Dropdown.Divider />
+                  <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
+                </DropdownButton>
+              </Form.Group>
               <Form.Group>
                 <label htmlFor="objectNo">Extra info (optional)</label>
                 <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
