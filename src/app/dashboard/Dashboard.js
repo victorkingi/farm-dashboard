@@ -61,10 +61,24 @@ function Dashboard(props) {
               const data = doc_.data();
               const hashes = new Array(...data.hashes).sort();
               const loss = data.loss;
+              const birdsNo = data.birds_no;
+
               db.collection('hashes').delete().then(() => {
-                  db.collection('hashes').add({id: 1, hashes, loss, root: verify.root.root });
+                  db.collection('hashes').add({
+                      id: 1,
+                      hashes,
+                      loss,
+                      root: verify.root.root,
+                      birdsNo
+                  });
               }).catch(() => {
-                  db.collection('hashes').add({id: 1, hashes, loss, root: verify.root.root });
+                  db.collection('hashes').add({
+                      id: 1,
+                      hashes,
+                      loss,
+                      root: verify.root.root,
+                      birdsNo
+                  });
               });
           });
       }

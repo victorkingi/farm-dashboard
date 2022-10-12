@@ -6,12 +6,14 @@ import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Offline, Online} from "react-detect-offline";
 import {firestore} from '../../services/api/fbConfig';
+import Localbase from "localbase";
 
 
 let today = new Date();
 today.setHours(0, 0, 0, 0);
 today = Math.floor(today.getTime() / 1000);
 const name = localStorage.getItem('name') || '';
+const db = new Localbase('ver_data');
 
 function InputChknNo() {
     const [open, setOpen] = useState(false);
@@ -20,7 +22,7 @@ function InputChknNo() {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
 
-    const [state, setState] = useState('');
+    const [state, setState] = useState({});
     const [rewind, setRewind] = useState(false);
 
     useEffect(() => {
@@ -48,28 +50,81 @@ function InputChknNo() {
 
     const handleClick = (e) => {
         e.preventDefault();
-        const levelOk = /^([0-9]+,){12}$/.test(state);
+        const temp = {
+            ...state
+        };
+
+        if (state.chick1 && state.chick2 && state.chick3 && state.chick4) {
+            temp.chicks = state.chick1
+                + ',' + state.chick2
+                + ',' + state.chick3
+                + ',' + state.chick4;
+            delete temp.chick1;
+            delete temp.chick2;
+            delete temp.chick3;
+            delete temp.chick4;
+        }
+        const levelOk = /^([0-9]+,){11}[0-9]+$/.test(temp.chicks);
         if (levelOk) {
-            if (new Date().getTimezoneOffset() !== -180) {
-                setOpen(false);
-                setError("Different Timezone detected. Cannot handle input");
-                setOpenError(true);
-                return -1;
+            temp.chicks += ',';
+
+            const verifyAndPush = async () => {
+                const document = await db.collection('hashes').doc({ id: 1 }).get();
+
+                if (document.birdsNo) {
+                    let chicks = document.birdsNo;
+                    let chickenNo = temp.chicks.split(',');
+                    chickenNo.pop();
+                    chickenNo = chickenNo.map(item => parseInt(item));
+                    const total = chickenNo.reduce((res, item) => res + item, 0);
+                    if (total !== chicks.total) {
+                        setOpen(false);
+                        setError(`Expected ${chicks.total} birds but got ${total}. Some dead birds were not entered`);
+                        setOpenError(true);
+                        return -1;
+                    }
+                    const levelOrder = ['a1', 'b1', 'c1', 'a2', 'b2', 'c2', 'a3', 'b3', 'c3', 'a4', 'b4', 'c4'];
+                    let idx = 0;
+                    let allSame = true;
+                    for (const x of chickenNo) {
+                        if (x !== chicks[levelOrder[idx]]) allSame = false;
+                        idx++;
+                    }
+                    if (allSame) {
+                        setOpen(false);
+                        setError(`Number of birds is the same`);
+                        setOpenError(true);
+                        return -1;
+                    }
+                } else {
+                    setOpen(false);
+                    setError("internal required data missing");
+                    setOpenError(true);
+                    return -1;
+                }
+
+                if (new Date().getTimezoneOffset() !== -180) {
+                    setOpen(false);
+                    setError("Different Timezone detected. Cannot handle input");
+                    setOpenError(true);
+                    return -1;
+                }
+                await firestore.doc(`chickenNo/exact`)
+                    .update({
+                        [today]: temp.chicks
+                    });
+                await firestore.doc(`chickenNo/by`)
+                    .update({
+                        [today]: name
+                    });
+                setOpenError(false);
+                setOpenM('Data Submitted');
+                setOpen(true);
             }
-            firestore.doc(`chickenNo/exact`)
-                .update({
-                    [today]: state
-                });
-            firestore.doc(`chickenNo/by`)
-                .update({
-                    [today]: name
-                });
-            setOpenError(false);
-            setOpenM('Data Submitted');
-            setOpen(true);
+            verifyAndPush();
         } else {
             setOpen(false);
-            setError("Values not correct, retry with this format. [a1,b1,]");
+            setError("Values not correct, retry with this format. [a,b,c]");
             setOpenError(true);
         }
     }
@@ -84,7 +139,10 @@ function InputChknNo() {
 
     const handleSelect = (e) => {
         e.preventDefault();
-        setState(e.target.value);
+        setState({
+            ...state,
+            [e.target.id]: e.target.value
+        });
     }
 
     const componentDidMount = () => {
@@ -121,11 +179,23 @@ function InputChknNo() {
                         <form className="forms-sample">
                             <Form.Group>
                                 <label htmlFor="level">Level ordering</label>
-                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A1,B1,C1,...,A4,B4,C4" />
+                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A,B,C" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="chicken">Chickens</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="text" placeholder="Enter Chicken number in the above format" />
+                                <label htmlFor="chick1">Column 1</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="chick1" placeholder="Chicken number in column 1" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="chick2">Column 2</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="chick2" placeholder="Chicken number in column 2" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="chick3">Column 3</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="chick3" placeholder="Chicken number in column 3" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="chick4">Column 4</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="chick4" placeholder="Chicken number in column 4" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleClick}>Submit</button>
                             <button type="button" className="btn btn-dark" onClick={() => setRewind(true)}>Undo</button>
