@@ -90,19 +90,7 @@ const headCells = [
         numeric: true,
         disablePadding: false,
         label: 'Submitted On',
-    },
-    {
-        id: 'status',
-        numeric: true,
-        disablePadding: false,
-        label: 'Status',
-    },
-    {
-        id: 'hash',
-        numeric: true,
-        disablePadding: false,
-        label: 'i.d',
-    },
+    }
 ];
 
 function EnhancedTableHead(props) {
@@ -237,7 +225,7 @@ function EnhancedTable(props) {
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [dense, setDense] = useState(false);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(15);
     const [rows, setRows] = useState([]);
     const [allDone, setAllDone] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -634,8 +622,6 @@ function EnhancedTable(props) {
                                             </TableCell>
                                             <TableCell align="right">{moment.unix(row.date).format("ddd ll")}</TableCell>
                                             <TableCell align="right">{moment.unix(row.subm).format("ddd ll")}</TableCell>
-                                            <TableCell align="right">{row.status === 1 ? 'confirmed' : 'unconfirmed'}</TableCell>
-                                            <TableCell align="right">{row.hash.slice(0, 5)}</TableCell>
                                         </TableRow>
                                     );
                                 })}

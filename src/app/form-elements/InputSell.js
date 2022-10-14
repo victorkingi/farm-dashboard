@@ -89,7 +89,7 @@ function InputSell(props) {
       .toUpperCase() : '';
 
   useEffect(() => {
-    if (state.section === 'Thika Farmers' || state.section === 'Duka') {
+    if (state.section === 'Duka') {
       setDefPaid(true);
     } else {
       setDefPaid(false);
@@ -102,7 +102,7 @@ function InputSell(props) {
       if (amount !== 0) {
         if (amount < 0) amount *= -1;
         const price = Math.round(amount/parseInt(state.trayNo));
-        if (price > 300 || isNaN(price)) setState({...state, trayPrice: `${isNaN(price) ? 350 : price}`})
+        if (price > 300 || isNaN(price)) setState({...state, trayPrice: `${isNaN(price) ? '350' : price > 1000 ? '350' : price}`})
         else setState({...state, trayPrice: '350'})
       }
     });
@@ -120,11 +120,8 @@ function InputSell(props) {
   };
 
   const parameterChecks = (values) => {
-    if (
-      (values.section === 'THIKAFARMERS' || values.section === 'DUKA') &&
-      !JSON.parse(values.status)
-    ) {
-      setError('Thika Farmers and duka are always paid');
+    if (values.section === 'DUKA' && !JSON.parse(values.status)) {
+      setError('duka is always paid');
       setOpenError(true);
       return false;
     }

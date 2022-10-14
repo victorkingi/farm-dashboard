@@ -87,6 +87,8 @@ function InputEggs(props) {
             setOpenError(true);
             return;
         }
+        temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
+        delete temp.bags_store;
         props.inputTray(temp);
         setOpenError(false);
         setOpen(true);

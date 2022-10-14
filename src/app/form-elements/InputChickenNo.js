@@ -109,11 +109,11 @@ function InputChknNo() {
                     setOpenError(true);
                     return -1;
                 }
-                await firestore.doc(`chickenNo/exact`)
+                firestore.doc(`chickenNo/exact`)
                     .update({
                         [today]: temp.chicks
                     });
-                await firestore.doc(`chickenNo/by`)
+                firestore.doc(`chickenNo/by`)
                     .update({
                         [today]: name
                     });

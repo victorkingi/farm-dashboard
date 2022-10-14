@@ -125,8 +125,15 @@ function InputPurchase(props) {
     const handleSubmit = (e) => {
         e.preventDefault();
         const priceAmountRegex = /^([\d]+)$/;
+        const bSizeRegex = /^[0-9]+kg$/.test(state.bagSize);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
+
+        if (!bSizeRegex) {
+            setError('bag size should be like this [70kg]');
+            setOpenError(true);
+            return;
+        }
 
         if (arr.length < 6) {
             setError('All Inputs should be filled');
@@ -157,7 +164,6 @@ function InputPurchase(props) {
             name
         };
         if (values.section !== "Feeds") delete values.vendorName;
-
         values.section = getSectionAddr(values.section);
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
@@ -308,6 +314,14 @@ function InputPurchase(props) {
                                 <Form.Control type="text"
                                               onChange={handleSelect}
                                               className="form-control" id="vendorName" placeholder="Feeds bought from" />
+                                </Form.Group>
+                            }
+                            {isFeeds &&
+                                <Form.Group>
+                                    <label htmlFor="bagSize">Bag size(kg)</label>
+                                    <Form.Control type="text"
+                                                  onChange={handleSelect}
+                                                  className="form-control" id="bagSize" placeholder="Size of bag of feeds" />
                                 </Form.Group>
                             }
                             <Form.Group>
