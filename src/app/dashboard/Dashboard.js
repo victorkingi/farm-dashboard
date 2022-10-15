@@ -259,21 +259,7 @@ function Dashboard(props) {
 
   if (JSON.stringify(dash) !== JSON.stringify({}) && dash?.week_profit) {
    const name = localStorage.getItem('name').toUpperCase();
-   const weeks = Object.keys(dash.week_profit);
-   const months = Object.keys(dash.month_profit);
 
-   const last_week = weeks.reduce(((previousValue, currentValue) => {
-     const prev = parseInt(previousValue);
-     const cur = parseInt(currentValue);
-     if (prev < cur) return cur;
-     else return prev;
-   }));
-   const last_month = months.reduce(((previousValue, currentValue) => {
-     const prev = parseInt(previousValue);
-     const cur = parseInt(currentValue);
-     if (prev < cur) return cur;
-     else return prev;
-   }));
    const addAllEntries = (all) => {
       if (!pend) return 0;
       const allPend = {};
@@ -292,28 +278,6 @@ function Dashboard(props) {
       }
       setPendCheckedEggs(allPend);
   }
-  let week_profit_change;
-  let month_profit_change;
-  let week_2 = dash.week_profit[last_week.toString()];
-  let week_1 = dash.week_profit[String(last_week - (7 * 24 * 60 * 60))];
-   // (-500/1000); (500/1000); 500--1000= (-1*1500/(1000)); -500--1000=(-1*500/(-1000)); -500-1000=(-1500/1000); -1500--1000=(-1*-500/(-1000))
-  if ((week_2 >= 0 && week_1 >= 0) || (week_2 < 0 && week_1 >= 0)) week_profit_change = week_2 - week_1;
-  else week_profit_change = -1 * (week_2 - week_1);
-  // 1000, 500; 500, 1000; -1000, 500; -1000, -500; 1000, -500; -1000, -1500;
-  // drop pos  incr pos  incr neg/pos  incr neg    drop pos/neg   drop neg
-   let week_profit_change_percent = (week_profit_change / week_1) * 100;
-
-   let month_2 = dash.month_profit[last_month.toString()]
-   let month_1 = dash.month_profit[String(last_month-(28 * 24 * 60 * 60))];
-
-   if ((month_2 >= 0 && month_1 >= 0) || (month_2 < 0 && month_1 >= 0)) month_profit_change = month_2 - month_1;
-   else month_profit_change = -1 * (month_2 - month_1);
-
-   let month_profit_change_percent = (month_profit_change / month_1) * 100;
-   month_profit_change_percent = isNaN(month_profit_change_percent) || !isFinite(month_profit_change_percent) ? 100 : month_profit_change_percent;
-   week_profit_change_percent = isNaN(week_profit_change_percent) || !isFinite(week_profit_change_percent) ? 100 : week_profit_change_percent;
-   week_profit_change_percent = Math.round(week_profit_change_percent*100) / 100;
-   month_profit_change_percent = Math.round(month_profit_change_percent*100) / 100;
 
    return (
        <div>
@@ -324,24 +288,24 @@ function Dashboard(props) {
                          <div className="row">
                              <div className="col-9">
                                  <div className="d-flex align-items-center align-self-start">
-                                     <h3 className="mb-0">KSh {numeral(dash.week_profit[last_week.toString()]).format("0,0.00")}</h3>
-                                     <p className={`text-${week_profit_change_percent
+                                     <h3 className="mb-0">KSh {numeral(dash.week_profit[0]).format("0,0")}</h3>
+                                     <p className={`text-${dash.week_profit[1]
                                      < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                                         {week_profit_change_percent < 0
-                                             ? numeral(week_profit_change_percent).format("0,0.0")
-                                             : '+'.concat(week_profit_change_percent)}%
+                                         {dash.week_profit[1] < 0
+                                             ? numeral(dash.week_profit[1]).format("0,0.0")
+                                             : '+'.concat(dash.week_profit[1])}%
                                      </p>
                                  </div>
                              </div>
                              <div className="col-3">
                                  <div
-                                     className={`icon icon-box-${week_profit_change_percent < 0 ? 'danger' : 'success'}`}>
+                                     className={`icon icon-box-${dash.week_profit[1]< 0 ? 'danger' : 'success'}`}>
                       <span
-                          className={`mdi mdi-arrow-${week_profit_change_percent < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                          className={`mdi mdi-arrow-${dash.week_profit[1] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Week Profit</h6>
+                         <h6 className="text-muted font-weight-normal">Week Profit ({moment(dash.week_profit[2]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -354,16 +318,16 @@ function Dashboard(props) {
                                      <h3 className="mb-0">{!done1 &&
                                          <CountUp
                                              start={0}
-                                             end={dash.laying.week['1']}
+                                             end={dash.laying.week[0]}
                                              duration={2.75}
                                              delay={1}
                                              onEnd={() => setDone1(true)}
-                                         />}{done1 && numeral(dash.laying.week['1']).format("0.00")}%</h3>
-                                     <p className={`text-${ dash.laying.week['0']
+                                         />}{done1 && numeral(dash.laying.week[0]).format("0")}%</h3>
+                                     <p className={`text-${ dash.laying.week[1]
                                      < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                                         {dash.laying.week['0'] < 0
-                                             ? numeral(dash.laying.week['0']).format("0,0.0")
-                                             : '+'.concat(numeral(dash.laying.week['0']).format("0,0.0"))}%
+                                         {dash.laying.week[1] < 0
+                                             ? numeral(dash.laying.week[1]).format("0,0.0")
+                                             : '+'.concat(numeral(dash.laying.week[1]).format("0,0.0"))}%
                                      </p>
                                  </div>
 
@@ -376,7 +340,7 @@ function Dashboard(props) {
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Last Week Laying Percentage</h6>
+                         <h6 className="text-muted font-weight-normal">Lay Percent Day ({moment(dash.laying.day[2]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -386,24 +350,59 @@ function Dashboard(props) {
                          <div className="row">
                              <div className="col-9">
                                  <div className="d-flex align-items-center align-self-start">
-                                     <h3 className="mb-0">KSh {numeral(dash.month_profit[last_month.toString()]).format("0,0.00")}</h3>
-                                     <p className={`text-${month_profit_change_percent
+                                     <h3 className="mb-0">{!done1 &&
+                                         <CountUp
+                                             start={0}
+                                             end={dash.laying.week[0]}
+                                             duration={2.75}
+                                             delay={1}
+                                             onEnd={() => setDone1(true)}
+                                         />}{done1 && numeral(dash.laying.week[0]).format("0")}%</h3>
+                                     <p className={`text-${ dash.laying.week[1]
                                      < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                                         {month_profit_change_percent < 0
-                                             ? numeral(month_profit_change_percent).format("0,0.0")
-                                             : '+'.concat(numeral(month_profit_change_percent).format("0,0.0"))}%
+                                         {dash.laying.week[1] < 0
+                                             ? numeral(dash.laying.week[1]).format("0,0.0")
+                                             : '+'.concat(numeral(dash.laying.week[1]).format("0,0.0"))}%
+                                     </p>
+                                 </div>
+
+                             </div>
+                             <div className="col-3">
+                                 <div
+                                     className={`icon icon-box-${dash.laying.week['0'] < 0 ? 'danger' : 'success'}`}>
+                      <span
+                          className={`mdi mdi-arrow-${dash.laying.week['0'] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-muted font-weight-normal">Lay Percent Week ({moment(dash.laying.week[2]*1000).format('MMM Do YY')})</h6>
+                     </div>
+                 </div>
+             </div>
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">KSh {numeral(dash.month_profit[0]).format("0,0")}</h3>
+                                     <p className={`text-${dash.month_profit[1]
+                                     < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
+                                         {dash.month_profit[1] < 0
+                                             ? numeral(dash.month_profit[1]).format("0,0.0")
+                                             : '+'.concat(numeral(dash.month_profit[1]).format("0,0.0"))}%
                                      </p>
                                  </div>
                              </div>
                              <div className="col-3">
                                  <div
-                                     className={`icon icon-box-${month_profit_change_percent < 0 ? 'danger' : 'success'}`}>
+                                     className={`icon icon-box-${dash.month_profit[1] < 0 ? 'danger' : 'success'}`}>
                       <span
-                          className={`mdi mdi-arrow-${month_profit_change_percent < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                          className={`mdi mdi-arrow-${dash.month_profit[1] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Month Profit</h6>
+                         <h6 className="text-muted font-weight-normal">Month Profit ({moment(dash.month_profit[2]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -499,7 +498,7 @@ function Dashboard(props) {
                      <div className="row">
                        <div className="col-9">
                          <div className="d-flex align-items-center align-self-start">
-                           <h3 className="mb-0">Ksh {numeral(dash.bank).format("0,0.00")}</h3>
+                           <h3 className="mb-0">Ksh {numeral(dash.bank).format("0,0")}</h3>
                            <p className={`text-success ml-2 mb-0 font-weight-medium`}>
                              {'+'.concat(numeral().format("0,0.0"))}%
                            </p>
