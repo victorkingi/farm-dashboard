@@ -318,25 +318,25 @@ function Dashboard(props) {
                                      <h3 className="mb-0">{!done1 &&
                                          <CountUp
                                              start={0}
-                                             end={dash.laying.week[0]}
+                                             end={dash.laying.day[0]}
                                              duration={2.75}
                                              delay={1}
                                              onEnd={() => setDone1(true)}
-                                         />}{done1 && numeral(dash.laying.week[0]).format("0")}%</h3>
-                                     <p className={`text-${ dash.laying.week[1]
+                                         />}{done1 && numeral(dash.laying.day[0]).format("0,0")}%</h3>
+                                     <p className={`text-${ dash.laying.day[1]
                                      < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                                         {dash.laying.week[1] < 0
-                                             ? numeral(dash.laying.week[1]).format("0,0.0")
-                                             : '+'.concat(numeral(dash.laying.week[1]).format("0,0.0"))}%
+                                         {dash.laying.day[1] < 0
+                                             ? numeral(dash.laying.day[1]).format("0,0.0")
+                                             : '+'.concat(numeral(dash.laying.day[1]).format("0,0.0"))}%
                                      </p>
                                  </div>
 
                              </div>
                              <div className="col-3">
                                  <div
-                                     className={`icon icon-box-${dash.laying.week['0'] < 0 ? 'danger' : 'success'}`}>
+                                     className={`icon icon-box-${dash.laying.day[1] < 0 ? 'danger' : 'success'}`}>
                       <span
-                          className={`mdi mdi-arrow-${dash.laying.week['0'] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                          className={`mdi mdi-arrow-${dash.laying.day[1] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                                  </div>
                              </div>
                          </div>
@@ -357,7 +357,7 @@ function Dashboard(props) {
                                              duration={2.75}
                                              delay={1}
                                              onEnd={() => setDone1(true)}
-                                         />}{done1 && numeral(dash.laying.week[0]).format("0")}%</h3>
+                                         />}{done1 && numeral(dash.laying.week[0]).format("0,0")}%</h3>
                                      <p className={`text-${ dash.laying.week[1]
                                      < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                                          {dash.laying.week[1] < 0
@@ -369,9 +369,9 @@ function Dashboard(props) {
                              </div>
                              <div className="col-3">
                                  <div
-                                     className={`icon icon-box-${dash.laying.week['0'] < 0 ? 'danger' : 'success'}`}>
+                                     className={`icon icon-box-${dash.laying.week[1] < 0 ? 'danger' : 'success'}`}>
                       <span
-                          className={`mdi mdi-arrow-${dash.laying.week['0'] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                          className={`mdi mdi-arrow-${dash.laying.week[1] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
                                  </div>
                              </div>
                          </div>
