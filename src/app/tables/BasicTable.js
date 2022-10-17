@@ -127,7 +127,7 @@ function BasicTable({ pse_state, sales_state }) {
                           <div className="row">
                               <div className="col-8 col-sm-12 col-xl-8 my-auto">
                                   <div className="d-flex d-sm-block d-md-flex align-items-center">
-                                      <h2 className="mb-0">Ksh. {Number.isInteger(value) ? numeral(value).format("0,0") : numeral(value).format("0,0.00")}</h2>
+                                      <h2 className="mb-0">Ksh. {numeral(value).format("0,0")}</h2>
                                       <p className="text-success ml-2 mb-0 font-weight-medium">+0.0%</p>
                                   </div>
                               </div>

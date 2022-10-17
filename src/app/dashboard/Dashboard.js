@@ -22,8 +22,9 @@ export function getRanColor() {
 
 let isRun = false;
 function Dashboard(props) {
-  const { dashboard, pend, firebase, firestore, verify, pendEggs } = props;
+  const { acc, dashboard, pend, firebase, firestore, verify, pendEggs } = props;
 
+  const [bank, setBank] = useState(0);
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
@@ -224,6 +225,22 @@ function Dashboard(props) {
 
     return {__user};
   }, []);
+
+  useEffect(() => {
+      if (acc) {
+          const addrs = [];
+          for (let addr of Object.keys(acc[0])) {
+              if (addr.endsWith('BANK')) {
+                  addrs.push(addr);
+              }
+          }
+          let bankTotal = 0;
+          for (let addr of addrs) {
+              bankTotal += acc[0][addr];
+          }
+          setBank(bankTotal);
+      }
+  }, [acc]);
 
   if (!user.__user) {
     return (
@@ -498,7 +515,7 @@ function Dashboard(props) {
                      <div className="row">
                        <div className="col-9">
                          <div className="d-flex align-items-center align-self-start">
-                           <h3 className="mb-0">Ksh {numeral(dash.bank).format("0,0")}</h3>
+                           <h3 className="mb-0">Ksh {numeral(bank).format("0,0")}</h3>
                            <p className={`text-success ml-2 mb-0 font-weight-medium`}>
                              {'+'.concat(numeral().format("0,0.0"))}%
                            </p>
@@ -763,6 +780,7 @@ function Dashboard(props) {
 const mapStateToProps = function(state) {
   return {
       dashboard: state.firestore.ordered.dashboard_data,
+      acc: state.firestore.ordered.accounts,
       pend: state.firestore.ordered.pending_transactions,
       verify: state.firestore.data.verification_data,
       pendEggs: state.firestore.ordered.pend_eggs_collected
@@ -773,6 +791,7 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect([
         {collection: 'dashboard_data'},
+        {collection: 'accounts'},
         {collection: 'pending_transactions' },
         {collection: 'pend_eggs_collected', orderBy: ['date_', 'asc']},
         {collection: 'verification_data', doc: 'root'}
