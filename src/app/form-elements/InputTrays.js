@@ -6,6 +6,9 @@ import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Offline, Online} from "react-detect-offline";
 import {firestore} from '../../services/api/fbConfig';
+import {compose} from "redux";
+import {connect} from "react-redux";
+import {firestoreConnect} from "react-redux-firebase";
 
 
 let today = new Date();
@@ -13,7 +16,7 @@ today.setHours(0, 0, 0, 0);
 today = Math.floor(today.getTime() / 1000);
 const name = localStorage.getItem('name') || '';
 
-function InputTrays() {
+function InputTrays({ dashboard, pendEggs }) {
     const [open, setOpen] = useState(false);
     const [openM, setOpenM] = useState('Data Submitted');
     const [openError, setOpenError] = useState(false);
@@ -22,6 +25,16 @@ function InputTrays() {
 
     const [state, setState] = useState('');
     const [rewind, setRewind] = useState(false);
+    const [lastTraysDate, setLastTraysDate] = useState(0);
+
+    useEffect(() => {
+        if (pendEggs && pendEggs.length > 0) {
+            const date_ = pendEggs[0].date_;
+            if (date_) setLastTraysDate(date_);
+        } else {
+            if (dashboard) setLastTraysDate(dashboard[0].last_trays_date);
+        }
+    }, [dashboard, pendEggs]);
 
     useEffect(() => {
         if (rewind) {
@@ -29,13 +42,13 @@ function InputTrays() {
                 setOpen(false);
                 setError("Different Timezone detected. Cannot handle input");
                 setOpenError(true);
-		return -1;
+		        return -1;
             }
             firestore.doc(`trays/exact`)
                 .update({
                     [today]: -1
                 });
-	    firestore.doc(`trays/by`)
+	        firestore.doc(`trays/by`)
                 .update({
                     [today]: name
                 });
@@ -53,6 +66,12 @@ function InputTrays() {
             if (new Date().getTimezoneOffset() !== -180) {
                 setOpen(false);
                 setError("Different Timezone detected. Cannot handle input");
+                setOpenError(true);
+                return -1;
+            }
+            if (lastTraysDate !== today) {
+                setOpen(false);
+                setError("Enter eggs collected before trays in store");
                 setOpenError(true);
                 return -1;
             }
@@ -84,7 +103,7 @@ function InputTrays() {
 
     const handleSelect = (e) => {
         e.preventDefault();
-        setState(e.target.value);
+        setState(e.target.value.trim());
     }
 
     const componentDidMount = () => {
@@ -150,4 +169,17 @@ function InputTrays() {
     )
 }
 
-export default InputTrays;
+const mapStateToProps = function(state) {
+    return {
+        dashboard: state.firestore.ordered.dashboard_data,
+        pendEggs: state.firestore.ordered.pend_eggs_collected
+    }
+}
+
+export default compose(
+    connect(mapStateToProps),
+    firestoreConnect([
+        {collection: 'dashboard_data'},
+        {collection: 'pend_eggs_collected', orderBy: ['date_', 'desc']}
+    ])
+)(InputTrays);

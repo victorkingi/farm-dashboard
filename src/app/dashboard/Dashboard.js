@@ -561,7 +561,7 @@ function Dashboard(props) {
                          </div>
                        </div>
                      </div>
-                       <h6 className="text-muted font-weight-normal">Trays and Eggs in Store</h6>
+                       <h6 className="text-muted font-weight-normal">Trays and Eggs in Store <br /> ({moment(dash.last_trays_date*1000).format('MMM Do YY')})</h6>
                    </div>
                  </div>
            </div>
@@ -729,7 +729,7 @@ function Dashboard(props) {
                                    {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : <div className="badge badge-outline-warning">Pending</div>}
                                </td>
                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
-                               <td> {item.values?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item.values?.category, item.values?.buyerName || item.values?.itemName)} </td>
+                               <td> {item.values?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item.values)} </td>
                                <td>{(item.values?.category !== 'sales' && item.values?.category !== 'buys' && (item.values?.name && item.values?.reason !== "WITHDRAW" ? (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.name === item.values?.initiator ? 'Balance' : 'Bank') : (item.values?.borrower && item.values?.borrower.charAt(0)+item.values?.borrower.slice(1).toLowerCase()))) || 'Miner'}</td>
                                <td>{item.values?.receiver && item.values?.reason !== "WITHDRAW" ? (item.values?.receiver && item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.initiator && item.values?.initiator.charAt(0)+item.values?.initiator.slice(1).toLowerCase()) : (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase())}</td>
                                <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>

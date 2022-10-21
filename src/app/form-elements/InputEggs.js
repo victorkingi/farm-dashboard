@@ -118,7 +118,7 @@ function InputEggs(props) {
         if (e.target) {
             setState({
                 ...state,
-                [e.target.id]: e.target.value
+                [e.target.id]: e.target.value.trim()
             });
         }
     }
@@ -220,7 +220,7 @@ function InputEggs(props) {
                 </Snackbar>
             </Offline>
             <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
-                <Alert severity="error">{error}!</Alert>
+                <Alert severity="error">{error}</Alert>
             </Snackbar>
         </div>
     )

@@ -38,6 +38,7 @@ class Sidebar extends Component {
       {path:'/tables', state: 'tablesMenuOpen'},
       {path:'/icons', state: 'iconsMenuOpen'},
       {path:'/charts', state: 'chartsMenuOpen'},
+      {path:'/downloads', state: 'dloadMenuOpen'},
       {path:'/user-pages', state: 'userPagesMenuOpen'},
       {path:'/error-pages', state: 'errorPagesMenuOpen'},
     ];
@@ -238,6 +239,27 @@ class Sidebar extends Component {
                             ? 'nav-link active' : 'nav-link' }
                             to="/charts/chart-js">
                         All Charts</Link></li>
+                  </ul>
+                </div>
+              </Collapse>
+            </li>
+            <li className={ this.isPathActive('/downloads') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
+              <div className={ this.state.dloadMenuOpen ? 'nav-link menu-expanded' : 'nav-link' } onClick={ () => this.toggleMenuState('dloadMenuOpen') } data-toggle="collapse">
+              <span className="menu-icon">
+                <i className="mdi mdi-cloud-download"/>
+              </span>
+                <span className="menu-title">Downloads</span>
+                <i className="menu-arrow"/>
+              </div>
+              <Collapse in={ this.state.dloadMenuOpen }>
+                <div>
+                  <ul className="nav flex-column sub-menu">
+                    <li className="nav-item">
+                      <Link className={
+                        this.isPathActive('/downloads/invoice')
+                            ? 'nav-link active' : 'nav-link' }
+                            to="/downloads/invoice">
+                        Invoice</Link></li>
                   </ul>
                 </div>
               </Collapse>

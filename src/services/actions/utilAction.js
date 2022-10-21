@@ -1,12 +1,11 @@
-export const sanitize_string = (str, extra) => {
-    if (str === 'send' || str === 'borrow') return 'Trade';
-    if (!extra) return '';
-    if (str === 'sales') {
-        extra = extra.toLowerCase();
-        return extra.charAt(0).toUpperCase()+extra.slice(1);
+export const sanitize_string = (values) => {
+    if (values.category === 'send' || values.category === 'borrow') return 'Trade';
+    if (values.category === 'sales') {
+        const description = values.buyerName.toLowerCase();
+        return description.charAt(0).toUpperCase()+description.slice(1);
     }
-    else if (str === 'buys') {
-        extra = extra.toLowerCase();
-        return extra.charAt(0).toUpperCase()+extra.slice(1);
+    if (values.category === 'buys') {
+        const description = values.itemName.toLowerCase();
+        return description.charAt(0).toUpperCase()+description.slice(1)+(` (${values.vendorName.toLowerCase()})` || '');
     }
 }

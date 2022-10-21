@@ -144,7 +144,7 @@ function LatePayment(props) {
                                                     </div>
                                                 </td>
                                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
-                                                <td> {sanitize_string(item.values?.category, item.values?.buyerName || item.values?.itemName)} {`${numeral(item.values?.trayNo).format('0,0')}@${numeral(item.values?.trayPrice).format('0,0')}`} </td>
+                                                <td> {sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`} </td>
                                                 <td>{(item.values?.category !== 'sales' && item.values?.category !== 'buys' && (item.values.name ? item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase() : item.values?.borrower.charAt(0)+item.values?.borrower.slice(1).toLowerCase())) || 'Miner'}</td>
                                                 <td>{item.values?.receiver ? item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase() : item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase()}</td>
                                                 <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>

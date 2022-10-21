@@ -138,12 +138,12 @@ function InputBorrowed(props) {
             if (e.slice(0, 3) !== "Get") {
                 setState({
                     ...state,
-                    borrower: e
+                    borrower: e.trim()
                 });
             } else {
                 setState({
                     ...state,
-                    get_from: e
+                    get_from: e.trim()
                 });
             }
         }
@@ -158,7 +158,7 @@ function InputBorrowed(props) {
             } else {
                 setState({
                     ...state,
-                    [e.target.id]: e.target.value
+                    [e.target.id]: e.target.value.trim()
                 });
             }
         }
@@ -263,7 +263,7 @@ function InputBorrowed(props) {
                     </Snackbar>
                 </Offline>
                 <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
-                    <Alert severity="error">{error}!</Alert>
+                    <Alert severity="error">{error}</Alert>
                 </Snackbar>
             </div>
         )

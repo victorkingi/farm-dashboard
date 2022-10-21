@@ -110,12 +110,12 @@ function Withdraw(props) {
         if (e.target) {
             setState({
                 ...state,
-                [e.target.id]: e.target.value
+                [e.target.id]: e.target.value.trim()
             });
         } else {
             setState({
                 ...state,
-                name: e
+                name: e.trim()
             });
         }
     }
@@ -195,7 +195,7 @@ function Withdraw(props) {
                 </Snackbar>
             </Offline>
             <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
-                <Alert severity="error">{error}!</Alert>
+                <Alert severity="error">{error}</Alert>
             </Snackbar>
         </div>
     )

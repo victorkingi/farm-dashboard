@@ -12,59 +12,37 @@ import { Alert } from './InputEggs';
 import { getSectionAddr, inputSell } from '../../services/actions/salesAction';
 import { Offline, Online } from 'react-detect-offline';
 import { firebase } from '../../services/api/fbConfig';
-import Predictionary from 'predictionary';
-import ed from 'edit-distance';
 import  SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import Localbase from "localbase";
 
-const skip = ['THIKAFARMERS', 'CAKES', 'DUKA'];
 const db = new Localbase('ver_data');
 
+export let validNames = [
+  'Eton',
+  "Sang'",
+  'Karithi',
+  'Titus',
+  'Mwangi',
+  'Lynn',
+  'Gituku',
+  "Lang'at",
+  'Wahome',
+  'Kamau',
+  'Wakamau',
+  'Simiyu',
+  'Kinyanjui',
+  'Benson',
+  'Ben',
+  'Gitonyi',
+  'Muthomi',
+  'Solomon',
+  'Cucu'
+];
 
-function autoCorrectBuyerName(values) {
-  let insert, remove, update;
-  insert = remove = () => { return 1; };
-  update = (stringA, stringB) => { return stringA !== stringB ? 1 : 0; };
-  let predictionary = Predictionary.instance();
-  const chosen = [
-    'Eton',
-    "Sang'",
-    'Karithi',
-    'Titus',
-    'Mwangi',
-    'Lynn',
-    'Gituku',
-    "Lang'at",
-    'Wahome',
-    'Kamau',
-    'Wakamau',
-    'Simiyu',
-    'Kinyanjui',
-    'Benson',
-    'Ben',
-    'Gitonyi',
-    'Muthomi',
-    'Solomon'
-  ];
-  predictionary.addWords(chosen);
-  if (skip.includes(values.section)) return values.section;
-  const final = [];
-  for (let k in chosen) {
-    const chose = chosen[k];
-    const lev = ed.levenshtein(values.buyerName, chose, insert, remove, update);
-    if (lev.distance < 3) final.push(chose);
-  }
-  let suggestions = predictionary.predict(values.buyerName);
-  final.push(...suggestions);
-  let ans;
-  for (let k in final) {
-    const chose = final[k];
-    const lev = ed.levenshtein(values.buyerName, chose, insert, remove, update);
-    if (lev.distance < 3) ans = chose;
-  }
-  return ans;
-}
+validNames = validNames.map(element => {
+  return element.toUpperCase();
+});
 
 function InputSell(props) {
   const [state, setState] = useState({
@@ -82,19 +60,10 @@ function InputSell(props) {
   const [warnMsg, setWarnMsg] = useState('');
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
-  const [defPaid, setDefPaid] = useState(false);
 
   let name = firebase.auth().currentUser?.displayName;
   name = name ? name.substring(0, name.lastIndexOf(' '))
       .toUpperCase() : '';
-
-  useEffect(() => {
-    if (state.section === 'Duka') {
-      setDefPaid(true);
-    } else {
-      setDefPaid(false);
-    }
-  }, [state, name]);
 
   useEffect(() => {
     db.collection('hashes').doc({ id: 1 }).get().then(document => {
@@ -120,11 +89,6 @@ function InputSell(props) {
   };
 
   const parameterChecks = (values) => {
-    if (values.section === 'DUKA' && !JSON.parse(values.status)) {
-      setError('duka is always paid');
-      setOpenError(true);
-      return false;
-    }
     if (!values.section) {
       setError('Section is empty!');
       setOpenError(true);
@@ -140,6 +104,14 @@ function InputSell(props) {
       setOpenError(true);
       return false;
     }
+    const stripBuyer = values.buyerName.trim().toUpperCase();
+    if (!validNames.includes(stripBuyer)) {
+      setError('Buyer name does not exist');
+      setOpenError(true);
+      return false;
+    }
+    values.buyerName = stripBuyer;
+
     let proceed = checkDate(values.date);
     return !!(values.buyerName && proceed);
   };
@@ -224,25 +196,6 @@ function InputSell(props) {
     values.date = date;
     let proceed = parameterChecks(values);
     if (proceed) {
-      const returned = autoCorrectBuyerName(values);
-      console.log("returned", returned, values.buyerName);
-      if (typeof returned === 'string') {
-        if (skip.includes(returned)) values.buyerName = returned;
-        if (returned.toLowerCase() !== values.buyerName.toLowerCase()) {
-          setState({
-            ...state,
-            prevBuyer: values.buyerName,
-            buyerName: returned
-          });
-          values.prevBuyer = values.buyerName;
-          values.buyerName = returned;
-          setOpenError(false);
-          setWarnMsg(`Autocorrected buyer name from ${state.prevBuyer} to ${state.buyerName}`);
-          setOpenWarn(true);
-          await new Promise(r => setTimeout(r, 4000));
-        }
-        values.buyerName = values.buyerName.toUpperCase();
-
         db.collection('hashes').doc({ id: 1 }).get().then(document => {
           const leaves = document.hashes;
           const tree = new MerkleTree(leaves, SHA256);
@@ -274,14 +227,7 @@ function InputSell(props) {
             });
           }
         });
-      } else {
-        setError('Buyer not recognized');
-        setOpenError(true);
-      }
     }
-    const cleanState = state;
-    delete cleanState.prevBuyer;
-    setState(cleanState);
   };
 
   const handleDate = (date) => {
@@ -320,14 +266,14 @@ function InputSell(props) {
       } else {
         setState({
           ...state,
-          [e.target.id]: e.target.value
+          [e.target.id]: e.target.value.trim()
         });
       }
     } else {
       setState({
         ...state,
-        section: e,
-        buyerName: e
+        section: e.trim(),
+        buyerName: e.trim()
       });
     }
   };
@@ -335,7 +281,7 @@ function InputSell(props) {
   const handleTransfer = (e) => {
     setState({
       ...state,
-      receiver: e
+      receiver: e.trim()
     });
   }
 
@@ -441,41 +387,37 @@ function InputSell(props) {
                   value={state.trayPrice}
                 />
               </Form.Group>
-              <div className='col-md-6'>
-                <Form.Group>
-                  <div className='form-check'>
-                    <label htmlFor='1' className='form-check-label'>
-                      <input
-                        disabled={defPaid}
-                        type='radio'
-                        onChange={handleSelect}
-                        className='form-check-input'
-                        name='status'
-                        id='paid'
-                        defaultChecked
-                        defaultValue={0}
-                      />
-                      <i className='input-helper' />
-                      Paid
-                    </label>
-                  </div>
-                  <div className='form-check'>
-                    <label htmlFor='0' className='form-check-label'>
-                      <input
-                        disabled={defPaid}
-                        type='radio'
-                        onChange={handleSelect}
-                        className='form-check-input'
-                        name='status'
-                        id='not_paid'
-                        defaultValue={0}
-                      />
-                      <i className='input-helper' />
-                      Not Paid
-                    </label>
-                  </div>
-                </Form.Group>
-              </div>
+              <Form.Group>
+                <div className='form-check'>
+                  <label htmlFor='1' className='form-check-label'>
+                    <input
+                      type='radio'
+                      onChange={handleSelect}
+                      className='form-check-input'
+                      name='status'
+                      id='paid'
+                      defaultChecked
+                      defaultValue={0}
+                    />
+                    <i className='input-helper' />
+                    Paid
+                  </label>
+                </div>
+                <div className='form-check'>
+                  <label htmlFor='0' className='form-check-label'>
+                    <input
+                      type='radio'
+                      onChange={handleSelect}
+                      className='form-check-input'
+                      name='status'
+                      id='not_paid'
+                      defaultValue={0}
+                    />
+                    <i className='input-helper' />
+                    Not Paid
+                  </label>
+                </div>
+              </Form.Group>
               <Form.Group>
                 <label htmlFor='receiver'>Money transferred to</label>
                 <DropdownButton
@@ -528,7 +470,7 @@ function InputSell(props) {
         </Snackbar>
       </Offline>
       <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
-        <Alert severity='error'>{error}!</Alert>
+        <Alert severity='error'>{error}</Alert>
       </Snackbar>
     </div>
   );

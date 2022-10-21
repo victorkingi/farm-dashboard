@@ -102,11 +102,11 @@ function InputDeadSick(props) {
             } else {
                 setState({
                     ...state,
-                    [e.target.id]: e.target.value
+                    [e.target.id]: e.target.value.trim()
                 });
             }
         } else {
-            if (e === "Dead" || e === "Sick") {
+            if (e.trim() === "Dead" || e.trim() === "Sick") {
                 setState({
                     ...state,
                     section: e
@@ -114,7 +114,7 @@ function InputDeadSick(props) {
             } else {
                 setState({
                     ...state,
-                    place: e
+                    place: e.trim()
                 });
             }
         }
@@ -216,7 +216,7 @@ function InputDeadSick(props) {
                     </Snackbar>
                 </Offline>
                 <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
-                    <Alert severity="error">{error}!</Alert>
+                    <Alert severity="error">{error}</Alert>
                 </Snackbar>
             </div>
         )

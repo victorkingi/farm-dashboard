@@ -32,7 +32,7 @@ export const inputSell = (values) => {
           values
         });
 
-      } else if (!JSON.parse(values.status)) {
+      } else {
         firestore.collection('late_payment')
           .add({
             values,

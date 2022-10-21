@@ -74,7 +74,7 @@ export const hasPaidLate = (key) => {
             firestore.collection("pending_transactions").add({
                 ...doc.data(),
                 clearedBy: name,
-                submittedOn: new Date()
+                paidOn: new Date()
             });
             dispatch({type: 'LATE_REPAID'});
             return 'ok';

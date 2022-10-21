@@ -159,10 +159,25 @@ function InputPurchase(props) {
                 return;
             }
         }
+        let status = true;
+        if (state.not_paid) {
+            status = false;
+            if (state.paid_by.toUpperCase() !== name) {
+                setError(`Since purchase is not paid, paid by value should be ${name.toLowerCase()} but got ${state.paid_by}`);
+                setOpenError(true);
+                return;
+            }
+        }
+
         let values = {
             ...state,
+            status,
             name
         };
+
+        delete values.not_paid;
+        delete values.paid;
+
         if (values.section !== "Feeds") delete values.vendorName;
         values.section = getSectionAddr(values.section);
         let date = new Date(values.date);
@@ -220,13 +235,13 @@ function InputPurchase(props) {
             } else {
                 setState({
                     ...state,
-                    [e.target.id]: e.target.value
+                    [e.target.id]: e.target.value.trim()
                 });
             }
         } else {
             setState({
                 ...state,
-                section: e
+                section: e.trim()
             });
         }
     }
@@ -249,7 +264,7 @@ function InputPurchase(props) {
     const handlePaidBy = (e) => {
         setState({
             ...state,
-            paid_by: e
+            paid_by: e.trim()
         });
     }
 
@@ -338,7 +353,7 @@ function InputPurchase(props) {
                                 <label htmlFor="objectPrice">Price per Object</label>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
                             </Form.Group>
-                            <Form.Group>
+                            {!state.not_paid && <Form.Group>
                                 <label htmlFor='receiver'>Paid by</label>
                                 <DropdownButton
                                     alignRight
@@ -347,13 +362,44 @@ function InputPurchase(props) {
                                     onSelect={handlePaidBy}
                                 >
                                     <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
-                                    <Dropdown.Divider />
+                                    <Dropdown.Divider/>
                                     <Dropdown.Item eventKey="Victor">Victor</Dropdown.Item>
                                     <Dropdown.Item eventKey="Anne">Anne</Dropdown.Item>
                                     <Dropdown.Item eventKey="Jeff">Jeff</Dropdown.Item>
                                     <Dropdown.Item eventKey="Babra">Babra</Dropdown.Item>
                                     <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
                                 </DropdownButton>
+                            </Form.Group>}
+                            <Form.Group>
+                                <div className='form-check'>
+                                    <label htmlFor='1' className='form-check-label'>
+                                        <input
+                                            type='radio'
+                                            onChange={handleSelect}
+                                            className='form-check-input'
+                                            name='status'
+                                            id='paid'
+                                            defaultChecked
+                                            defaultValue={0}
+                                        />
+                                        <i className='input-helper' />
+                                        Paid
+                                    </label>
+                                </div>
+                                <div className='form-check'>
+                                    <label htmlFor='0' className='form-check-label'>
+                                        <input
+                                            type='radio'
+                                            onChange={handleSelect}
+                                            className='form-check-input'
+                                            name='status'
+                                            id='not_paid'
+                                            defaultValue={0}
+                                        />
+                                        <i className='input-helper' />
+                                        Not Paid
+                                    </label>
+                                </div>
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="objectNo">Extra info (optional)</label>
@@ -379,7 +425,7 @@ function InputPurchase(props) {
                 </Snackbar>
             </Offline>
             <Snackbar open={openError} autoHideDuration={3000} onClose={handleClose}>
-                <Alert severity="error">{error}!</Alert>
+                <Alert severity="error">{error}</Alert>
             </Snackbar>
         </div>
     )
