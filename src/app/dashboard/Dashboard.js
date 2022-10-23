@@ -698,7 +698,7 @@ function Dashboard(props) {
                                          </div>
                                      </td>
                                      <td>
-                                         {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : <div className="badge badge-outline-warning">Pending</div> }
+                                         {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : item?.ready ? <div className="badge badge-outline-warning">Pending</div> : <div className="badge badge-outline-info">Waiting</div>}
                                      </td>
                                      <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                      <td>{item.section} Chicken(s)</td>
@@ -726,7 +726,7 @@ function Dashboard(props) {
                                </div>
                              </td>
                                <td>
-                                   {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : <div className="badge badge-outline-warning">Pending</div>}
+                                   {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : item?.ready ? <div className="badge badge-outline-warning">Pending</div> : <div className="badge badge-outline-info">Waiting</div>}
                                </td>
                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                <td> {item.values?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item.values)} </td>

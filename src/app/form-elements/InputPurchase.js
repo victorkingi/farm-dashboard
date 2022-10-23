@@ -163,7 +163,7 @@ function InputPurchase(props) {
         if (state.not_paid) {
             status = false;
             if (state.paid_by.toUpperCase() !== name) {
-                state.paid_by = name.toUpperCase();
+                state.paid_by = 'BANK';
             }
         }
 
