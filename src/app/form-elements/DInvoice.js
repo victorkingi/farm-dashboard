@@ -4,17 +4,12 @@ import bsCustomFileInput from 'bs-custom-file-input';
 import {Redirect} from "react-router-dom";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
-import {Offline, Online} from "react-detect-offline";
+import {Online} from "react-detect-offline";
 import {compose} from "redux";
 import {connect} from "react-redux";
 import {firestoreConnect} from "react-redux-firebase";
 import {validNames} from "./InputSell";
 import {firebase} from "../../services/api/fbConfig";
-
-let today = new Date();
-today.setHours(0, 0, 0, 0);
-today = Math.floor(today.getTime() / 1000);
-const name = localStorage.getItem('name') || '';
 
 function saveBlob(blob, fileName) {
     const a = document.createElement('a');
@@ -23,31 +18,102 @@ function saveBlob(blob, fileName) {
     a.dispatchEvent(new MouseEvent('click'));
 }
 
-function DInvoice({ invoices }) {
+function DInvoice({ invoices, acc }) {
 
     const [open, setOpen] = useState(false);
     const [openM, setOpenM] = useState('Data Submitted');
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
-    const [state, setState] = useState({name: ''});
+    const [state, setState] = useState({name: '', discount: 0, debtNames: ''});
     const [invoiceNum, setInvoiceNum] = useState(0);
+    const [debtReady, setDebtReady] = useState(0);
+    const [ready, setReady] = useState(false);
+
+    useEffect(() => {
+        if (acc) {
+            let found = [];
+            for (const x of Object.keys(acc[0])) {
+                if ('id' === x) continue;
+                let myName = x.slice(4);
+                if (myName.endsWith('BANK')) {
+                    myName = myName.slice(0, -5);
+                }
+                found.push({fullId: x, myName, amount: acc[0][x]});
+            }
+            found = found.filter((value) => value.amount > 0);
+
+            // check if we do owe listed names
+            let matched = [];
+            let debts = state.debtNames.slice(0, -1).split(',');
+            let isReady = [];
+            for (const y of debts) {
+                let isFound = false;
+                for (const x of found) {
+                    if (y.toUpperCase() === x.myName) {
+                        matched.push({id: x.fullId, amount: x.amount});
+                        isFound = true;
+                    }
+                }
+                if (!isFound) {
+                    setError(`we do not owe ${y}`);
+                    setOpen(false);
+                    setOpenError(true);
+                    return 0;
+                }
+                isReady.push(isFound);
+            }
+            isReady = isReady.reduce((prev, cur) => prev && cur, true);
+            setReady(isReady);
+            matched = matched.map((value) => value.amount);
+            matched = matched.reduce((prev, cur) => prev + cur);
+            setDebtReady(matched);
+        }
+    }, [acc, state]);
 
     useEffect(() => {
         if (invoices) {
-            setInvoiceNum(invoices[0].num);
+            let counter = 0;
+            for (const doc of invoices) {
+                if (doc.id === 'count') {
+                    counter = doc.num;
+                    break;
+                }
+            }
+            setInvoiceNum(counter);
         }
     }, [invoices]);
 
     const handleClick = (e) => {
         e.preventDefault();
         const buyerRegex = /^(([A-Z]|[a-z])+,)+$/;
+
+        if (!/^[0-9]+$/.test(state.discount)) {
+            setError("discount applied should be a number");
+            setOpen(false);
+            setOpenError(true);
+            return 0;
+        }
+        if (!buyerRegex.test(state.debtNames) && state.debtNames !== '') {
+            setError("debt names format should be [name,name,]");
+            setOpen(false);
+            setOpenError(true);
+            return 0;
+        }
         if (!buyerRegex.test(state.buyers)) {
             setError("buyer names format should be [name,name,]");
             setOpen(false);
             setOpenError(true);
             return 0;
         }
+
+        if (!ready) {
+            setError("we do not owe some customers entered, please remove them");
+            setOpen(false);
+            setOpenError(true);
+            return 0;
+        }
+
         const buyers = state.buyers.slice(0, -1).split(',');
         const otherBuyers = ['DUKA', 'THIKAFARMERS', 'CAKES'];
         for (const x of buyers) {
@@ -60,6 +126,7 @@ function DInvoice({ invoices }) {
         }
         let cleanName = state.name;
         cleanName = cleanName.replace(/[^a-zA-Z ]/g, "").trim();
+        cleanName = cleanName.replace(/ +/, '');
 
         if (!invoices) {
             setError("you might be offline, go back online to proceed");
@@ -72,45 +139,55 @@ function DInvoice({ invoices }) {
         setOpenM("Generating invoice, please wait...");
         setOpen(true);
 
-        const genInvoice = firebase.functions().httpsCallable('genInvoice');
-        genInvoice({ genData: {to: cleanName, buyers } })
-            .then((result) => {
-                // Read result of the Cloud Function.
-                const isSuccess = result.data.genData;
-                console.log("gen success", isSuccess);
-            }).catch((error) => {
-            // Getting the Error details.
-            const code = error.code;
-            const message = error.message;
-            const details = error.details;
-            console.log(code, message, details);
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        const raw = JSON.stringify({
+            buyers: buyers.toString(),
+            cleanName: cleanName,
+            discount: state.discount.toString(),
+            owe: debtReady.toString()
         });
+        console.log(raw)
 
-        // Create a reference with an initial file path and name
-        const storage = firebase.storage();
-        const storageRef = storage.ref('invoices/');
-        storageRef.child(`${invoiceNum}_${cleanName}_invoice.pdf`).getDownloadURL()
-            .then((url) => {
-                // `url` is the download URL for 'images/stars.jpg'
-                // This can be downloaded directly:
-                const xhr = new XMLHttpRequest();
-                xhr.responseType = 'blob';
-                xhr.onload = (event) => {
-                    const blob = xhr.response;
-                    let file_name = xhr.responseURL.split('/')[7];
-                    file_name = file_name.split('?')[0];
+        const requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: raw,
+            redirect: 'follow'
+        };
 
-                    saveBlob(blob, file_name);
-                };
-                xhr.open('GET', url);
-                xhr.send();
+        fetch("https://us-central1-poultry101-f1fa0.cloudfunctions.net/genInvoice", requestOptions)
+            .then(response => response.text())
+            .then(result => {
+                console.log(result);
+                //Create a reference with an initial file path and name
+                const storage = firebase.storage();
+                const storageRef = storage.ref('invoices/');
+                storageRef.child(`${invoiceNum}_${cleanName}_invoice.pdf`).getDownloadURL()
+                    .then((url) => {
+                        // `url` is the download URL for 'images/stars.jpg'
+                        // This can be downloaded directly:
+                        const xhr = new XMLHttpRequest();
+                        xhr.responseType = 'blob';
+                        xhr.onload = () => {
+                            const blob = xhr.response;
+                            let file_name = xhr.responseURL.split('/')[7];
+                            file_name = file_name.split('?')[0];
+                            file_name = file_name.split('%2F')[1];
+
+                            saveBlob(blob, file_name);
+                        };
+                        xhr.open('GET', url);
+                        xhr.send();
+                    })
+                    .catch(() => {
+                        setError("invoice generation failed");
+                        setOpen(false);
+                        setOpenError(true);
+                        return 0;
+                    });
             })
-            .catch((error) => {
-                setError("invoice generation failed");
-                setOpen(false);
-                setOpenError(true);
-                return 0;
-            });
+            .catch(error => console.log('error', error));
     }
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -165,7 +242,16 @@ function DInvoice({ invoices }) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Buyer Name(s) to include</label>
+                                <p className="text-info">Valid names: Thikafarmers, Duka, Cakes, Eton, Sang', Karithi, Titus, Mwangi, Lynn, Gituku, Lang'at, Wahome, Kamau, Wakamau, Simiyu, Kinyanjui, Benson, Ben, Gitonyi, Muthomi, Solomon, Cucu</p>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control" id="buyers" placeholder="buyer names (comma separated)" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="debtNames">Customer debts to include(optional)</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="debtNames" placeholder="customer names" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor="buyers">Discount amount in KES(Optional)</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="discount" placeholder="discount applied" />
                             </Form.Group>
                             <a href={__dirname+'InputSell.js'} download onClick={handleClick} className="btn btn-primary mr-2">Generate</a>
                         </form>
@@ -173,20 +259,13 @@ function DInvoice({ invoices }) {
                 </div>
             </div>
             <Online>
-                <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
+                <Snackbar open={open} autoHideDuration={9000} onClose={handleClose}>
                     <Alert onClose={handleClose} severity="success">
                         {openM}
                     </Alert>
                 </Snackbar>
             </Online>
-            <Offline>
-                <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="warning">
-                        {openM === 'Data Submitted' ? 'Data will be updated once back online' : 'Data will be deleted once back online'}
-                    </Alert>
-                </Snackbar>
-            </Offline>
-            <Snackbar open={openError} autoHideDuration={6000} onClose={handleClose}>
+            <Snackbar open={openError} autoHideDuration={4000} onClose={handleClose}>
                 <Alert severity="error">{error}</Alert>
             </Snackbar>
         </div>
@@ -195,13 +274,15 @@ function DInvoice({ invoices }) {
 
 const mapStateToProps = function(state) {
     return {
-        invoices: state.firestore.ordered.invoices
+        invoices: state.firestore.ordered.invoices,
+        acc: state.firestore.ordered.accounts
     }
 }
 
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'invoices'}
+        {collection: 'invoices'},
+        {collection: 'accounts'}
     ])
 )(DInvoice);

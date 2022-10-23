@@ -105,7 +105,9 @@ function InputSell(props) {
       return false;
     }
     const stripBuyer = values.buyerName.trim().toUpperCase();
-    if (!validNames.includes(stripBuyer)) {
+    const fixedSections = ['DUKA', 'THIKAFARMERS', 'CAKES'];
+
+    if (!validNames.includes(stripBuyer) && !fixedSections.includes(values.section)) {
       setError('Buyer name does not exist');
       setOpenError(true);
       return false;

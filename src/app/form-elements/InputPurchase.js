@@ -163,9 +163,7 @@ function InputPurchase(props) {
         if (state.not_paid) {
             status = false;
             if (state.paid_by.toUpperCase() !== name) {
-                setError(`Since purchase is not paid, paid by value should be ${name.toLowerCase()} but got ${state.paid_by}`);
-                setOpenError(true);
-                return;
+                state.paid_by = name.toUpperCase();
             }
         }
 
