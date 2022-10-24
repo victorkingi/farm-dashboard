@@ -322,7 +322,7 @@ function Dashboard(props) {
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Week Profit ({moment(dash.week_profit[2]*1000).format('MMM Do YY')})</h6>
+                         <h6 className="text-white-80 font-weight-normal">Week Profit ({moment(dash.week_profit[2]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -357,7 +357,7 @@ function Dashboard(props) {
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Lay Percent Day ({moment(dash.laying.day[2]*1000).format('MMM Do YY')})</h6>
+                         <h6 className="text-white-80 font-weight-normal">Lay Percent Day ({moment(dash.laying.day[2]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -392,7 +392,7 @@ function Dashboard(props) {
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Lay Percent Week ({moment(dash.laying.week[2]*1000).format('MMM Do YY')})</h6>
+                         <h6 className="text-white-80 font-weight-normal">Lay Percent Week ({moment(dash.laying.week[2]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -419,7 +419,7 @@ function Dashboard(props) {
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Month Profit ({moment(dash.month_profit[2]*1000).format('MMM Do YY')})</h6>
+                         <h6 className="text-white-80 font-weight-normal">Month Profit ({moment(dash.month_profit[2]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -443,7 +443,7 @@ function Dashboard(props) {
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Total Birds</h6>
+                         <h6 className="text-white-80 font-weight-normal">Total Birds</h6>
                      </div>
                  </div>
              </div>
@@ -474,7 +474,7 @@ function Dashboard(props) {
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-muted font-weight-normal">Current Debt</h6>
+                         <h6 className="text-white-80 font-weight-normal">Current Debt</h6>
                      </div>
                  </div>
              </div>
@@ -505,7 +505,7 @@ function Dashboard(props) {
                      </div>
                    </div>
                  </div>
-                 <h6 className="text-muted font-weight-normal">Amount Available to Withdraw</h6>
+                 <h6 className="text-white-80 font-weight-normal">Amount Available to Withdraw</h6>
                </div>
              </div>
            </div>
@@ -529,7 +529,7 @@ function Dashboard(props) {
                          </div>
                        </div>
                      </div>
-                 <h6 className="text-muted font-weight-normal">Bank Balance</h6>
+                 <h6 className="text-white-80 font-weight-normal">Bank Balance</h6>
                </div>
              </div>
            </div>
@@ -561,7 +561,7 @@ function Dashboard(props) {
                          </div>
                        </div>
                      </div>
-                       <h6 className="text-muted font-weight-normal">Trays and Eggs in Store <br /> ({moment(dash.last_trays_date*1000).format('MMM Do YY')})</h6>
+                       <h6 className="text-white-80 font-weight-normal">Trays and Eggs in Store <br /> ({moment(dash.last_trays_date*1000).format('MMM Do YY')})</h6>
                    </div>
                  </div>
            </div>
@@ -642,7 +642,7 @@ function Dashboard(props) {
                        </div>
                    }
                    <div className="table-responsive">
-                   <table className="table">
+                   <table className="table text-white">
                      <thead>
                      <tr>
                          <th>

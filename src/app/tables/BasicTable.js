@@ -109,7 +109,7 @@ function BasicTable({ pse_state, sales_state }) {
                               <Form.Control
                                   type='text'
                                   onChange={handleHashChange}
-                                  className='form-control'
+                                  className='form-control text-white'
                                   id='hash'
                                   placeholder='Input id'
                                   value={hash}

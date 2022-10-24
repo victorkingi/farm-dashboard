@@ -255,20 +255,20 @@ function DInvoice({ invoices, acc }) {
                         <form className="forms-sample">
                             <Form.Group>
                                 <label htmlFor="name">Invoice addressed to?</label>
-                                <Form.Control value={state.name} type="text" onChange={handleSelect} className="form-control" id="name" placeholder="recipient name" />
+                                <Form.Control value={state.name} type="text" onChange={handleSelect} className="form-control text-white" id="name" placeholder="recipient name" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Buyer Name(s) to include</label>
                                 <p className="text-info">Valid names: Thikafarmers, Duka, Cakes, Eton, Sang', Karithi, Titus, Mwangi, Lynn, Gituku, Lang'at, Wahome, Kamau, Wakamau, Simiyu, Kinyanjui, Benson, Ben, Gitonyi, Muthomi, Solomon, Cucu</p>
-                                <Form.Control value={state.buyers} type="text" onChange={handleSelect} className="form-control" id="buyers" placeholder="buyer names (comma separated)" />
+                                <Form.Control value={state.buyers} type="text" onChange={handleSelect} className="form-control text-white" id="buyers" placeholder="buyer names (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="debtNames">Customer debts to include(optional)</label>
-                                <Form.Control value={state.debtNames} type="text" onChange={handleSelect} className="form-control" id="debtNames" placeholder="customer names" />
+                                <Form.Control value={state.debtNames} type="text" onChange={handleSelect} className="form-control text-white" id="debtNames" placeholder="customer names" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Discount amount in KES(Optional)</label>
-                                <Form.Control value={state.discount} type="text" onChange={handleSelect} className="form-control" id="discount" placeholder="discount applied" />
+                                <Form.Control value={state.discount} type="text" onChange={handleSelect} className="form-control text-white" id="discount" placeholder="discount applied" />
                             </Form.Group>
                             <a href={__dirname+'InputSell.js'} download onClick={handleClick} className="btn btn-primary mr-2">Generate</a>
                         </form>

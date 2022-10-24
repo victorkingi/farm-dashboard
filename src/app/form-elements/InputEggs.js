@@ -160,45 +160,45 @@ function InputEggs(props) {
                                 <DatePicker
                                     selected={state.date_}
                                     onChange={handleDate}
-                                    className='form-control'
+                                    className="form-control text-white"
                                     id='date_'
                                 />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="level">Level ordering</label>
-                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A,B,C" />
+                                <Form.Control disabled type="text" className="form-control text-white" id="level" placeholder="A,B,C" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="eggs">Eggs column 1</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs1" placeholder="Eggs in column 1 (comma separated)" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="eggs1" placeholder="Eggs in column 1 (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="eggs">Eggs column 2</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs2" placeholder="Eggs in column 2 (comma separated)" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="eggs2" placeholder="Eggs in column 2 (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="eggs">Eggs column 3</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs3" placeholder="Eggs in column 3 (comma separated)" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="eggs3" placeholder="Eggs in column 3 (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="eggs">Eggs column 4</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="eggs4" placeholder="Eggs in column 4 (comma separated)" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="eggs4" placeholder="Eggs in column 4 (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="broken">Broken</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="broken" placeholder="Broken Eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="broken" placeholder="Broken Eggs" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="trays_store">Total Trays</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="trays_store" placeholder="Total Trays And Extra Eggs Collected" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="trays_store" placeholder="Total Trays And Extra Eggs Collected" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="bags_store">Bags in Store</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="bags_store" placeholder="Unopened bags of feeds in store" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="bags_store" placeholder="Unopened bags of feeds in store" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="objectNo">Extra info (optional)</label>
-                                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
+                                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                         </form>

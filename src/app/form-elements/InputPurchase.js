@@ -304,7 +304,7 @@ function InputPurchase(props) {
                                 <DatePicker
                                     selected={state.date}
                                     onChange={handleDate}
-                                    className='form-control'
+                                    className="form-control text-white"
                                     id='date'
                                 />
                             </Form.Group>
@@ -326,7 +326,7 @@ function InputPurchase(props) {
                                 <label htmlFor="itemName">Vendor Name</label>
                                 <Form.Control type="text"
                                               onChange={handleSelect}
-                                              className="form-control" id="vendorName" placeholder="Feeds bought from" />
+                                              className="form-control text-white" id="vendorName" placeholder="Feeds bought from" />
                                 </Form.Group>
                             }
                             {isFeeds &&
@@ -334,22 +334,22 @@ function InputPurchase(props) {
                                     <label htmlFor="bagSize">Bag size(kg)</label>
                                     <Form.Control type="text"
                                                   onChange={handleSelect}
-                                                  className="form-control" id="bagSize" placeholder="Size of bag of feeds" />
+                                                  className="form-control text-white" id="bagSize" placeholder="Size of bag of feeds" />
                                 </Form.Group>
                             }
                             <Form.Group>
                                 <label htmlFor="itemName">Item Name</label>
                                 <Form.Control type="text"
                                               onChange={handleSelect}
-                                              className="form-control" id="itemName" placeholder="Name of Item" />
+                                              className="form-control text-white" id="itemName" placeholder="Name of Item" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="objectNo">Number of Objects</label>
-                                <Form.Control value={state.objectNo} type="text" onChange={handleSelect} className="form-control" id="objectNo" placeholder="Number of Objects" />
+                                <Form.Control value={state.objectNo} type="text" onChange={handleSelect} className="form-control text-white" id="objectNo" placeholder="Number of Objects" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="objectPrice">Price per Object</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="objectPrice" placeholder="Price per Object" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="objectPrice" placeholder="Price per Object" />
                             </Form.Group>
                             {!state.not_paid && <Form.Group>
                                 <label htmlFor='receiver'>Paid by</label>
@@ -401,7 +401,7 @@ function InputPurchase(props) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="objectNo">Extra info (optional)</label>
-                                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
+                                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                         </form>

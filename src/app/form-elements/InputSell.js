@@ -333,7 +333,7 @@ function InputSell(props) {
                 <DatePicker
                   selected={state.date}
                   onChange={handleDate}
-                  className='form-control'
+                  className="form-control text-white"
                   id='date'
                 />
               </Form.Group>
@@ -361,7 +361,7 @@ function InputSell(props) {
                 <Form.Control
                   type='text'
                   onChange={handleSelect}
-                  className='form-control'
+                  className="form-control text-white"
                   id='buyerName'
                   placeholder='Name of Buyer'
                   value={state.buyerName}
@@ -373,7 +373,7 @@ function InputSell(props) {
                   type='text'
                   onChange={handleSelect}
                   value={state.trayNo}
-                  className='form-control'
+                  className="form-control text-white"
                   id='trayNo'
                   placeholder='Number of Trays'
                 />
@@ -383,7 +383,7 @@ function InputSell(props) {
                 <Form.Control
                   type='text'
                   onChange={handleSelect}
-                  className='form-control'
+                  className="form-control text-white"
                   id='trayPrice'
                   placeholder='Price per Tray'
                   value={state.trayPrice}
@@ -439,7 +439,7 @@ function InputSell(props) {
               </Form.Group>
               <Form.Group>
                 <label htmlFor="objectNo">Extra info (optional)</label>
-                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
+                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
               </Form.Group>
               <button
                 type='submit'

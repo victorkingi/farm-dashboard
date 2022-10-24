@@ -140,7 +140,7 @@ function InputTrays({ dashboard, pendEggs }) {
                         <form className="forms-sample">
                             <Form.Group>
                                 <label htmlFor="trays">Trays</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="text" placeholder="Enter Trays and eggs" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="text" placeholder="Enter Trays and eggs" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleClick}>Submit</button>
                             <button type="button" className="btn btn-dark" onClick={() => setRewind(true)}>Undo</button>

@@ -179,23 +179,23 @@ function InputChknNo() {
                         <form className="forms-sample">
                             <Form.Group>
                                 <label htmlFor="level">Level ordering</label>
-                                <Form.Control disabled type="text" className="form-control" id="level" placeholder="A,B,C" />
+                                <Form.Control disabled type="text" className="form-control text-white" id="level" placeholder="A,B,C" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="chick1">Column 1</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="chick1" placeholder="Chicken number in column 1" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="chick1" placeholder="Chicken number in column 1" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="chick2">Column 2</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="chick2" placeholder="Chicken number in column 2" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="chick2" placeholder="Chicken number in column 2" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="chick3">Column 3</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="chick3" placeholder="Chicken number in column 3" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="chick3" placeholder="Chicken number in column 3" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="chick4">Column 4</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="chick4" placeholder="Chicken number in column 4" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="chick4" placeholder="Chicken number in column 4" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleClick}>Submit</button>
                             <button type="button" className="btn btn-dark" onClick={() => setRewind(true)}>Undo</button>

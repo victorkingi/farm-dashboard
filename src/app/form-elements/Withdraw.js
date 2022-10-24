@@ -165,15 +165,15 @@ function Withdraw(props) {
                             <br />
                             <Form.Group>
                                 <label htmlFor="amount">Amount</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
+                                <Form.Control type="number" onChange={handleSelect} className="form-control text-white" id="amount" placeholder="Enter Amount" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="objectNo">Extra info (optional)</label>
-                                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
+                                <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="amount">Re-enter Password</label>
-                                <Form.Control type="password" value={state.pass || ''} onChange={handleSelect} className="form-control" id="pass" placeholder="Enter User Password" />
+                                <Form.Control type="password" value={state.pass || ''} onChange={handleSelect} className="form-control text-white" id="pass" placeholder="Enter User Password" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                         </form>

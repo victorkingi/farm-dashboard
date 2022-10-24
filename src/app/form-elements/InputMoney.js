@@ -134,7 +134,7 @@ function InputMoney(props) {
     };
 
     const handleSelect = (e) => {
-        e = e.trim();
+        e = typeof e === 'string' ? e.trim() : e;
         if (e === "Me" || e === "FromAnne") {
             setState({
                 ...state,
@@ -210,7 +210,7 @@ function InputMoney(props) {
                                     <DatePicker
                                         selected={state.date}
                                         onChange={handleDate}
-                                        className='form-control'
+                                        className="form-control text-white"
                                         id='date'
                                     />
                                 </Form.Group>
@@ -242,11 +242,11 @@ function InputMoney(props) {
                                 <br />
                                 <Form.Group>
                                     <label htmlFor="amount">Amount</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="amount" placeholder="Enter Amount" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="amount" placeholder="Enter Amount" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="objectNo">Extra info (optional)</label>
-                                    <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
+                                    <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>

@@ -157,7 +157,7 @@ function InputDeadSick(props) {
                                     <DatePicker
                                         selected={state.date}
                                         onChange={handleDate}
-                                        className='form-control'
+                                        className="form-control text-white"
                                         id='date'
                                     />
                                 </Form.Group>
@@ -175,15 +175,15 @@ function InputDeadSick(props) {
                                 <br />
                                 <Form.Group>
                                     <label htmlFor="chickenNo">Location</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="level" placeholder="row name" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="level" placeholder="row name" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="chickenNo">Number of Chickens</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="chickenNo" placeholder="Number of Chickens" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="chickenNo" placeholder="Number of Chickens" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="reason">Reason (and Treatment Given)</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control" id="reason" placeholder="Reason and Treatment If Applicable" />
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="reason" placeholder="Reason and Treatment If Applicable" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label>File upload</label>
@@ -194,7 +194,7 @@ function InputDeadSick(props) {
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="objectNo">Extra info (optional)</label>
-                                    <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control" id="extra_data" placeholder="Any extra information" />
+                                    <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>

@@ -95,7 +95,7 @@ function LatePayment(props) {
                         <div className="card-body">
                             <h4 className="card-title">Late Payments</h4>
                             <div className="table-responsive">
-                                <table className="table">
+                                <table className="table text-white">
                                     <thead>
                                     <tr>
                                         <th>
