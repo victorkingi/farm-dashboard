@@ -46,6 +46,7 @@ validNames = validNames.map(element => {
 
 function InputSell(props) {
   const [state, setState] = useState({
+    category: 'sales',
     date: new Date(),
     section: 'Choose Section',
     buyerName: '',
@@ -91,11 +92,6 @@ function InputSell(props) {
   const parameterChecks = (values) => {
     if (!values.section) {
       setError('Section is empty!');
-      setOpenError(true);
-      return false;
-    }
-    if (values.trayNo < 1 || values.trayPrice < 1) {
-      setError('Tray price and number cannot be negative / 0');
       setOpenError(true);
       return false;
     }
@@ -191,7 +187,6 @@ function InputSell(props) {
       return -1;
     }
     values.receiver = values.receiver.toUpperCase()
-    values.category = 'sales';
     values.section = getSectionAddr(values.section);
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
