@@ -1,20 +1,4 @@
 /**
- * pending will affect iff borrower amount is < balance
- * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
- * @param values
- */
-export const moneyBorrowed = (values) => {
-    return (dispatch, getState, {getFirebase, getFirestore}) => {
-        const firestore = getFirestore();
-        firestore.collection("pending_transactions").add({
-            values,
-            submittedOn: new Date()
-        });
-        dispatch({type: 'BORROW_SUCCESS'});
-    }
-}
-
-/**
  * will be affected only if amount > balance
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  * @param values

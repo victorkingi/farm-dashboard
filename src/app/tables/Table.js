@@ -579,9 +579,9 @@ function EnhancedTable(props) {
                                         to = data.to.toLowerCase();
                                         from = from.split('_');
                                         to = to.split('_');
-                                        if (from.length === 2) from = from[0]+' '+from[1];
+                                        if (from.length > 1) from = from.join(' ');
                                         else from = from[0];
-                                        if (to.length === 2) to = to[0]+' '+to[1];
+                                        if (to.length > 1) to = to.join(' ');
                                         else to = to[0];
                                     }
 

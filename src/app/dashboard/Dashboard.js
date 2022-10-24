@@ -296,6 +296,10 @@ function Dashboard(props) {
       setPendCheckedEggs(allPend);
   }
 
+  if (dash.id) {
+      return <div />
+  }
+
    return (
        <div>
          <div className="row">
