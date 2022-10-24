@@ -45,9 +45,10 @@ function DInvoice({ invoices, acc }) {
 
             // check if we do owe listed names
             let matched = [];
-            let debts = state.debtNames.slice(0, -1).split(',');
+            let debts = [...state.debtNames.slice(0, -1).split(',')];
             let isReady = [];
             for (const y of debts) {
+                if (y === '') continue;
                 let isFound = false;
                 for (const x of found) {
                     if (y.toUpperCase() === x.myName) {
@@ -56,18 +57,26 @@ function DInvoice({ invoices, acc }) {
                     }
                 }
                 if (!isFound) {
-                    setError(`we do not owe ${y}`);
+                    setError(`customer debt is wrong, we do not owe ${y}`);
                     setOpen(false);
                     setOpenError(true);
-                    return 0;
                 }
                 isReady.push(isFound);
             }
-            isReady = isReady.reduce((prev, cur) => prev && cur, true);
-            setReady(isReady);
-            matched = matched.map((value) => value.amount);
-            matched = matched.reduce((prev, cur) => prev + cur);
-            setDebtReady(matched);
+
+            if (isReady.length !== 0 && state.debtNames !== '') {
+                isReady = isReady.reduce((prev, cur) => prev && cur, true);
+                setReady(isReady);
+                matched = matched.map((value) => value.amount);
+                matched = matched.reduce((prev, cur) => prev + cur, 0);
+                setDebtReady(matched);
+            } else if (isReady.length === 0 && state.debtNames === '') {
+                setReady(true);
+                setDebtReady(0);
+            } else {
+                setReady(false);
+                setDebtReady(0);
+            }
         }
     }, [acc, state]);
 
@@ -104,6 +113,7 @@ function DInvoice({ invoices, acc }) {
             setError("buyer names format should be [name,name,]");
             setOpen(false);
             setOpenError(true);
+
             return 0;
         }
 
@@ -111,6 +121,7 @@ function DInvoice({ invoices, acc }) {
             setError("we do not owe some customers entered, please remove them");
             setOpen(false);
             setOpenError(true);
+
             return 0;
         }
 
@@ -121,6 +132,7 @@ function DInvoice({ invoices, acc }) {
                 setError("invalid buyer name provided");
                 setOpen(false);
                 setOpenError(true);
+
                 return 0;
             }
         }
@@ -187,7 +199,12 @@ function DInvoice({ invoices, acc }) {
                         return 0;
                     });
             })
-            .catch(error => console.log('error', error));
+            .catch(error => {
+                console.log('error', error)
+                setError("Error occurred");
+                setOpen(false);
+                setOpenError(true);
+            });
     }
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -201,7 +218,7 @@ function DInvoice({ invoices, acc }) {
         e.preventDefault();
         setState({
             ...state,
-            [e.target.id]: e.target.value.trim()
+            [e.target.id]: e.target.value
         });
     }
 
@@ -238,20 +255,20 @@ function DInvoice({ invoices, acc }) {
                         <form className="forms-sample">
                             <Form.Group>
                                 <label htmlFor="name">Invoice addressed to?</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="name" placeholder="recipient name" />
+                                <Form.Control value={state.name} type="text" onChange={handleSelect} className="form-control" id="name" placeholder="recipient name" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Buyer Name(s) to include</label>
                                 <p className="text-info">Valid names: Thikafarmers, Duka, Cakes, Eton, Sang', Karithi, Titus, Mwangi, Lynn, Gituku, Lang'at, Wahome, Kamau, Wakamau, Simiyu, Kinyanjui, Benson, Ben, Gitonyi, Muthomi, Solomon, Cucu</p>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="buyers" placeholder="buyer names (comma separated)" />
+                                <Form.Control value={state.buyers} type="text" onChange={handleSelect} className="form-control" id="buyers" placeholder="buyer names (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="debtNames">Customer debts to include(optional)</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="debtNames" placeholder="customer names" />
+                                <Form.Control value={state.debtNames} type="text" onChange={handleSelect} className="form-control" id="debtNames" placeholder="customer names" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Discount amount in KES(Optional)</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control" id="discount" placeholder="discount applied" />
+                                <Form.Control value={state.discount} type="text" onChange={handleSelect} className="form-control" id="discount" placeholder="discount applied" />
                             </Form.Group>
                             <a href={__dirname+'InputSell.js'} download onClick={handleClick} className="btn btn-primary mr-2">Generate</a>
                         </form>
