@@ -193,8 +193,8 @@ function InputDeadSick(props) {
                                     </div>
                                 </Form.Group>
                                 <Form.Group>
-                                    <label htmlFor="objectNo">Extra info (optional)</label>
-                                    <Form.Control value={state.extra_data} type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
+                                    <label htmlFor="extra_data">Extra info (optional)</label>
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>
