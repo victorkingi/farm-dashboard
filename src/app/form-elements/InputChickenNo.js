@@ -160,14 +160,14 @@ function InputChknNo() {
     return (
         <div>
             <div className="page-header">
-                <h3 className="page-title">Input Trays</h3>
+                <h3 className="page-title">Input Chicken Number</h3>
                 <nav aria-label="breadcrumb">
                     <ol className="breadcrumb">
                         <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => {
                             event.preventDefault();
                             setRedirect(true);
                         }}>Home</a></li>
-                        <li className="breadcrumb-item active" aria-current="page">Input Trays</li>
+                        <li className="breadcrumb-item active" aria-current="page">Input Chicken Number</li>
                     </ol>
                 </nav>
             </div>

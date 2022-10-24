@@ -218,7 +218,7 @@ function DInvoice({ invoices, acc }) {
         e.preventDefault();
         setState({
             ...state,
-            [e.target.id]: e.target.value
+            [e.target.id]: e.target.value.trim()
         });
     }
 
