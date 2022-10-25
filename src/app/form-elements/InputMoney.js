@@ -90,8 +90,8 @@ function InputMoney(props) {
                     return;
                 }
             }
-            if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
-                setError('Extra info should only be letters/numbers or left empty');
+            if (arr[i][0] === 'extra_data' && (!alphaNumRegex.test(arr[i][1]) || arr[i][1] === '')) {
+                setError('Extra info should only be letters/numbers');
                 setOpenError(true);
                 return;
             }
@@ -245,8 +245,8 @@ function InputMoney(props) {
                                     <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="amount" placeholder="Enter Amount" />
                                 </Form.Group>
                                 <Form.Group>
-                                    <label htmlFor="extra_data">Extra info (optional)</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
+                                    <label htmlFor="extra_data">Extra info</label>
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Reason for the sending" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>

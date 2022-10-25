@@ -35,6 +35,17 @@ export const sendMoney = (values) => {
     }
 }
 
+const setProperty = (obj, path, value) => {
+    const [head, ...rest] = path.split('.')
+
+    return {
+        ...obj,
+        [head]: rest.length
+            ? setProperty(obj[head], rest.join('.'), value)
+            : value
+    }
+}
+
 /**
  *
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
@@ -54,13 +65,15 @@ export const hasPaidLate = (key) => {
                 console.log('late doc does not exist')
                 return new Error("Entry does not exist");
             }
-            doc.ref.delete();
-            firestore.collection("pending_transactions").add({
+            let val = {
                 ...doc.data(),
-                clearedBy: name,
                 paidOn: new Date()
-            });
+            }
+            val = setProperty(val, 'values.receiver', name);
+
+            firestore.collection("pending_transactions").add(val);
             dispatch({type: 'LATE_REPAID'});
+            doc.ref.delete();
             return 'ok';
         });
     }

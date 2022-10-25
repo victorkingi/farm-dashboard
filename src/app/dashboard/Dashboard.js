@@ -287,6 +287,15 @@ function Dashboard(props) {
       setPendChecked(allPend);
    }
 
+   const cleanAddress = (str) => {
+       if (typeof str !== 'string') return '';
+       str = str.toLowerCase();
+       str = str.split('_');
+       if (str.length === 1) return str[0].charAt(0).toUpperCase()+str[0].slice(1);
+       str = str.join(' ');
+       return str.charAt(0).toUpperCase()+str.slice(1);
+   }
+
   const addAllEntriesEggs = (all) => {
       if (!pendEggs) return 0;
       const allPend = {};
@@ -631,7 +640,7 @@ function Dashboard(props) {
                                            </div>
                                        </td>
                                        <td>
-                                           {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : <div className="badge badge-outline-warning">Pending</div>}
+                                           {item?.rejected === true ? <div className="badge badge-outline-danger">Rejected</div> : item?.ready === true ? <div className="badge badge-outline-warning">Pending</div> : <div className="badge badge-outline-info">Waiting</div>}
                                        </td>
                                        <td> {moment(item.date_ * 1000).format("MMM Do YY")} </td>
                                        <td> {item.trays_store} </td>
@@ -702,7 +711,7 @@ function Dashboard(props) {
                                          </div>
                                      </td>
                                      <td>
-                                         {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : item?.ready ? <div className="badge badge-outline-warning">Pending</div> : <div className="badge badge-outline-info">Waiting</div>}
+                                         {item?.rejected === true ? <div className="badge badge-outline-danger">Rejected</div> : item?.ready === true ? <div className="badge badge-outline-warning">Pending</div> : <div className="badge badge-outline-info">Waiting</div>}
                                      </td>
                                      <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                      <td>{item.section} Chicken(s)</td>
@@ -730,12 +739,12 @@ function Dashboard(props) {
                                </div>
                              </td>
                                <td>
-                                   {item?.rejected ? <div className="badge badge-outline-danger">Rejected</div> : item?.ready ? <div className="badge badge-outline-warning">Pending</div> : <div className="badge badge-outline-info">Waiting</div>}
+                                   {item?.rejected === true ? <div className="badge badge-outline-danger">Rejected</div> : item?.ready === true ? <div className="badge badge-outline-warning">Pending</div> : <div className="badge badge-outline-info">Waiting</div>}
                                </td>
                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                <td> {item.values?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item.values)} </td>
-                               <td>{(item.values?.category !== 'sales' && item.values?.category !== 'buys' && (item.values?.name && item.values?.reason !== "WITHDRAW" ? (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.name === item.values?.initiator ? 'Balance' : 'Bank') : (item.values?.borrower && item.values?.borrower.charAt(0)+item.values?.borrower.slice(1).toLowerCase()))) || 'Miner'}</td>
-                               <td>{item.values?.receiver && item.values?.reason !== "WITHDRAW" ? (item.values?.receiver && item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.initiator && item.values?.initiator.charAt(0)+item.values?.initiator.slice(1).toLowerCase()) : (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase())}</td>
+                               <td>{['buys', 'sales'].includes(item.values?.category) ? 'Faucet' : (item.values?.name !== 'BLACK_HOLE' ? cleanAddress(item.values?.name) : 'Faucet')}</td>
+                               <td>{(item.values?.receiver === 'BLACK_HOLE' ? 'Faucet' : (item.values?.receiver && item.values?.reason !== "WITHDRAW" ? (item.values?.receiver && item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.initiator && item.values?.initiator.charAt(0)+item.values?.initiator.slice(1).toLowerCase()) : (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase())))}</td>
                                <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
                            </tr>
                          )
