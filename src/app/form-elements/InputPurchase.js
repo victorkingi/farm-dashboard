@@ -129,7 +129,7 @@ function InputPurchase(props) {
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
 
-        if (!bSizeRegex) {
+        if (!bSizeRegex && state.bagSize) {
             setError('bag size should be like this [70kg]');
             setOpenError(true);
             return;
@@ -187,10 +187,13 @@ function InputPurchase(props) {
             props.inputPurchase(values);
             setOpenError(false);
             setOpen(true);
-            setState({
+            const newState = {
                 ...state,
                 extra_data: ''
-            });
+            }
+            delete newState.bagSize;
+            delete newState.vendorName;
+            setState(newState);
         } else {
             setOpenError(true);
             setOpen(false);
