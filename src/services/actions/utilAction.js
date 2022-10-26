@@ -5,7 +5,10 @@ export const sanitize_string = (values) => {
         return description.charAt(0).toUpperCase()+description.slice(1);
     }
     if (values.category === 'buys') {
-        const description = values.itemName.toLowerCase();
-        return description.charAt(0).toUpperCase()+description.slice(1)+(` (${values.vendorName.toLowerCase()})` || '');
+        let description = values.itemName?.toLowerCase();;
+        let vendor = values.vendorName?.toLowerCase();
+        if (typeof values.itemName !== 'string') description = '';
+        if (typeof values.vendorName !== 'string') vendor = '';
+        return description.charAt(0).toUpperCase()+description.slice(1)+(` (${vendor})` || '');
     }
 }
