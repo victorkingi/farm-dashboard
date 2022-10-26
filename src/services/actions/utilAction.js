@@ -5,10 +5,13 @@ export const sanitize_string = (values) => {
         return description.charAt(0).toUpperCase()+description.slice(1);
     }
     if (values.category === 'buys') {
-        let description = values.itemName?.toLowerCase();;
+        let description = values.itemName?.toLowerCase();
         let vendor = values.vendorName?.toLowerCase();
         if (typeof values.itemName !== 'string') description = '';
-        if (typeof values.vendorName !== 'string') vendor = '';
-        return description.charAt(0).toUpperCase()+description.slice(1)+(` (${vendor})` || '');
+        if (typeof values.vendorName === 'string') {
+            return description.charAt(0).toUpperCase()+description.slice(1)+(` (${vendor})` || '');
+        } else {
+            return description.charAt(0).toUpperCase()+description.slice(1);
+        }
     }
 }
