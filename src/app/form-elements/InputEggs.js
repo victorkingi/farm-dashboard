@@ -14,6 +14,14 @@ export function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
+const getEggsDiff = (temp) => {
+    let total = temp.eggs.slice(0, -1).split(',');
+    total = total.reduce((prev, cur) => parseInt(prev) + parseInt(cur));
+    let expectedTotal = temp.trays_store.split(',');
+    expectedTotal = (parseInt(expectedTotal[0])*30)+parseInt(expectedTotal[1]);
+    return total-expectedTotal;
+}
+
 //
 function InputEggs(props) {
     const [state, setState] = useState({
@@ -22,6 +30,8 @@ function InputEggs(props) {
         extra_data: ''
     });
     const [open, setOpen] = useState(false);
+    const [openM, setOpenM] = useState('Data Submitted');
+    const [offlineM, setOfflineM] = useState('Data will be submitted automatically when back online');
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
@@ -89,7 +99,22 @@ function InputEggs(props) {
         }
         temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
         delete temp.bags_store;
+        const offBy = getEggsDiff(temp);
         props.inputTray(temp);
+
+        if (offBy !== 0) {
+            if (offBy > 0) {
+                setOpenM(`Got ${offBy} less eggs than expected. Data Submitted`);
+                setOfflineM(`Got ${offBy} less eggs than expected. Data will be submitted automatically when back online`);
+            } else {
+                setOpenM(`Got ${Math.abs(offBy)} more eggs than expected. Data Submitted`);
+                setOfflineM(`Got ${Math.abs(offBy)} more eggs than expected. Data will be submitted automatically when back online`);
+            }
+        } else {
+            setOfflineM("Data will be submitted automatically when back online");
+            setOpenM("Data Submitted");
+        }
+
         setOpenError(false);
         setOpen(true);
         setState({
@@ -208,14 +233,14 @@ function InputEggs(props) {
             <Online>
                 <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
                     <Alert onClose={handleClose} severity="success">
-                        Data Submitted
+                        {openM}
                     </Alert>
                 </Snackbar>
             </Online>
             <Offline>
                 <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
                     <Alert onClose={handleClose} severity="warning">
-                        Data will be submitted automatically when back online
+                        {offlineM}
                     </Alert>
                 </Snackbar>
             </Offline>

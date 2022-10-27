@@ -40,12 +40,12 @@ function ChartJs(props) {
         scales: {
             yAxes: [{
                 gridLines: {
-                    color: "rgba(204, 204, 204,0.1)"
+                    color: "rgba(204, 204, 204, 1)"
                 }
             }],
             xAxes: [{
                 gridLines: {
-                    color: "rgba(204, 204, 204,0.1)"
+                    color: "rgba(204, 204, 204, 1)"
                 }
             }]
         }
@@ -411,7 +411,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Weekly Laying Percent each section</h4>
                                 <Line data={dataSetWeekSec} options={areaOptions}/>
                             </div>
@@ -423,7 +423,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Weekly Laying Percent Total, Exact to Given</h4>
                                 <Line data={dataSetWeekLayTotal} options={areaOptions}/>
                             </div>
@@ -434,7 +434,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Daily Laying Percent each section</h4>
                                 <Line data={dataSetDayLaySec} options={areaOptions}/>
                             </div>
@@ -446,7 +446,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Daily Laying Percent Total, Exact to Given</h4>
                                 <Line data={dataSetDayLayTotal} options={areaOptions}/>
                             </div>
@@ -458,7 +458,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body  bg-white">
                                 <h4 className="card-title">Monthly Laying Percent each section</h4>
                                 <Line data={dataSetMonthLaySec} options={areaOptions}/>
                             </div>
@@ -470,7 +470,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Monthly Laying Percent Total, Exact to Given</h4>
                                 <Line data={dataSetMonthLayTotal} options={areaOptions}/>
                             </div>
@@ -482,7 +482,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Weekly Trays Collected, Exact to Given</h4>
                                 <Line data={dataSetWeekTray} options={areaOptions}/>
                             </div>
@@ -493,7 +493,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Daily Trays Collected, Exact to Given</h4>
                                 <Line data={dataSetDayTray} options={areaOptions}/>
                             </div>
@@ -504,7 +504,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Daily Trays Collected, Exact to Given</h4>
                                 <Line data={dataSetMonthTray} options={areaOptions}/>
                             </div>
@@ -515,7 +515,7 @@ function ChartJs(props) {
                 <div className="row">
                 <div className="col-md grid-margin stretch-card">
                     <div className="card">
-                        <div className="card-body">
+                        <div className="card-body bg-white">
                             <h4 className="card-title">Profit per Week</h4>
                             <Line data={dataSetWeekProfit} options={areaOptions}/>
                         </div>
@@ -526,7 +526,7 @@ function ChartJs(props) {
                 <div className="row">
                     <div className="col-md grid-margin stretch-card">
                         <div className="card">
-                            <div className="card-body">
+                            <div className="card-body bg-white">
                                 <h4 className="card-title">Profit per Month</h4>
                                 <Line data={dataSetMonthProfit} options={areaOptions}/>
                             </div>
