@@ -202,6 +202,6 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-        {collection: 'late_payment', orderBy: ['submittedOn', 'desc']},
+        {collection: 'late_payment', orderBy: ['values.date', 'desc']},
     ])
 )(LatePayment);

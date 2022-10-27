@@ -22,7 +22,7 @@ export function getRanColor() {
 
 let isRun = false;
 function Dashboard(props) {
-  const { acc, dashboard, pend, firebase, firestore, verify, pendEggs } = props;
+  const { acc, dashboard, pend, firestore, verify, pendEggs } = props;
 
   const [bank, setBank] = useState(0);
   const [dash, setDash] = useState({});
