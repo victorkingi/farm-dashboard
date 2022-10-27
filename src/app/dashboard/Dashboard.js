@@ -171,51 +171,18 @@ function Dashboard(props) {
   const rollBack = () => {
       for (const [key, value] of Object.entries(pendCheckedEggs)) {
           if (value) {
-              firestore.collection("pend_eggs_collected").doc(key)
-                  .get().then(async (doc) => {
-                  if (doc.exists) {
-                      await doc.ref.delete();
-                      setError(false);
-                      setOpen(true);
-                      setAllCheckedEggs(false);
-                  } else {
-                      const err = new Error("Invalid data!");
-                      setOpen(false);
-                      setErrM("Entry no longer exists");
-                      setError(true);
-                      return err;
-                  }
-              });
+              firestore.collection("pend_eggs_collected").doc(key).delete();
+              setError(false);
+              setOpen(true);
+              setAllCheckedEggs(false);
           }
       }
       for (const [key, value] of Object.entries(pendChecked)) {
           if (value) {
-              firestore.collection("pending_transactions").doc(key)
-                .get().then(async (doc) => {
-              if (doc.exists) {
-                  const data = doc.data();
-                  const category = data.category;
-                  if (category === 'deadSick') {
-                      // also delete image
-                      const fileName = data.file_name;
-                      const storage = firebase.storage();
-                      const storageRef = storage.ref();
-                      const imageRef = storageRef.child(`dead_sick_batch_2/${fileName}`);
-                      await imageRef.delete();
-                      console.log(fileName, "deleted");
-                  }
-                  await doc.ref.delete();
-                  setError(false);
-                  setOpen(true);
-                  setAllChecked(false);
-              } else {
-                const err = new Error("Invalid data!");
-                setOpen(false);
-                setErrM("Entry no longer exists");
-                setError(true);
-                return err;
-              }
-            });
+              firestore.collection("pending_transactions").doc(key).delete();
+              setError(false);
+              setOpen(true);
+              setAllChecked(false);
           }
     }
   }
