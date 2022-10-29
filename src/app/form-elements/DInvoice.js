@@ -10,6 +10,7 @@ import {connect} from "react-redux";
 import {firestoreConnect} from "react-redux-firebase";
 import {validNames} from "./InputSell";
 import {firebase} from "../../services/api/fbConfig";
+import numeral from "numeral";
 
 function saveBlob(blob, fileName) {
     const a = document.createElement('a');
@@ -18,65 +19,54 @@ function saveBlob(blob, fileName) {
     a.dispatchEvent(new MouseEvent('click'));
 }
 
-function DInvoice({ invoices, acc }) {
+function DInvoice({ invoices, acc, late }) {
 
     const [open, setOpen] = useState(false);
     const [openM, setOpenM] = useState('Data Submitted');
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
-    const [state, setState] = useState({name: '', discount: 0, debtNames: ''});
+    const [state, setState] = useState({buyers: '', name: '', discount: 0, debtNames: '', purchases: ''});
     const [invoiceNum, setInvoiceNum] = useState(0);
-    const [debtReady, setDebtReady] = useState(0);
-    const [ready, setReady] = useState(false);
+    const [usersDebt, setUsersDebt] = useState([]);
+    const [purchases, setPurchases] = useState([]);
+
+    useEffect(() => {
+        if (late) {
+            let _purchases = [];
+            for (const x of late) {
+                _purchases.push({
+                    id: `${x.values.itemName}${x.values.vendorName ? ' '+x.values.vendorName : ''}`,
+                    amount: parseInt(x.values.objectPrice)
+                        * parseInt(x.values.objectNo)});
+            }
+            _purchases = _purchases.map(x => {
+                return {id: x.id.charAt(0)+x.id.slice(1).toLowerCase(), amount: x.amount}
+            });
+            setPurchases(_purchases);
+        }
+    }, [late]);
 
     useEffect(() => {
         if (acc) {
             let found = [];
             for (const x of Object.keys(acc[0])) {
                 if ('id' === x) continue;
-                let myName = x.slice(4);
-                if (myName.endsWith('BANK')) {
-                    myName = myName.slice(0, -5);
+                if (x.startsWith('OWE_')) {
+                    found.push({id: x, amount: acc[0][x]});
                 }
-                found.push({fullId: x, myName, amount: acc[0][x]});
             }
             found = found.filter((value) => value.amount > 0);
-
-            // check if we do owe listed names
-            let matched = [];
-            let debts = [...state.debtNames.slice(0, -1).split(',')];
-            let isReady = [];
-            for (const y of debts) {
-                if (y === '') continue;
-                let isFound = false;
-                for (const x of found) {
-                    if (y.toUpperCase() === x.myName) {
-                        matched.push({id: x.fullId, amount: x.amount});
-                        isFound = true;
-                    }
-                }
-                if (!isFound) {
-                    setError(`customer debt is wrong, we do not owe ${y}`);
-                    setOpen(false);
-                    setOpenError(true);
-                }
-                isReady.push(isFound);
-            }
-
-            if (isReady.length !== 0 && state.debtNames !== '') {
-                isReady = isReady.reduce((prev, cur) => prev && cur, true);
-                setReady(isReady);
-                matched = matched.map((value) => value.amount);
-                matched = matched.reduce((prev, cur) => prev + cur, 0);
-                setDebtReady(matched);
-            } else if (isReady.length === 0 && state.debtNames === '') {
-                setReady(true);
-                setDebtReady(0);
-            } else {
-                setReady(false);
-                setDebtReady(0);
-            }
+            found = found.map(x => {
+                return {id: x.id.split('OWE_')[1], amount: x.amount}
+            });
+            found = found.map(x => {
+                return {id: x.id.endsWith('_BANK') ? `${x.id.split('_BANK')[0]} from Bank` : x.id, amount: x.amount}
+            });
+            found = found.map(x => {
+                return {id: x.id.charAt(0).toUpperCase()+x.id.slice(1).toLowerCase(), amount: x.amount}
+            });
+            setUsersDebt(found);
         }
     }, [acc, state]);
 
@@ -93,9 +83,41 @@ function DInvoice({ invoices, acc }) {
         }
     }, [invoices]);
 
+    const checkDebtIsValid = (debtKey, validNames) => {
+        if (debtKey === '') return 0;
+
+        let _names = debtKey.slice(0, -1).split(',');
+        for (const x of _names) {
+            let isFound = false;
+            for (const y of Object.values(validNames)) {
+                if (x.toUpperCase() === y.id.toUpperCase()) {
+                    isFound = true;
+                    break;
+                }
+            }
+            if (!isFound) {
+                return -1;
+            }
+        }
+        let temp = [];
+        for (const x of _names) {
+            let tempName = x.charAt(0).toUpperCase()+x.slice(1);
+            let filtered = validNames.filter(x => x.id === tempName);
+            temp.push(filtered[0].amount);
+        }
+        return temp.reduce((prev, cur) => prev + cur, 0);
+    }
+
     const handleClick = (e) => {
         e.preventDefault();
-        const buyerRegex = /^(([A-Z]|[a-z])+,)+$/;
+        const debtName = /^(([A-Z]|[a-z]| )+,)*$/;
+
+        if (state.name === '') {
+            setError("invoice should be addressed to someone");
+            setOpen(false);
+            setOpenError(true);
+            return 0;
+        }
 
         if (!/^[0-9]+$/.test(state.discount)) {
             setError("discount applied should be a number");
@@ -103,29 +125,38 @@ function DInvoice({ invoices, acc }) {
             setOpenError(true);
             return 0;
         }
-        if (!buyerRegex.test(state.debtNames) && state.debtNames !== '') {
-            setError("debt names format should be [name,name,]");
+        if (!debtName.test(state.debtNames)) {
+            setError("debt names format should be [name,name,] or empty");
             setOpen(false);
             setOpenError(true);
             return 0;
         }
-        if (!buyerRegex.test(state.buyers)) {
-            setError("buyer names format should be [name,name,]");
+        if (!debtName.test(state.purchases)) {
+            setError("purchases names format should be [name,name,] or empty");
+            setOpen(false);
+            setOpenError(true);
+            return 0;
+        }
+        if (!debtName.test(state.buyers)) {
+            setError("buyer names format should be [name,name,] or empty");
             setOpen(false);
             setOpenError(true);
 
             return 0;
         }
 
-        if (!ready) {
-            setError("we do not owe some customers entered, please remove them");
+        const debtCheck = checkDebtIsValid(state.debtNames, usersDebt);
+        const debtPurchaseCheck = checkDebtIsValid(state.purchases, purchases);
+
+        if (debtCheck === -1 || debtPurchaseCheck === -1) {
+            setError("we do not owe some customers entered in purchases or customer debt, please remove them");
             setOpen(false);
             setOpenError(true);
 
             return 0;
         }
 
-        const buyers = state.buyers.slice(0, -1).split(',');
+        const buyers = state.buyers !== '' ? state.buyers.slice(0, -1).split(',') : [];
         const otherBuyers = ['DUKA', 'THIKAFARMERS', 'CAKES'];
         for (const x of buyers) {
             if (!validNames.includes(x.toUpperCase()) && !otherBuyers.includes(x.toUpperCase())) {
@@ -137,7 +168,7 @@ function DInvoice({ invoices, acc }) {
             }
         }
         let cleanName = state.name;
-        cleanName = cleanName.replace(/[^a-zA-Z ]/g, "").trim();
+        cleanName = cleanName.replace(/[^a-zA-Z0-9 ]/g, "").trim();
         cleanName = cleanName.replace(/ +/, '');
 
         if (!invoices) {
@@ -156,8 +187,9 @@ function DInvoice({ invoices, acc }) {
         const raw = JSON.stringify({
             buyers: buyers.toString(),
             cleanName: cleanName,
-            discount: state.discount.toString(),
-            owe: debtReady.toString()
+            discount: (state.discount+(debtPurchaseCheck*2)).toString(),
+            owe: debtCheck.toString(),
+            purchases: state.purchases.slice(0, -1)
         });
         console.log(raw)
 
@@ -218,7 +250,7 @@ function DInvoice({ invoices, acc }) {
         e.preventDefault();
         setState({
             ...state,
-            [e.target.id]: e.target.value.trim()
+            [e.target.id]: e.target.value
         });
     }
 
@@ -259,12 +291,18 @@ function DInvoice({ invoices, acc }) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Buyer Name(s) to include</label>
-                                <p className="text-info">Valid names: Thikafarmers, Duka, Cakes, Eton, Sang', Karithi, Titus, Mwangi, Lynn, Gituku, Lang'at, Wahome, Kamau, Wakamau, Simiyu, Kinyanjui, Benson, Ben, Gitonyi, Muthomi, Solomon, Cucu</p>
+                                <p className="text-primary">Valid names: Thikafarmers, Duka, Cakes, Eton, Sang', Karithi, Titus, Mwangi, Lynn, Gituku, Lang'at, Wahome, Kamau, Wakamau, Simiyu, Kinyanjui, Benson, Ben, Gitonyi, Muthomi, Solomon, Cucu</p>
                                 <Form.Control value={state.buyers} type="text" onChange={handleSelect} className="form-control text-white" id="buyers" placeholder="buyer names (comma separated)" />
                             </Form.Group>
                             <Form.Group>
+                                <label htmlFor="purchases">Purchases to include(optional)</label>
+                                <p className="text-primary">{purchases.length !== 0 ? purchases.map(v => `${v.id}: Ksh. ${numeral(v.amount).format('0,0')}`).join(', ') : 'We do not have any unpaid purchases'}</p>
+                                <Form.Control value={state.purchases} type="text" onChange={handleSelect} className="form-control text-white" id="purchases" placeholder="purchase name (comma separated)" />
+                            </Form.Group>
+                            <Form.Group>
                                 <label htmlFor="debtNames">Customer debts to include(optional)</label>
-                                <Form.Control value={state.debtNames} type="text" onChange={handleSelect} className="form-control text-white" id="debtNames" placeholder="customer names" />
+                                <p className="text-primary">{usersDebt.length !== 0 ? usersDebt.map(v => `${v.id}: Ksh. ${numeral(v.amount).format('0,0')}`).join(', ') : 'We do not owe any customer'}</p>
+                                <Form.Control value={state.debtNames} type="text" onChange={handleSelect} className="form-control text-white" id="debtNames" placeholder="customer names (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Discount amount in KES(Optional)</label>
@@ -292,7 +330,8 @@ function DInvoice({ invoices, acc }) {
 const mapStateToProps = function(state) {
     return {
         invoices: state.firestore.ordered.invoices,
-        acc: state.firestore.ordered.accounts
+        acc: state.firestore.ordered.accounts,
+        late: state.firestore.ordered.late_payment
     }
 }
 
@@ -300,6 +339,7 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect([
         {collection: 'invoices'},
-        {collection: 'accounts'}
+        {collection: 'accounts'},
+        {collection: 'late_payment', where: ['values.category', '==', 'buys']}
     ])
 )(DInvoice);

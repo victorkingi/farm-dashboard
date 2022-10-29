@@ -12,7 +12,6 @@ import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
 import Localbase from "localbase";
 
-
 export function getRanColor() {
   const ranR = Math.floor((Math.random()*255)+1).toString(16);
   const ranG = Math.floor((Math.random()*255)+1).toString(16);
@@ -23,6 +22,7 @@ export function getRanColor() {
 let isRun = false;
 function Dashboard(props) {
   const { acc, dashboard, pend, firestore, verify, pendEggs } = props;
+
 
   const [bank, setBank] = useState(0);
   const [dash, setDash] = useState({});

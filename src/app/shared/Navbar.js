@@ -11,8 +11,12 @@ import {getRanColor} from "../dashboard/Dashboard";
 import {Alert} from "../form-elements/InputEggs";
 import Snackbar from "@material-ui/core/Snackbar";
 import Localbase from "localbase";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import useOnlineStatus from "./OnlineStatus";
 
 const uploadLock = [];
+let isExecuted = 0;
 
 function Navbar(props) {
   const { pending_upload, firestore, firebase } = props;
@@ -24,6 +28,40 @@ function Navbar(props) {
   const [openError, setOpenError] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const isOnline = useOnlineStatus();
+
+  const notify = () => {
+    if (isOnline) {
+      toast.success('You are Online', {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    } else {
+      toast.warn('You are offline', {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    }
+  }
+
+  useMemo(() => {
+    if (isExecuted === 0 || isExecuted !== isOnline) notify();
+    isExecuted = isOnline;
+
+      // eslint-disable-next-line
+  }, [isOnline]);
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -249,6 +287,18 @@ function Navbar(props) {
 
     return (
       <nav className="navbar p-0 fixed-top d-flex flex-row">
+        <ToastContainer
+            position="top-center"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss={false}
+            draggable
+            pauseOnHover
+            theme="colored"
+        />
         <div className="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
           <Link className="navbar-brand brand-logo-mini"  to="/"><img src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/logo256.png?alt=media&token=6fb3850c-2e33-46ed-bc2b-4b63d83fee72"} alt="logo" /></Link>
         </div>
