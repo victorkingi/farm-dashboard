@@ -44,7 +44,6 @@ function Dashboard(props) {
 
   let __user__ = localStorage.getItem('name');
   __user__ = __user__ !== null ? __user__.toUpperCase() : '';
-  __user__ = 'JEFF';
 
   useEffect(() => {
     if (dashboard) {
