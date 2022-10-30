@@ -21,7 +21,7 @@ export function getRanColor() {
 
 let isRun = false;
 function Dashboard(props) {
-  const { acc, dashboard, pend, firestore, verify, pendEggs } = props;
+  const { acc, dashboard, pend, firestore, verify, pendEggs, lateDuka } = props;
 
 
   const [bank, setBank] = useState(0);
@@ -34,21 +34,33 @@ function Dashboard(props) {
   const [error, setError] = useState(false);
   const [errM, setErrM] = useState('');
   const [disable, setDisable] = useState(false);
-  const [name, setName] = useState('');
   const [allChecked, setAllChecked] = useState(false);
   const [pendChecked, setPendChecked] = useState({});
   const [allCheckedEggs, setAllCheckedEggs] = useState(false);
   const [pendCheckedEggs, setPendCheckedEggs] = useState({});
   const [disableEggs, setDisableEggs] = useState(false);
+  const [totalDuka, setTotalDuka] = useState(0);
+  const [oweJeff, setOweJeff] = useState(0);
 
   let __user__ = localStorage.getItem('name');
   __user__ = __user__ !== null ? __user__.toUpperCase() : '';
+  __user__ = 'JEFF';
 
   useEffect(() => {
     if (dashboard) {
       setDash(dashboard[0]);
     }
   }, [dashboard]);
+
+  useEffect(() => {
+      if (lateDuka) {
+          let total = 0;
+          for (const x of lateDuka) {
+              total += parseInt(x.values.trayPrice) * parseInt(x.values.trayNo);
+          }
+          setTotalDuka(total);
+      }
+  }, [lateDuka]);
 
   useMemo(() => {
       let isSubscribed = true;
@@ -125,12 +137,11 @@ function Dashboard(props) {
   }, [pendCheckedEggs, pendEggs])
 
   useEffect(() => {
-      setName(__user__);
       if (pendEggs) {
         if (pendEggs.length > 0) {
             let allDisable  = false;
             for (let k = 0; k < pendEggs.length; k++) {
-                if (pendEggs[k].submittedBy !== name) {
+                if (pendEggs[k].submittedBy !== __user__) {
                     allDisable = true;
                     break;
                 }
@@ -139,12 +150,10 @@ function Dashboard(props) {
         }
     }
 
-    }, [name, pendEggs, __user__]);
+    }, [pendEggs, __user__]);
 
   useEffect(() => {
-    setName(__user__);
-    if (pend) {
-      if (pend.length > 0) {
+      if (pend?.length > 0) {
         let allDisable  = false;
         for (let k = 0; k < pend.length; k++) {
           //if we come across the first one where name isn't name break loop
@@ -163,9 +172,8 @@ function Dashboard(props) {
         }
         setDisable(allDisable);
       }
-    }
 
-  }, [name, pend, __user__]);
+  }, [pend, __user__]);
 
   // undo write events to database
   const rollBack = () => {
@@ -196,10 +204,11 @@ function Dashboard(props) {
   useEffect(() => {
       if (acc) {
           const addrs = [];
-          for (let addr of Object.keys(acc[0])) {
+          for (let [addr, val] of Object.entries(acc[0])) {
               if (addr.endsWith('BANK')) {
                   addrs.push(addr);
               }
+              if (addr === 'OWE_JEFF') setOweJeff(val);
           }
           let bankTotal = 0;
           for (let addr of addrs) {
@@ -242,7 +251,6 @@ function Dashboard(props) {
    }
 
   if (JSON.stringify(dash) !== JSON.stringify({}) && dash?.week_profit) {
-   const name = localStorage.getItem('name').toUpperCase();
 
    const addAllEntries = (all) => {
       if (!pend) return 0;
@@ -435,12 +443,12 @@ function Dashboard(props) {
                                  <div className="d-flex align-items-center align-self-start">
                                      <h3 className="mb-0">Ksh {!done4 &&
                                          <CountUp
-                                             start={Math.abs(dash.owe[name] - 1000)}
-                                             end={dash.owe[name]}
+                                             start={__user__ === 'JEFF' ? Math.abs(((dash.owe[__user__]+totalDuka)-oweJeff) - 1000) : Math.abs(dash.owe[__user__] - 1000)}
+                                             end={__user__ === 'JEFF' ? (dash.owe[__user__]+totalDuka)-oweJeff : dash.owe[__user__]}
                                              duration={2.75}
                                              delay={1}
                                              onEnd={() => setDone4(true)}
-                                         />}{done4 && numeral(dash.owe[name]).format("0,0")}</h3>
+                                         />}{done4 && numeral(__user__ === 'JEFF' ? (dash.owe[__user__]+totalDuka)-oweJeff : dash.owe[__user__]).format("0,0")}</h3>
                                      <p className={`text-success ml-2 mb-0 font-weight-medium`}>
                                          {'+'.concat(numeral().format("0,0.0"))}%
                                      </p>
@@ -466,12 +474,12 @@ function Dashboard(props) {
                      <div className="d-flex align-items-center align-self-start">
                        <h3 className="mb-0">Ksh {!done &&
                            <CountUp
-                               start={Math.abs(dash.withdraw[name] - 1000)}
-                               end={dash.withdraw[name]}
+                               start={Math.abs(dash.withdraw[__user__] - 1000)}
+                               end={dash.withdraw[__user__]}
                                duration={2.75}
                                delay={1}
                                onEnd={() => setDone(true)}
-                           />}{done && numeral(dash.withdraw[name]).format("0,0")}</h3>
+                           />}{done && numeral(dash.withdraw[__user__]).format("0,0")}</h3>
                        <p className={`text-success ml-2 mb-0 font-weight-medium`}>
                          {'+'.concat(numeral().format("0,0.0"))}%
                        </p>
@@ -586,7 +594,7 @@ function Dashboard(props) {
                            </thead>
                            <tbody>
                            {pendEggs && pendEggs.map((item) => {
-                               let disCheckBox = name !== item.submittedBy;
+                               let disCheckBox = __user__ !== item.submittedBy;
 
                                return (
                                    <tr key={item.id} className={`text-${(item.rejected === true || item.rejected === false) ? 'white' : 'muted'}`}>
@@ -660,12 +668,12 @@ function Dashboard(props) {
                      </thead>
                      <tbody>
                      {pend && pend.map((item) => {
-                         let disCheckBox = name !== item.values?.name;
+                         let disCheckBox = __user__ !== item.values?.name;
                          disCheckBox = disCheckBox && "ANNE" !== item.values?.name;
                          disCheckBox = disCheckBox && "BANK" !== item.values?.name;
                          if (item.id === "cleared") return null;
                          if (item.category === 'deadSick') {
-                             disCheckBox = name !== item.submittedBy;
+                             disCheckBox = __user__ !== item.submittedBy;
                              return (
                                  <tr key={item.id} className={`text-${(item.rejected === true || item.rejected === false) ? 'white' : 'muted'}`}>
                                      <td>
@@ -725,8 +733,8 @@ function Dashboard(props) {
                                </td>
                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                <td> {item.values?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item.values)} </td>
-                               <td>{['buys', 'sales'].includes(item.values?.category) ? 'Faucet' : (item.values?.name !== 'BLACK_HOLE' ? cleanAddress(item.values?.name) : 'Faucet')}</td>
-                               <td>{(item.values?.receiver === 'BLACK_HOLE' ? 'Faucet' : (item.values?.receiver && item.values?.reason !== "WITHDRAW" ? (item.values?.receiver && item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.initiator && item.values?.initiator.charAt(0)+item.values?.initiator.slice(1).toLowerCase()) : (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase())))}</td>
+                               <td>{['buys', 'sales'].includes(item.values?.category) ? 'N/A' : (item.values?.name !== 'BLACK_HOLE' ? cleanAddress(item.values?.name) : 'N/A')}</td>
+                               <td>{(item.values?.receiver === 'BLACK_HOLE' ? 'N/A' : (item.values?.receiver && item.values?.reason !== "WITHDRAW" ? (item.values?.receiver && item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.initiator && item.values?.initiator.charAt(0)+item.values?.initiator.slice(1).toLowerCase()) : (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase())))}</td>
                                <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
                            </tr>
                          )
@@ -777,6 +785,7 @@ const mapStateToProps = function(state) {
       dashboard: state.firestore.ordered.dashboard_data,
       acc: state.firestore.ordered.accounts,
       pend: state.firestore.ordered.pending_transactions,
+      lateDuka: state.firestore.ordered.late_payment,
       verify: state.firestore.data.verification_data,
       pendEggs: state.firestore.ordered.pend_eggs_collected
   }
@@ -787,6 +796,7 @@ export default compose(
     firestoreConnect([
         {collection: 'dashboard_data'},
         {collection: 'accounts'},
+        {collection: 'late_payment', where: ['values.buyerName', '==', 'DUKA']},
         {collection: 'pending_transactions' },
         {collection: 'pend_eggs_collected', orderBy: ['date_', 'asc']},
         {collection: 'verification_data', doc: 'root'}

@@ -10,6 +10,9 @@ import {sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {Offline, Online} from "react-detect-offline";
 import {hasPaidLate} from "../../services/actions/moneyAction";
+import {Form} from "react-bootstrap";
+
+const users = ['BANK', 'JEFF', 'VICTOR', 'BABRA', 'PURITY', 'ANNE'];
 
 function LatePayment(props) {
     const { late } = props;
@@ -19,17 +22,21 @@ function LatePayment(props) {
     const [errM, setErrM] = useState('');
     const [allChecked, setAllChecked] = useState(false);
     const [pendChecked, setPendChecked] = useState({});
+    const [payers, setPayers] = useState({});
 
     // undo write events to database
     const latePaid = async () => {
-        for (const [key, value] of Object.entries(pendChecked)) {
+
+        for (const [key, val] of Object.entries(pendChecked)) {
+            const value = val[0];
             if (value) {
-                const res = await props.hasPaidLate(key);
-                if (res === 'ok') {
-                    setError(false);
-                    setOpen(true);
-                    setAllChecked(false);
-                } else {
+                let payerNames = payers[`${key}payers`];
+                if (val[1] === 'buys' && !payerNames) {
+                    payerNames = `BANK:${val[3]},`
+                }
+
+                const res = await props.hasPaidLate(key, payerNames);
+                if (res !== 'ok') {
                     setOpen(false);
                     setErrM("Entry no longer exists");
                     setError(true);
@@ -37,6 +44,9 @@ function LatePayment(props) {
                 }
             }
         }
+        setError(false);
+        setOpen(true);
+        setAllChecked(false);
     }
 
     const user = useMemo(() => {
@@ -72,6 +82,53 @@ function LatePayment(props) {
 
     const display = (e) => {
         e.preventDefault();
+        const regexCheck = /^(([a-z]|[A-Z])+:[0-9]+,)*$/;
+
+        for (const [key, x] of Object.entries(payers)) {
+            if (!regexCheck.test(x)) {
+                setOpen(false);
+                setErrM("Payee should be in this format [name:amount,]");
+                setError(true);
+                return 0;
+            }
+            let x_ = x.slice(0, -1);
+            let payerNames_ = x_.split(',');
+            let payerNames = [];
+            for (const n of payerNames_) {
+                payerNames.push(n.split(':')[0]);
+            }
+
+            for (const name_ of payerNames) {
+                if (!users.includes(name_.toUpperCase())) {
+                    setOpen(false);
+                    setErrM("Invalid payer provided");
+                    setError(true);
+                    return 0;
+                }
+            }
+
+            let totalAmount = 0;
+            for (const amt of payerNames_) {
+                totalAmount += parseInt(amt.split(':')[1]);
+            }
+            if (!late) {
+                setOpen(false);
+                setErrM("late entries not loaded");
+                setError(true);
+                return 0;
+            }
+            const tempLate = [...late];
+            let expectedTotal = tempLate.filter(x => x.id === key.split('payers')[0]);
+            expectedTotal = parseInt(expectedTotal[0].values.objectPrice) * parseInt(expectedTotal[0].values.objectNo);
+
+            if (expectedTotal !== totalAmount) {
+                setOpen(false);
+                setErrM(`Expected a total payment of Ksh.${numeral(expectedTotal).format('0,0')} but got Ksh.${numeral(totalAmount).format('0,0')}`);
+                setError(true);
+                return 0;
+            }
+        }
+
         const submit = document.getElementById(`latereceived`);
         submit.disabled = true;
         latePaid();
@@ -82,9 +139,26 @@ function LatePayment(props) {
         const allPend = {};
         for (let i = 0; i < late.length; i++) {
             if (late[i].values.section === 'CAKES') continue;
-            allPend[late[i].id] = all;
+            const description = sanitize_string(late[i].values)
+                +` ${numeral(late[i].values?.trayNo || late[i].values?.objectNo)
+                    .format('0,0')}@${numeral(late[i].values?.trayPrice || late[i].values?.objectPrice)
+                    .format('0,0')} on ${moment(late[i].values.date.toDate()).format("MMM Do YY")}`;
+
+            allPend[late[i].id] = [
+                all,
+                late[i].values.category,
+                description,
+                late[i].values?.objectPrice ? (late[i].values.objectPrice * late[i].values.objectNo) : -1
+            ];
         }
         setPendChecked(allPend);
+    }
+
+    const handleChange = (e) => {
+        setPayers({
+            ...payers,
+            [e.target.id]: e.target.value
+        });
     }
 
     return (
@@ -120,11 +194,13 @@ function LatePayment(props) {
                                         <th> Date </th>
                                         <th> Name </th>
                                         <th> Amount </th>
+                                        <th> Receiver </th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     {late && late.map((item) => {
                                         if (item.values?.section === 'CAKES') return '';
+
                                         return (
                                             <tr key={item.id}>
                                                 <td>
@@ -132,9 +208,19 @@ function LatePayment(props) {
                                                         <label className="form-check-label">
                                                             <input type="checkbox"
                                                                    className="form-check-input" defaultValue={0}
-                                                                   checked={pendChecked[item.id]}
+                                                                   checked={pendChecked[item.id] ? pendChecked[item.id][0] : false}
                                                                    onChange={() => setPendChecked({...pendChecked,
-                                                                       [item.id]: !pendChecked[item.id]})}
+                                                                       [item.id]: [
+                                                                           !pendChecked[item.id],
+                                                                           item.values.category,
+                                                                           sanitize_string(item.values)
+                                                                           +` ${numeral(item.values?.trayNo 
+                                                                               || item.values?.objectNo)
+                                                                               .format('0,0')}@${numeral(item.values?.trayPrice 
+                                                                               || item.values?.objectPrice)
+                                                                               .format('0,0')} on ${moment(item.values.date.toDate()).format("MMM Do YY")}`,
+                                                                           item.values?.objectPrice ? (item.values.objectPrice * item.values.objectNo) : -1
+                                                                       ]})}
                                                                    id={item.id} name={item.id}
                                                             />
                                                             <i className="input-helper"/>
@@ -144,6 +230,7 @@ function LatePayment(props) {
                                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
                                                 <td> {sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`} </td>
                                                 <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
+                                                <td> {item.values.receiver?.toLowerCase() || 'N/A'} </td>
                                             </tr>
                                         )
                                     })}
@@ -153,8 +240,36 @@ function LatePayment(props) {
                         </div>
                     </div>
                 </div>
+                {Object.entries(pendChecked).map(x => {
+                    if (x[1][1] !== 'buys') return '';
+
+                    return (
+                        <div key={x[0]} className='col-xl grid-margin stretch-card'>
+                            <div className='card'>
+                            <div className='card-body'>
+                                <h4 className='card-title'>{}</h4>
+                                <form className='forms-sample'>
+                                    <Form.Group>
+                                        <label htmlFor={`${x[0]}payers`}>Purchases of {x[1][2]} paid by(Optional)</label>
+                                        <p className="text-primary">*Default payer is bank</p>
+                                        <p className="text-primary">*Valid payers are {users.map(x => x.charAt(0)+x.slice(1).toLowerCase()).join(', ')}</p>
+                                        <Form.Control
+                                            type='text'
+                                            onChange={handleChange}
+                                            className='form-control text-white'
+                                            id={`${x[0]}payers`}
+                                            placeholder='Input payers and amount in this format "name:amount,"'
+                                            value={payers[x[0]]}
+                                        />
+                                    </Form.Group>
+                                </form>
+                            </div>
+                        </div>
+                        </div>
+                    )
+                })}
                 <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='latereceived'>
-                    Payment Received
+                    Cleared
                 </button>
                 <Online>
                     <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
@@ -190,7 +305,7 @@ const mapStateToProps = function(state) {
 }
 const mapDispatchToProps = (dispatch) => {
     return {
-        hasPaidLate: (details) => dispatch(hasPaidLate(details))
+        hasPaidLate: (details, payers) => dispatch(hasPaidLate(details, payers))
     }
 }
 

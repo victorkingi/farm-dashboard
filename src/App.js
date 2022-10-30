@@ -16,6 +16,8 @@ import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
+import {Offline, Online} from 'react-detect-offline';
+
 
 function componentDidMount_() {
   navigator.serviceWorker.addEventListener("message", (message) => {
@@ -192,6 +194,7 @@ function App(props) {
   }, []);
 
   return (
+      <div>
         <div className="container-scroller">
           <ToastContainer
               position="top-right"
@@ -207,11 +210,22 @@ function App(props) {
           { sidebarComponent }
           <div className="container-fluid page-body-wrapper">
             { navbarComponent }
-              <div className="main-panel">
-                <div className="content-wrapper">
+
+            <div className="main-panel">
+              <div className="content-wrapper">
+                <div style={{display: 'contents'}}>
+                  <Online>
+                    <button className="btn btn-inverse-success btn-fw btn-block">You are online</button>
+                  </Online>
+                  <Offline>
+                    <button className="btn btn-inverse-warning btn-fw btn-block">You are offline</button>
+                  </Offline>
+                </div>
+                <div style={{paddingTop: '1%'}}>
                   <AppRoutes />
                 </div>
               </div>
+            </div>
           </div>
           <Snackbar
               anchorOrigin={{
@@ -234,6 +248,7 @@ function App(props) {
               }
           />
         </div>
+      </div>
   );
 }
 

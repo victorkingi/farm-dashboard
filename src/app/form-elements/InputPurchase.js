@@ -58,6 +58,10 @@ function InputPurchase(props) {
         if (values.section === 'FEEDS') {
             const validVendors = ["KINYANJUI", "THIKA FARMERS"];
             const validFeeds = ["LAYERS", "CHICK", "GROWERS", "STARTER"];
+            if (!values.vendorName) {
+                console.log("Vendor name cannot be empty");
+                return false;
+            }
             values.vendorName = values.vendorName.toUpperCase();
             if (!validVendors.includes(values.vendorName)) {
                 console.log("invalid vendor name");
@@ -129,8 +133,8 @@ function InputPurchase(props) {
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
 
-        if (!bSizeRegex && state.bagSize) {
-            setError('bag size should be like this [70kg]');
+        if (!bSizeRegex && state.section.toUpperCase() === 'FEEDS') {
+            setError('bag size should be in this format [70kg]');
             setOpenError(true);
             return;
         }
@@ -162,9 +166,7 @@ function InputPurchase(props) {
         let status = true;
         if (state.not_paid) {
             status = false;
-            if (state.paid_by.toUpperCase() !== name) {
-                state.paid_by = 'BANK';
-            }
+            state.paid_by = 'BANK';
         }
 
         let values = {
@@ -282,6 +284,7 @@ function InputPurchase(props) {
             <Redirect to='/'/>
         )
     }
+
     return (
         <div>
             <div className="page-header">
@@ -329,7 +332,7 @@ function InputPurchase(props) {
                                 <label htmlFor="itemName">Vendor Name</label>
                                 <Form.Control type="text"
                                               onChange={handleSelect}
-                                              className="form-control text-white" id="vendorName" placeholder="Feeds bought from" />
+                                              className="form-control text-white" value={state.vendorName} id="vendorName" placeholder="Feeds bought from" />
                                 </Form.Group>
                             }
                             {isFeeds &&
@@ -337,12 +340,13 @@ function InputPurchase(props) {
                                     <label htmlFor="bagSize">Bag size(kg)</label>
                                     <Form.Control type="text"
                                                   onChange={handleSelect}
-                                                  className="form-control text-white" id="bagSize" placeholder="Size of bag of feeds" />
+                                                  className="form-control text-white" value={state.bagSize} id="bagSize" placeholder="Size of bag of feeds" />
                                 </Form.Group>
                             }
                             <Form.Group>
                                 <label htmlFor="itemName">Item Name</label>
                                 <Form.Control type="text"
+                                              value={state.itemName}
                                               onChange={handleSelect}
                                               className="form-control text-white" id="itemName" placeholder="Name of Item" />
                             </Form.Group>
@@ -352,7 +356,7 @@ function InputPurchase(props) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="objectPrice">Price per Object</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="objectPrice" placeholder="Price per Object" />
+                                <Form.Control value={state.objectPrice} type="text" onChange={handleSelect} className="form-control text-white" id="objectPrice" placeholder="Price per Object" />
                             </Form.Group>
                             {!state.not_paid && <Form.Group>
                                 <label htmlFor='receiver'>Paid by</label>

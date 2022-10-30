@@ -50,13 +50,11 @@ const setProperty = (obj, path, value) => {
  *
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  * @param key
+ * @param payers
  */
 //if a customer has taken trays but hasn't paid, hasPaidLate fires
-export const hasPaidLate = (key) => {
+export const hasPaidLate = (key, payers) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
-        const firebase = getFirebase();
-        const displayName = firebase.auth().currentUser.displayName;
-        const name = displayName.substring(0, displayName.lastIndexOf(" ")).toUpperCase();
         const firestore = getFirestore();
 
         return firestore.collection("late_payment").doc(key)
@@ -69,7 +67,7 @@ export const hasPaidLate = (key) => {
                 ...doc.data(),
                 paidOn: new Date()
             }
-            val = setProperty(val, 'values.receiver', name);
+            if (payers) val = setProperty(val, 'values.paid_by', payers);
 
             firestore.collection("pending_transactions").add(val);
             dispatch({type: 'LATE_REPAID'});
