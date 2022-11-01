@@ -321,7 +321,7 @@ function Dashboard(props) {
                                  <div className="d-flex align-items-center align-self-start">
                                      <h3 className="mb-0">{!done1 &&
                                          <CountUp
-                                             start={0}
+                                             start={Math.abs(dash.laying.day[0]-10)}
                                              end={dash.laying.day[0]}
                                              duration={2.75}
                                              delay={1}
@@ -356,7 +356,7 @@ function Dashboard(props) {
                                  <div className="d-flex align-items-center align-self-start">
                                      <h3 className="mb-0">{!done1 &&
                                          <CountUp
-                                             start={0}
+                                             start={Math.abs(dash.laying.week[0]-10)}
                                              end={dash.laying.week[0]}
                                              duration={2.75}
                                              delay={1}
@@ -442,7 +442,7 @@ function Dashboard(props) {
                                  <div className="d-flex align-items-center align-self-start">
                                      <h3 className="mb-0">Ksh {!done4 &&
                                          <CountUp
-                                             start={__user__ === 'JEFF' ? Math.abs(((dash.owe[__user__]+totalDuka)-oweJeff) - 1000) : Math.abs(dash.owe[__user__] - 1000)}
+                                             start={__user__ === 'JEFF' ? Math.abs(((dash.owe[__user__]+totalDuka)-oweJeff) - 100) : Math.abs(dash.owe[__user__] - 100)}
                                              end={__user__ === 'JEFF' ? (dash.owe[__user__]+totalDuka)-oweJeff : dash.owe[__user__]}
                                              duration={2.75}
                                              delay={1}
@@ -473,7 +473,7 @@ function Dashboard(props) {
                      <div className="d-flex align-items-center align-self-start">
                        <h3 className="mb-0">Ksh {!done &&
                            <CountUp
-                               start={Math.abs(dash.withdraw[__user__] - 1000)}
+                               start={Math.abs(dash.withdraw[__user__] - 100)}
                                end={dash.withdraw[__user__]}
                                duration={2.75}
                                delay={1}
@@ -528,7 +528,7 @@ function Dashboard(props) {
                          <div className="d-flex align-items-center align-self-start">
                            <h3 className="mb-0">
                              {!done3 && <CountUp
-                                 start={0}
+                                 start={Math.abs(parseInt(dash.trays_avail.split(',')[0]) - 10)}
                                  end={parseInt(dash.trays_avail.split(',')[0])}
                                  duration={2.75}
                                  delay={1}
