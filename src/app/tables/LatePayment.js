@@ -192,7 +192,7 @@ function LatePayment(props) {
                                             </div>
                                         </th>
                                         <th> Date </th>
-                                        <th> Sale/Purchase </th>
+                                        <th> Type </th>
                                         <th> Name </th>
                                         <th> Amount </th>
                                         <th> Receiver </th>
