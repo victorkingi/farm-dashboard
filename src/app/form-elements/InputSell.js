@@ -15,36 +15,14 @@ import { firebase } from '../../services/api/fbConfig';
 import  SHA256 from 'crypto-js/sha256';
 import MerkleTree from 'merkletreejs';
 import Localbase from "localbase";
+import {compose} from "redux";
+import {firestoreConnect} from "react-redux-firebase";
 
 const db = new Localbase('ver_data');
 
-export let validNames = [
-  'Eton',
-  "Sang'",
-  'Karithi',
-  'Titus',
-  'Mwangi',
-  'Lynn',
-  'Gituku',
-  "Lang'at",
-  'Wahome',
-  'Kamau',
-  'Wakamau',
-  'Simiyu',
-  'Kinyanjui',
-  'Benson',
-  'Ben',
-  'Gitonyi',
-  'Muthomi',
-  'Solomon',
-  'Cucu'
-];
-
-validNames = validNames.map(element => {
-  return element.toUpperCase();
-});
-
 function InputSell(props) {
+  const { extraData } = props;
+
   const [state, setState] = useState({
     category: 'sales',
     date: new Date(),
@@ -61,10 +39,20 @@ function InputSell(props) {
   const [warnMsg, setWarnMsg] = useState('');
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
+  const [sectionNames, setSectionNames] = useState([]);
+  const [buyerNames, setBuyerNames] = useState([]);
 
   let name = firebase.auth().currentUser?.displayName;
   name = name ? name.substring(0, name.lastIndexOf(' '))
       .toUpperCase() : '';
+
+  useEffect(() => {
+    if (extraData) {
+      setSectionNames(extraData[0].main_buyers || []);
+      setBuyerNames(extraData[0].buyer_names || []);
+    }
+  }, [extraData]);
+
 
   useEffect(() => {
     db.collection('hashes').doc({ id: 1 }).get().then(document => {
@@ -101,7 +89,8 @@ function InputSell(props) {
       return false;
     }
     const stripBuyer = values.buyerName.trim().toUpperCase();
-    const fixedSections = ['DUKA', 'THIKAFARMERS', 'CAKES'];
+    const fixedSections = sectionNames.map(x => x.toUpperCase());
+    const validNames = buyerNames.map(x => x.toUpperCase());
 
     if (!validNames.includes(stripBuyer) && !fixedSections.includes(values.section)) {
       setError('Buyer name does not exist');
@@ -263,14 +252,14 @@ function InputSell(props) {
       } else {
         setState({
           ...state,
-          [e.target.id]: e.target.value.trim()
+          [e.target.id]: e.target.value
         });
       }
     } else {
       setState({
         ...state,
-        section: e.trim(),
-        buyerName: e.trim()
+        section: e,
+        buyerName: e
       });
     }
   };
@@ -337,14 +326,12 @@ function InputSell(props) {
                 <DropdownButton
                   alignRight
                   title={state.section || 'Choose Section'}
-                  id='dropdown-menu-align-right'
+                  id='section'
                   onSelect={handleSelect}
                 >
-                  <Dropdown.Item eventKey='Thika Farmers'>
-                    Thika Farmers
-                  </Dropdown.Item>
-                  <Dropdown.Item eventKey='Cakes'>Cakes</Dropdown.Item>
-                  <Dropdown.Item eventKey='Duka'>Duka</Dropdown.Item>
+                  {sectionNames.map(x => {
+                    return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                  })}
                   <Dropdown.Divider />
                   <Dropdown.Item eventKey='Other Buyer'>
                     Other Buyer
@@ -353,14 +340,16 @@ function InputSell(props) {
               </Form.Group>
               <Form.Group>
                 <label htmlFor='buyerName'>Buyer Name</label>
-                <Form.Control
-                  type='text'
-                  onChange={handleSelect}
-                  className="form-control text-white"
-                  id='buyerName'
-                  placeholder='Name of Buyer'
-                  value={state.buyerName}
-                />
+                <DropdownButton
+                    alignRight
+                    title={state.buyerName || 'Choose Buyer Name'}
+                    id='buyerName'
+                    onSelect={handleSelect}
+                >
+                  {buyerNames.map(x => {
+                    return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                  })}
+                </DropdownButton>
               </Form.Group>
               <Form.Group>
                 <label htmlFor='trayNo'>Number of Trays</label>
@@ -479,4 +468,15 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(null, mapDispatchToProps)(InputSell);
+const mapStateToProps = function(state) {
+  return {
+    extraData: state.firestore.ordered.extra_data
+  }
+}
+
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    firestoreConnect([
+      {collection: 'extra_data', doc: 'extra_data'}
+    ])
+)(InputSell);

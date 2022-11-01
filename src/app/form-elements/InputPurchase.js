@@ -13,8 +13,12 @@ import {inputPurchase} from "../../services/actions/buyAction";
 import {Offline, Online} from "react-detect-offline";
 import {getSectionAddr} from "../../services/actions/salesAction";
 import {firebase} from '../../services/api/fbConfig';
+import {compose} from "redux";
+import {firestoreConnect} from "react-redux-firebase";
 
 function InputPurchase(props) {
+    const { extraData } = props;
+
     const [state, setState] = useState({
         date: new Date(),
         section: 'Choose Section',
@@ -30,9 +34,21 @@ function InputPurchase(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
     const [isFeeds, setIsFeeds] = useState(false);
+    const [employeeNames, setEmployeeNames] = useState([]);
+    const [feedsVendors, setFeedsVendors] = useState([]);
+    const [feedsType, setFeedsType] = useState([]);
 
     let name = firebase.auth().currentUser?.displayName || '';
     name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
+
+    useEffect(() => {
+        if (extraData) {
+            setEmployeeNames(extraData[0].pay_employees || []);
+            setFeedsVendors(extraData[0].feeds_vendors || []);
+            setFeedsType(extraData[0].feeds_type || []);
+        }
+    }, [extraData]);
+
 
     useEffect(() => {
         if (state.section === "Feeds") setIsFeeds(true);
@@ -56,19 +72,24 @@ function InputPurchase(props) {
                 .itemName.substring(1).toLowerCase());
         }
         if (values.section === 'FEEDS') {
-            const validVendors = ["KINYANJUI", "THIKA FARMERS"];
-            const validFeeds = ["LAYERS", "CHICK", "GROWERS", "STARTER"];
+            const validVendors = feedsVendors.map(x => x.toUpperCase());
+            const validFeeds = feedsType.map(x => x.toUpperCase());
             if (!values.vendorName) {
                 console.log("Vendor name cannot be empty");
+                setError("Vendor name cannot be empty");
+                setOpenError(true);
                 return false;
             }
             values.vendorName = values.vendorName.toUpperCase();
             if (!validVendors.includes(values.vendorName)) {
                 console.log("invalid vendor name");
+                setError("invalid vendor name");
+                setOpenError(true);
                 return false;
             }
             if (!validFeeds.includes(values.itemName.toUpperCase())) {
-                console.log("invalid feeds name");
+                setError("Invalid feeds item name. It can only be Layers, Chick, Growers or Starter");
+                setOpenError(true);
                 return false;
             }
         }
@@ -129,12 +150,12 @@ function InputPurchase(props) {
     const handleSubmit = (e) => {
         e.preventDefault();
         const priceAmountRegex = /^([\d]+)$/;
-        const bSizeRegex = /^[0-9]+kg$/.test(state.bagSize);
+        const bSizeRegex = /^[0-9]+$/.test(state.bagSize);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
 
         if (!bSizeRegex && state.section.toUpperCase() === 'FEEDS') {
-            setError('bag size should be in this format [70kg]');
+            setError('bag size should be a number');
             setOpenError(true);
             return;
         }
@@ -172,13 +193,19 @@ function InputPurchase(props) {
         let values = {
             ...state,
             status,
-            name
+            name,
         };
 
         delete values.not_paid;
         delete values.paid;
 
-        if (values.section !== "Feeds") delete values.vendorName;
+        if (values.section !== "Feeds") {
+            delete values.vendorName;
+            delete values.bagSize;
+        } else {
+            values.bagSize += 'kg';
+        }
+
         values.section = getSectionAddr(values.section);
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
@@ -197,9 +224,7 @@ function InputPurchase(props) {
             delete newState.vendorName;
             setState(newState);
         } else {
-            setOpenError(true);
             setOpen(false);
-            setError("Some values might be wrong");
         }
     };
 
@@ -217,6 +242,13 @@ function InputPurchase(props) {
             date: date
         });
     };
+
+    const handleVendor = (e) => {
+        setState({
+            ...state,
+            vendorName: e
+        });
+    }
 
     const handleSelect = (e) => {
         if (e.target) {
@@ -238,13 +270,13 @@ function InputPurchase(props) {
             } else {
                 setState({
                     ...state,
-                    [e.target.id]: e.target.value.trim()
+                    [e.target.id]: e.target.value
                 });
             }
         } else {
             setState({
                 ...state,
-                section: e.trim()
+                section: e
             });
         }
     }
@@ -314,33 +346,49 @@ function InputPurchase(props) {
                                     id='date'
                                 />
                             </Form.Group>
-                            <DropdownButton
-                                alignRight
-                                title={state.section}
-                                id="dropdown-menu-align-right"
-                                onSelect={handleSelect}
-                            >
-                                <Dropdown.Item eventKey="Feeds">Feeds</Dropdown.Item>
-                                <Dropdown.Item eventKey="Drugs">Drugs</Dropdown.Item>
-                                <Dropdown.Item eventKey="Other Purchase">Other Purchase</Dropdown.Item>
-                                <Dropdown.Divider />
-                                <Dropdown.Item eventKey="Pay Purity">Pay Purity</Dropdown.Item>
-                            </DropdownButton>
-                            <br />
+                            <Form.Group>
+                                <label htmlFor="section">Section</label>
+                                <DropdownButton
+                                    alignRight
+                                    title={state.section}
+                                    id="section"
+                                    onSelect={handleSelect}
+                                >
+                                    <Dropdown.Item eventKey="Feeds">Feeds</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Drugs">Drugs</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Other Purchase">Other Purchase</Dropdown.Item>
+                                    <Dropdown.Divider />
+                                    {employeeNames.map(x => {
+                                        return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                                    })}
+                                </DropdownButton>
+                            </Form.Group>
                             {isFeeds &&
                                 <Form.Group>
-                                <label htmlFor="itemName">Vendor Name</label>
-                                <Form.Control type="text"
-                                              onChange={handleSelect}
-                                              className="form-control text-white" value={state.vendorName} id="vendorName" placeholder="Feeds bought from" />
+                                    <label htmlFor="vendorName">Vendor Name</label>
+                                    <DropdownButton
+                                        alignRight
+                                        title={state.vendorName || 'Choose Feeds vendor'}
+                                        id="vendorName"
+                                        onSelect={handleVendor}
+                                    >
+                                        {feedsVendors.map(x => {
+                                            return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                                        })}
+                                    </DropdownButton>
                                 </Form.Group>
                             }
                             {isFeeds &&
                                 <Form.Group>
                                     <label htmlFor="bagSize">Bag size(kg)</label>
-                                    <Form.Control type="text"
-                                                  onChange={handleSelect}
-                                                  className="form-control text-white" value={state.bagSize} id="bagSize" placeholder="Size of bag of feeds" />
+                                    <div className="input-group">
+                                        <Form.Control type="text"
+                                                      onChange={handleSelect}
+                                                      className="form-control text-white" value={state.bagSize} id="bagSize" placeholder="Size of bag of feeds in kg" />
+                                        <div className="input-group-append">
+                                            <span className="input-group-text">kg</span>
+                                        </div>
+                                    </div>
                                 </Form.Group>
                             }
                             <Form.Group>
@@ -442,4 +490,15 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default connect(null, mapDispatchToProps)(InputPurchase);
+const mapStateToProps = function(state) {
+    return {
+        extraData: state.firestore.ordered.extra_data
+    }
+}
+
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    firestoreConnect([
+        {collection: 'extra_data', doc: 'extra_data'}
+    ])
+)(InputPurchase);

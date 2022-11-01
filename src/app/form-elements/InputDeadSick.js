@@ -92,17 +92,10 @@ function InputDeadSick(props) {
                     setImage(e.target.files[0]);
                 }
             }
-            if (e.target?.value === '0') {
-                if (e.target.id === 'replaced') {
-                    setState({
-                        ...state,
-                        [e.target.id]: e.target.checked
-                    });
-                }
-            } else {
+            if (e.target?.value !== '0') {
                 setState({
                     ...state,
-                    [e.target.id]: e.target.value.trim()
+                    [e.target.id]: e.target.value
                 });
             }
         } else {

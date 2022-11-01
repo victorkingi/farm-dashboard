@@ -192,6 +192,7 @@ function LatePayment(props) {
                                             </div>
                                         </th>
                                         <th> Date </th>
+                                        <th> Sale/Purchase </th>
                                         <th> Name </th>
                                         <th> Amount </th>
                                         <th> Receiver </th>
@@ -228,6 +229,7 @@ function LatePayment(props) {
                                                     </div>
                                                 </td>
                                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
+                                                <td className="text-success"> {item.values?.category === 'buys' ? 'P' : 'S'}</td>
                                                 <td> {sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`} </td>
                                                 <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
                                                 <td> {item.values.receiver?.toLowerCase() || 'N/A'} </td>

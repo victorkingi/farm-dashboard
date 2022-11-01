@@ -8,7 +8,6 @@ import {Online} from "react-detect-offline";
 import {compose} from "redux";
 import {connect} from "react-redux";
 import {firestoreConnect} from "react-redux-firebase";
-import {validNames} from "./InputSell";
 import {firebase} from "../../services/api/fbConfig";
 import numeral from "numeral";
 
@@ -19,7 +18,7 @@ function saveBlob(blob, fileName) {
     a.dispatchEvent(new MouseEvent('click'));
 }
 
-function DInvoice({ invoices, acc, late }) {
+function DInvoice({ invoices, acc, late, extraData }) {
 
     const [open, setOpen] = useState(false);
     const [openM, setOpenM] = useState('Data Submitted');
@@ -30,6 +29,17 @@ function DInvoice({ invoices, acc, late }) {
     const [invoiceNum, setInvoiceNum] = useState(0);
     const [usersDebt, setUsersDebt] = useState([]);
     const [purchases, setPurchases] = useState([]);
+    const [sectionNames, setSectionNames] = useState([]);
+    const [buyerNames, setBuyerNames] = useState([]);
+    const [isClicked, setIsClicked] = useState(false);
+
+    useEffect(() => {
+        if (extraData) {
+            setSectionNames(extraData[0].main_buyers || []);
+            setBuyerNames(extraData[0].buyer_names || []);
+        }
+    }, [extraData]);
+
 
     useEffect(() => {
         if (late) {
@@ -110,6 +120,7 @@ function DInvoice({ invoices, acc, late }) {
 
     const handleClick = (e) => {
         e.preventDefault();
+        setIsClicked(true);
         const debtName = /^(([A-Z]|[a-z]| )+,)*$/;
 
         if (state.name === '') {
@@ -157,7 +168,9 @@ function DInvoice({ invoices, acc, late }) {
         }
 
         const buyers = state.buyers !== '' ? state.buyers.slice(0, -1).split(',') : [];
-        const otherBuyers = ['DUKA', 'THIKAFARMERS', 'CAKES'];
+        const otherBuyers = sectionNames.map(x => x.toUpperCase());
+        const validNames = buyerNames.map(x => x.toUpperCase());
+
         for (const x of buyers) {
             if (!validNames.includes(x.toUpperCase()) && !otherBuyers.includes(x.toUpperCase())) {
                 setError("invalid buyer name provided");
@@ -291,7 +304,7 @@ function DInvoice({ invoices, acc, late }) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Buyer Name(s) to include</label>
-                                <p className="text-primary">Valid names: Thikafarmers, Duka, Cakes, Eton, Sang', Karithi, Titus, Mwangi, Lynn, Gituku, Lang'at, Wahome, Kamau, Wakamau, Simiyu, Kinyanjui, Benson, Ben, Gitonyi, Muthomi, Solomon, Cucu</p>
+                                <p className="text-primary">Valid names: {sectionNames.join(', ')+', '+buyerNames.join(', ')}</p>
                                 <Form.Control value={state.buyers} type="text" onChange={handleSelect} className="form-control text-white" id="buyers" placeholder="buyer names (comma separated)" />
                             </Form.Group>
                             <Form.Group>
@@ -308,13 +321,13 @@ function DInvoice({ invoices, acc, late }) {
                                 <label htmlFor="buyers">Discount amount in KES(Optional)</label>
                                 <Form.Control value={state.discount} type="text" onChange={handleSelect} className="form-control text-white" id="discount" placeholder="discount applied" />
                             </Form.Group>
-                            <a href={__dirname+'InputSell.js'} download onClick={handleClick} className="btn btn-primary mr-2">Generate</a>
+                            <a href={__dirname+'InputSell.js'} download onClick={handleClick} className={`btn btn-primary mr-2 ${isClicked ? 'disabled' : ''}`}>Generate</a>
                         </form>
                     </div>
                 </div>
             </div>
             <Online>
-                <Snackbar open={open} autoHideDuration={9000} onClose={handleClose}>
+                <Snackbar open={open} autoHideDuration={10000} onClose={handleClose}>
                     <Alert onClose={handleClose} severity="success">
                         {openM}
                     </Alert>
@@ -331,6 +344,7 @@ const mapStateToProps = function(state) {
     return {
         invoices: state.firestore.ordered.invoices,
         acc: state.firestore.ordered.accounts,
+        extraData: state.firestore.ordered.extra_data,
         late: state.firestore.ordered.late_payment
     }
 }
@@ -340,6 +354,7 @@ export default compose(
     firestoreConnect([
         {collection: 'invoices'},
         {collection: 'accounts'},
+        {collection: 'extra_data', doc: 'extra_data'},
         {collection: 'late_payment', where: ['values.category', '==', 'buys']}
     ])
 )(DInvoice);
