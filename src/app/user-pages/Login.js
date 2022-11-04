@@ -159,6 +159,7 @@ function Login(props) {
           })
           .catch((err) => {
             const errorMessage = err.message;
+            console.log(err);
             let errorM = errorMessage.slice(0, errorMessage.length-1);
             props.signIn(null, err);
             submit.style.display = 'block';

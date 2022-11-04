@@ -5,7 +5,9 @@ export const signIn = (user, err) => {
         } else {
             const _user = user?.user?.email;
             let _name = user?.user?.displayName;
-            _name = _name.substring(0, _name.lastIndexOf(' '));
+            if (_name) _name = _name.substring(0, _name.lastIndexOf(' '));
+            else _name = 'Test';
+
             dispatch({type: 'LOGIN_SUCCESS', _user, _name })
         }
     }

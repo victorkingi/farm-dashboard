@@ -271,6 +271,13 @@ function InputSell(props) {
     });
   }
 
+  const handleBuyer = (e) => {
+    setState({
+      ...state,
+      buyerName: e
+    });
+  }
+
   const componentDidMount = () => {
     bsCustomFileInput.init();
   };
@@ -344,7 +351,7 @@ function InputSell(props) {
                     alignRight
                     title={state.buyerName || 'Choose Buyer Name'}
                     id='buyerName'
-                    onSelect={handleSelect}
+                    onSelect={handleBuyer}
                 >
                   {buyerNames.map(x => {
                     return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>

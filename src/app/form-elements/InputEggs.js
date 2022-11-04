@@ -41,6 +41,7 @@ function InputEggs(props) {
         const trayStoreRegex = /^[0-9]+,([0-9]|1[0-9]|2[0-9])$/;
         const eggsRegex = /^([0-9]+,){11}[0-9]+$/;
         const bagsRegex = /^[0-9]+$/.test(state.bags_store);
+        const brokenRegex = /^[0-9]+$/.test(state.broken);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const temp = {
             ...state
@@ -56,7 +57,7 @@ function InputEggs(props) {
         }
         const arr = Object.entries(temp);
 
-        if (!eggsRegex.test(arr[6][1])) {
+        if (!eggsRegex.test(temp.eggs)) {
             setError('eggs collected should be in this format [a,b,c]');
             setOpenError(true);
             console.log("egg format wrong");
@@ -92,6 +93,13 @@ function InputEggs(props) {
             setOpenError(true);
             return;
         }
+
+        if (!brokenRegex) {
+            setError('Broken eggs entered should only be a number');
+            setOpenError(true);
+            return;
+        }
+
         if (new Date().getTimezoneOffset() !== -180) {
             setError('Different Timezone detected. Cannot handle input');
             setOpenError(true);
