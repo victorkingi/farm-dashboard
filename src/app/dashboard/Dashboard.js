@@ -520,7 +520,7 @@ function Dashboard(props) {
                </div>
              </div>
            </div>
-             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
                  <div className="card">
                    <div className="card-body">
                      <div className="row">
@@ -552,6 +552,38 @@ function Dashboard(props) {
                    </div>
                  </div>
            </div>
+           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">
+                                         {!done3 && <CountUp
+                                             start={parseInt(dash.bags_store)}
+                                             end={parseInt(dash.bags_store)}
+                                             duration={2.75}
+                                             delay={1}
+                                             onEnd={() => setDone3(true)}
+                                         />}{done3 && <div>
+                                         {dash.bags_store}
+                                     </div>}
+                                     </h3>
+                                     <p className={`text-success ml-2 mb-0 font-weight-medium`}>
+                                         {'+'.concat(numeral().format("0,0.0"))}%
+                                     </p>
+                                 </div>
+                             </div>
+                             <div className="col-3">
+                                 <div className={`icon icon-box-success`}>
+                                     <span className={`mdi mdi-arrow-top-right icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-white-80 font-weight-normal">Bags of Feeds in Store <br /> ({moment(dash.last_trays_date*1000).format('MMM Do YY')})</h6>
+                     </div>
+                 </div>
+             </div>
          </div>
          <div className="row ">
            <div className="col-12 grid-margin">
@@ -586,9 +618,10 @@ function Dashboard(props) {
                                <th> Status</th>
                                <th> Date</th>
                                <th> Trays</th>
-                               <th> eggs</th>
-                               <th> broken</th>
-                               <th> by</th>
+                               <th> Bags</th>
+                               <th> Eggs</th>
+                               <th> Broken</th>
+                               <th> By</th>
                            </tr>
                            </thead>
                            <tbody>
@@ -623,6 +656,7 @@ function Dashboard(props) {
                                        </td>
                                        <td> {moment(item.date_ * 1000).format("MMM Do YY")} </td>
                                        <td> {item.trays_store} </td>
+                                       <td> {item.extra_data.split(';')[2]} </td>
                                        <td> {item.eggs.slice(0, item.eggs.length-1)} </td>
                                        <td> {item.broken} </td>
                                        <td> {item.submittedBy.charAt(0) + item.submittedBy.slice(1).toLowerCase()} </td>

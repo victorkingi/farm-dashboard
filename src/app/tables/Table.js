@@ -30,6 +30,7 @@ import { visuallyHidden } from '@mui/utils';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import { BrowserView, MobileView } from 'react-device-detect';
+import {firestore} from "../../services/api/fbConfig";
 
 
 function createData(name, date, subm, status, hash) {
@@ -150,7 +151,8 @@ EnhancedTableHead.propTypes = {
 };
 
 const EnhancedTableToolbar = (props) => {
-    const { numSelected } = props;
+    const { numSelected, idsSelected } = props;
+    const [disable, setDisable] = useState(false);
 
     return (
         <Toolbar
@@ -185,8 +187,60 @@ const EnhancedTableToolbar = (props) => {
 
             {numSelected > 0 ? (
                 <Tooltip title="Delete">
-                    <IconButton  onClick={() => {
-                        window.alert("Not implemented yet");
+                    <IconButton disabled={disable}  onClick={() => {
+                        setDisable(true);
+                        let user = localStorage.getItem('name');
+
+                        const pushDelete = async () => {
+                            let wasEntered  = await firestore.collection('to_delete').doc('to_delete').get();
+                            wasEntered = wasEntered.data();
+                            let foundUser = false;
+
+                            for (const x of idsSelected) {
+                                const prevVal = await firestore.collection('tx_ui')
+                                    .doc(x).get();
+
+                                for (const val of Object.keys(wasEntered)) {
+                                    if (val === user) {
+                                        foundUser = true;
+                                        for (const sel of wasEntered[user]) {
+                                            if (sel === x) {
+                                                window.alert(`You have already marked selected entry`);
+                                                console.log(sel, 'remarked');
+                                                return;
+                                            }
+                                        }
+                                        const newVals = [...wasEntered[user]];
+                                        newVals.push(x);
+                                        await firestore.collection('tx_ui')
+                                            .doc(x).update({
+                                                status: parseInt(prevVal.data().status) + 1
+                                            });
+                                        await firestore.collection('to_delete').doc('to_delete')
+                                            .update({
+                                                [user]: newVals
+                                            });
+                                    }
+                                }
+
+                                if (!foundUser) {
+                                    await firestore.collection('tx_ui')
+                                        .doc(x).update({
+                                            status: parseInt(prevVal.data().status) + 1
+                                        });
+                                }
+                            }
+
+                            if (!foundUser) {
+                                await firestore.collection('to_delete').doc('to_delete')
+                                    .update({
+                                        [user]: idsSelected
+                                    });
+                            }
+                            window.alert(`${numSelected} entries have been marked for deletion. Will be deleted when at least 3 users mark the same`);
+                            window.location.reload();
+                        }
+                        pushDelete();
                     }}>
                         <DeleteIcon />
                     </IconButton>
@@ -204,6 +258,7 @@ const EnhancedTableToolbar = (props) => {
 
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
+    idsSelected: PropTypes.array.isRequired
 };
 
 const getFieldName = (to_use) => {
@@ -547,7 +602,7 @@ function EnhancedTable(props) {
     return (
         <Box sx={{ width: '100%' }}>
             <Paper sx={{ width: '100%', mb: 2 }}>
-                <EnhancedTableToolbar numSelected={selected.length} />
+                <EnhancedTableToolbar numSelected={selected.length} idsSelected={selected} />
                 <TableContainer>
                     <Table
                         sx={{ minWidth: 750 }}
@@ -618,7 +673,7 @@ function EnhancedTable(props) {
                                                 scope="row"
                                                 padding="none"
                                             >
-                                                {row.name} {toPrint}
+                                                {parseInt(row.status) !== 1 && <span className="text-danger">[{parseInt(row.status) - 1}/3] </span>}{row.name} {toPrint}
                                             </TableCell>
                                             <TableCell align="right">{moment.unix(row.date).format("ddd ll")}</TableCell>
                                             <TableCell align="right">{moment.unix(row.subm).format("ddd ll")}</TableCell>
@@ -639,7 +694,7 @@ function EnhancedTable(props) {
                 </TableContainer>
                 <BrowserView>
                     <TablePagination
-                        rowsPerPageOptions={[5, 10, 25]}
+                        rowsPerPageOptions={[5, 15, 25]}
                         component="div"
                         showFirstButton={true}
                         count={rows.length}

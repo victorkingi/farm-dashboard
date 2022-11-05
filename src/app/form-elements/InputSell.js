@@ -21,7 +21,7 @@ import {firestoreConnect} from "react-redux-firebase";
 const db = new Localbase('ver_data');
 
 function InputSell(props) {
-  const { extraData } = props;
+  const { extraData, trayCheck } = props;
 
   const [state, setState] = useState({
     category: 'sales',
@@ -35,8 +35,6 @@ function InputSell(props) {
   });
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
-  const [openWarn, setOpenWarn] = useState(false);
-  const [warnMsg, setWarnMsg] = useState('');
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [sectionNames, setSectionNames] = useState([]);
@@ -100,7 +98,15 @@ function InputSell(props) {
     values.buyerName = stripBuyer;
 
     let proceed = checkDate(values.date);
-    return !!(values.buyerName && proceed);
+    if (proceed) {
+      const epoch = values.date.getTime()/1000;
+      if (trayCheck) {
+        const allKeys = Object.keys(trayCheck[0]).filter(val => val !== 'id');
+        const trayInvalid = allKeys.includes(epoch.toString());
+        return !trayInvalid && !!values.buyerName;
+      }
+    }
+    return false;
   };
 
   const handleSubmit = async (e) => {
@@ -186,26 +192,19 @@ function InputSell(props) {
           const leaves = document.hashes;
           const tree = new MerkleTree(leaves, SHA256);
           const root = tree.getRoot().toString('hex');
-          const leaf = SHA256(`${values.trayNo}${values.buyerName.toUpperCase()}${values.date.getTime() / 1000}${values.section.toUpperCase()}`).toString();
-          console.log(`${values.trayNo}${values.buyerName.toUpperCase()}${values.date.getTime() / 1000}${values.section.toUpperCase()}`)
+          const leaf = SHA256(`${values.buyerName.toUpperCase()}${values.date.getTime() / 1000}${values.section.toUpperCase()}`).toString();
+          console.log(`${values.buyerName.toUpperCase()}${values.date.getTime() / 1000}${values.section.toUpperCase()}`)
           console.log(leaf);
           const proof = tree.getProof(leaf);
           const isAvail = tree.verify(proof, leaf, root);
           console.log(isAvail);
           if(isAvail) {
-            setWarnMsg('Entry already exists but will be replaced');
-            setOpenError(false);
+            setError('Entry already exists');
+            setOpenError(true);
             setOpen(false);
-            setOpenWarn(true);
-            props.inputSell(values);
-            setState({
-              ...state,
-              extra_data: ''
-            });
           } else {
             props.inputSell(values);
             setOpenError(false);
-            setOpenWarn(false);
             setOpen(true);
             setState({
               ...state,
@@ -229,7 +228,6 @@ function InputSell(props) {
     }
     setOpen(false);
     setOpenError(false);
-    setOpenWarn(false);
   };
 
   const handleSelect = (e) => {
@@ -443,11 +441,6 @@ function InputSell(props) {
           </div>
         </div>
       </div>
-      <Snackbar open={openWarn} autoHideDuration={4000} onClose={handleClose}>
-        <Alert severity='warning'>
-          {warnMsg}
-        </Alert>
-      </Snackbar>
       <Online>
         <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
           <Alert severity='success'>
@@ -477,13 +470,15 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
   return {
-    extraData: state.firestore.ordered.extra_data
+    extraData: state.firestore.ordered.extra_data,
+    trayCheck: state.firestore.ordered.trays
   }
 }
 
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-      {collection: 'extra_data', doc: 'extra_data'}
+      {collection: 'extra_data', doc: 'extra_data'},
+      {collection: 'trays', doc: 'exact'}
     ])
 )(InputSell);
