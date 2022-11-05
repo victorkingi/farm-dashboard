@@ -26,7 +26,7 @@ function InputPurchase(props) {
         itemName: '',
         vendorName: '',
         category: 'buys',
-        paid_by: 'Bank',
+        paid_by: '',
         extra_data: ''
     });
     const [open, setOpen] = useState(false);
@@ -187,7 +187,7 @@ function InputPurchase(props) {
         let status = true;
         if (state.not_paid) {
             status = false;
-            state.paid_by = 'BANK';
+            state.paid_by = `BANK:${parseInt(state.objectNo) * parseInt(state.objectPrice)},`;
         }
 
         let values = {

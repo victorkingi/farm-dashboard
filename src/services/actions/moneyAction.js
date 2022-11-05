@@ -56,6 +56,9 @@ const setProperty = (obj, path, value) => {
 export const hasPaidLate = (key, payers) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
+        const firebase = getFirebase();
+        const displayName = firebase.auth().currentUser.displayName;
+        const name = displayName.substring(0, displayName.lastIndexOf(" ")).toUpperCase();
 
         return firestore.collection("late_payment").doc(key)
             .get().then((doc) => {
@@ -67,7 +70,8 @@ export const hasPaidLate = (key, payers) => {
                 ...doc.data(),
                 paidOn: new Date()
             }
-            if (payers) val = setProperty(val, 'values.paid_by', payers);
+            if (payers && val.values.category === 'buys') val = setProperty(val, 'values.paid_by', payers);
+            else if (val.values.category === 'sales') val = setProperty(val, 'values.receiver', `${name}:${parseInt(val.values.trayNo) * parseInt(val.values.trayPrice)},`);
 
             firestore.collection("pending_transactions").add(val);
             dispatch({type: 'LATE_REPAID'});

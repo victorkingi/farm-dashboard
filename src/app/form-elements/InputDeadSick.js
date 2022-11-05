@@ -25,24 +25,14 @@ function InputDeadSick(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const numberRegex = /^([0-9]+)$/;
-        const noZeroRegex = /^(0*)$/;
+        const numberRegex = /^([1-9][0-9]*)$/;
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const levelRegex = /^[a-z]([0-9])+$/;
 
         const arr = Object.entries(state);
-        if (arr.length < 6) {
-            setError('All Inputs should be filled');
-            setOpenError(true);
-            return;
-        }
+
         for (let i = 0; i < arr.length; i++) {
             if (arr[i][0] === "chickenNo") {
-                if (noZeroRegex.test(arr[i][1])) {
-                    setError('Chicken number cannot be zero');
-                    setOpenError(true);
-                    return;
-                }
                 if (!numberRegex.test(arr[i][1])) {
                     setError('Chicken number cannot be negative or not a number');
                     setOpenError(true);
@@ -50,16 +40,42 @@ function InputDeadSick(props) {
                 }
                 break;
             }
-            if (arr[i][0] === 'level' && !levelRegex.test(arr[i][1])) {
-                setError('Row name should be like this "a1"');
-                setOpenError(true);
-                return;
-            }
+
             if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
                 setError('Extra info should only be letters/numbers or left empty');
                 setOpenError(true);
                 return;
             }
+        }
+        if (!image) {
+            setError('An image should be provided');
+            setOpenError(true);
+            return;
+        }
+        if (!image.type.startsWith('image')) {
+            setError(`Only images are accepted, found ${image.type}`);
+            setOpenError(true);
+            return;
+        }
+        if (!state.section) {
+            setError(`Section should be provided. Was it dead or sick?`);
+            setOpenError(true);
+            return;
+        }
+        if (!levelRegex.test(state.level)) {
+            setError('Row name should be like this "a1"');
+            setOpenError(true);
+            return;
+        }
+        if (!numberRegex.test(state.chickenNo)) {
+            setError('Chicken number cannot be negative, 0 or not a number');
+            setOpenError(true);
+            return;
+        }
+        if (!state.reason || state.reason === '') {
+            setError('reason cannot be empty');
+            setOpenError(true);
+            return;
         }
         props.inputDeadSick(state, image);
         setOpenError(false);
@@ -167,7 +183,7 @@ function InputDeadSick(props) {
                                 </DropdownButton>
                                 <br />
                                 <Form.Group>
-                                    <label htmlFor="chickenNo">Location</label>
+                                    <label htmlFor="level">Location</label>
                                     <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="level" placeholder="row name" />
                                 </Form.Group>
                                 <Form.Group>
