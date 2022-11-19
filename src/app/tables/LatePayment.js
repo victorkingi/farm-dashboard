@@ -14,6 +14,34 @@ import {Form} from "react-bootstrap";
 
 const users = ['BANK', 'JEFF', 'VICTOR', 'BABRA', 'PURITY', 'ANNE'];
 
+const getAmountLeft = (values) => {
+    let amountPaid = 0;
+    let total = 0;
+
+    if (values.hasOwnProperty('receiver')) {
+        total = parseInt(values.trayNo) * parseInt(values.trayPrice);
+
+        if (values.receiver !== '') {
+            let paid = values.receiver.slice(0, -1).split(',');
+            for (let x of paid) {
+                amountPaid += parseInt(x.split(':')[1]);
+            }
+        }
+    }
+
+    if (values.hasOwnProperty('paid_by')) {
+        total = parseInt(values.objectNo) * parseInt(values.objectPrice);
+
+        if (values.paid_by !== '') {
+            let paid = values.paid_by.slice(0, -1).split(',');
+            for (let x of paid) {
+                amountPaid += parseInt(x.split(':')[1]);
+            }
+        }
+    }
+    return [total, total - amountPaid];
+}
+
 function LatePayment(props) {
     const { late } = props;
 
@@ -69,16 +97,6 @@ function LatePayment(props) {
         setErrM('');
         setOpen(false);
     };
-
-    const getAmount = (item) => {
-        if (item?.values?.trayNo)
-            return parseInt(item?.values?.trayNo)
-                * parseFloat(item?.values?.trayPrice);
-        else if (item?.values?.objectNo)
-            return  parseInt(item?.values?.objectNo)
-                * parseFloat(item?.values?.objectPrice);
-        else if (item?.values?.amount) return item?.values?.amount;
-    }
 
     const display = (e) => {
         e.preventDefault();
@@ -192,10 +210,12 @@ function LatePayment(props) {
                                             </div>
                                         </th>
                                         <th> Date </th>
+                                        <th> Status </th>
+                                        <th> Amount left </th>
+                                        <th> Total </th>
                                         <th> Type </th>
                                         <th> Name </th>
-                                        <th> Amount </th>
-                                        <th> Receiver </th>
+                                        <th> Payees/Receivers </th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -229,9 +249,18 @@ function LatePayment(props) {
                                                     </div>
                                                 </td>
                                                 <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
+                                                <td>
+                                                    {(item?.rejected === true && item?.signal !== 1)
+                                                        ? <div className="badge badge-outline-danger">Rejected</div>
+                                                        : (item?.rejected === true && item?.signal === 1)
+                                                            ? <div className="badge badge-outline-light">Rejected</div>
+                                                            : (item?.ready === true ? <div className="badge badge-outline-success">Pending</div>
+                                                                : <div className="badge badge-outline-primary">Waiting</div>)}
+                                                </td>
+                                                <td>{numeral(getAmountLeft(item.values)[1]).format('0,0')}</td>
+                                                <td>{numeral(getAmountLeft(item.values)[0]).format('0,0')}</td>
                                                 <td className="text-success"> {item.values?.category === 'buys' ? 'P' : 'S'}</td>
                                                 <td> {sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`} </td>
-                                                <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
                                                 <td> {item.values.receiver?.toLowerCase() || 'N/A'} </td>
                                             </tr>
                                         )
