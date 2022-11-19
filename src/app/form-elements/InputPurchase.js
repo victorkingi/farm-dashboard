@@ -185,10 +185,20 @@ function InputPurchase(props) {
             }
         }
         let status = true;
-        if (state.not_paid) {
-            status = false;
-            state.paid_by = `BANK:${parseInt(state.objectNo) * parseInt(state.objectPrice)},`;
+        if (((state.paid && state.paid === true) || !state.paid) && (!state.paid_by || state.paid_by === '')) {
+            setError('Paid by should not be empty if was paid');
+            setOpenError(true);
+            return;
         }
+
+        if (state.not_paid && state.not_paid === true && state.paid_by !== '') {
+            setError('Paid by should be empty if not paid');
+            setOpenError(true);
+            return;
+        }
+
+        if (state.not_paid === true) status = false;
+        if (status) state.paid_by = `${state.paid_by.toUpperCase()}:${parseInt(state.objectNo) * parseInt(state.objectPrice)},`;
 
         let values = {
             ...state,
@@ -218,8 +228,10 @@ function InputPurchase(props) {
             setOpen(true);
             const newState = {
                 ...state,
+                paid_by: '',
                 extra_data: ''
             }
+            delete state.bagSize;
             delete newState.bagSize;
             delete newState.vendorName;
             setState(newState);
@@ -414,6 +426,7 @@ function InputPurchase(props) {
                                     id='paid_by'
                                     onSelect={handlePaidBy}
                                 >
+                                    <Dropdown.Item eventKey="">None</Dropdown.Item>
                                     <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
                                     <Dropdown.Divider/>
                                     <Dropdown.Item eventKey="Victor">Victor</Dropdown.Item>
