@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -11,6 +11,8 @@ import {Redirect} from "react-router-dom";
 import {Offline, Online} from "react-detect-offline";
 import {hasPaidLate} from "../../services/actions/moneyAction";
 import {Form} from "react-bootstrap";
+import DropdownButton from "react-bootstrap/DropdownButton";
+import Dropdown from "react-bootstrap/Dropdown";
 
 const users = ['BANK', 'JEFF', 'VICTOR', 'BABRA', 'PURITY', 'ANNE'];
 
@@ -51,6 +53,7 @@ function LatePayment(props) {
     const [allChecked, setAllChecked] = useState(false);
     const [pendChecked, setPendChecked] = useState({});
     const [payers, setPayers] = useState({});
+    const [clearWay, setClearWay] = useState('');
 
     // undo write events to database
     const latePaid = async () => {
@@ -83,6 +86,38 @@ function LatePayment(props) {
         return {__user};
     }, []);
 
+    useEffect(() => {
+        if (clearWay === 'Available Balance') {
+            let foundSale = false;
+            let foundBuy = false;
+            let totalSections = new Set();
+
+            for (const x of Object.values(pendChecked)) {
+                console.log(x);
+                if (x[0] === false) continue;
+                if (x[1] === 'sales') foundSale = true;
+                else if (x[1] === 'buys') foundBuy = true;
+                totalSections.add(x[2]);
+                if (foundSale && foundBuy) break;
+            }
+
+            if (foundBuy && foundSale) {
+                setErrM("Untick all purchases or all sales. Cannot mix sales and purchases if clearing by available balance");
+                setClearWay('');
+                setError(true);
+                return;
+            }
+
+            if (totalSections.size !== 1) {
+                setErrM("Selected entries should be of the same buyer or purchased item");
+                setClearWay('');
+                setError(true);
+                return;
+            }
+            setError(false);
+        }
+    }, [clearWay, pendChecked]);
+
     if (!user.__user) {
         return (
             <Redirect to="/user-pages/login-1"/>
@@ -100,9 +135,16 @@ function LatePayment(props) {
 
     const display = (e) => {
         e.preventDefault();
+        if (clearWay === '') {
+            setOpen(false);
+            setErrM("Choose clear method");
+            setError(true);
+            return 0;
+        }
+
         const regexCheck = /^(([a-z]|[A-Z])+:[0-9]+,)*$/;
 
-        for (const [key, x] of Object.entries(payers)) {
+        for (const [, x] of Object.entries(payers)) {
             if (!regexCheck.test(x)) {
                 setOpen(false);
                 setErrM("Payee should be in this format [name:amount,]");
@@ -135,9 +177,11 @@ function LatePayment(props) {
                 setError(true);
                 return 0;
             }
-            const tempLate = [...late];
-            let expectedTotal = tempLate.filter(x => x.id === key.split('payers')[0]);
-            expectedTotal = parseInt(expectedTotal[0].values.objectPrice) * parseInt(expectedTotal[0].values.objectNo);
+            let expectedTotal = 0;
+            for (const entry of Object.values(pendChecked)) {
+                if (entry[0] === false) continue;
+                expectedTotal += entry[4];
+            }
 
             if (expectedTotal !== totalAmount) {
                 setOpen(false);
@@ -147,9 +191,9 @@ function LatePayment(props) {
             }
         }
 
-        const submit = document.getElementById(`latereceived`);
-        submit.disabled = true;
-        latePaid();
+        //const submit = document.getElementById(`latereceived`);
+        //submit.disabled = true;
+        //latePaid();
     }
 
     const addAllEntries = (all) => {
@@ -165,8 +209,9 @@ function LatePayment(props) {
             allPend[late[i].id] = [
                 all,
                 late[i].values.category,
+                late[i].values?.itemName || late[i].values?.buyerName,
                 description,
-                late[i].values?.objectPrice ? (late[i].values.objectPrice * late[i].values.objectNo) : -1
+                late[i].values?.objectPrice ? (parseInt(late[i].values.objectPrice) * parseInt(late[i].values.objectNo)) : (parseInt(late[i].values.trayPrice) * parseInt(late[i].values.trayNo))
             ];
         }
         setPendChecked(allPend);
@@ -179,9 +224,13 @@ function LatePayment(props) {
         });
     }
 
+    const handleClearWay = (e) => {
+        setClearWay(e);
+    }
+
     return (
         <div>
-            <div className="row ">
+            <div className="row">
                 <div className="col-12 grid-margin">
                     <div className="card">
                         <div className="card-body">
@@ -234,13 +283,14 @@ function LatePayment(props) {
                                                                        [item.id]: [
                                                                            !pendChecked[item.id],
                                                                            item.values.category,
+                                                                           item.values.itemName || item.values.buyerName,
                                                                            sanitize_string(item.values)
                                                                            +` ${numeral(item.values?.trayNo 
                                                                                || item.values?.objectNo)
                                                                                .format('0,0')}@${numeral(item.values?.trayPrice 
                                                                                || item.values?.objectPrice)
                                                                                .format('0,0')} on ${moment(item.values.date.toDate()).format("MMM Do YY")}`,
-                                                                           item.values?.objectPrice ? (item.values.objectPrice * item.values.objectNo) : -1
+                                                                           item.values?.objectPrice ? (parseInt(item.values.objectPrice) * parseInt(item.values.objectNo)) : (parseInt(item.values?.trayNo) * parseInt(item.values?.trayPrice))
                                                                        ]})}
                                                                    id={item.id} name={item.id}
                                                             />
@@ -271,60 +321,67 @@ function LatePayment(props) {
                         </div>
                     </div>
                 </div>
-                {Object.entries(pendChecked).map(x => {
-                    if (x[1][1] !== 'buys') return '';
-
-                    return (
-                        <div key={x[0]} className='col-xl grid-margin stretch-card'>
+                {JSON.stringify(pendChecked) !== '{}' &&
+                        <div className='col-xl grid-margin stretch-card'>
                             <div className='card'>
-                            <div className='card-body'>
-                                <h4 className='card-title'>{}</h4>
-                                <form className='forms-sample'>
-                                    <Form.Group>
-                                        <label htmlFor={`${x[0]}payers`}>Purchases of {x[1][2]} paid by(Optional)</label>
-                                        <p className="text-primary">*Default payer is bank</p>
-                                        <p className="text-primary">*Valid payers are {users.map(x => x.charAt(0)+x.slice(1).toLowerCase()).join(', ')}</p>
-                                        <Form.Control
-                                            type='text'
-                                            onChange={handleChange}
-                                            className='form-control text-white'
-                                            id={`${x[0]}payers`}
-                                            placeholder='Input payers and amount in this format "name:amount,"'
-                                            value={payers[x[0]]}
-                                        />
-                                    </Form.Group>
-                                </form>
+                                <div className='card-body'>
+                                    <h4 className='card-title'>Clear Options</h4>
+                                    <form className='forms-sample'>
+                                        <Form.Group>
+                                            <label htmlFor='section'>Clear By</label>
+                                            <DropdownButton
+                                                alignRight
+                                                title={clearWay}
+                                                onSelect={handleClearWay}
+                                            >
+                                                <Dropdown.Item eventKey="">Choose clearing method</Dropdown.Item>
+                                                <Dropdown.Item eventKey="Available Balance">Available Balance</Dropdown.Item>
+                                                <Dropdown.Item eventKey="Debt Balance">Debt Balance</Dropdown.Item>
+                                            </DropdownButton>
+                                        </Form.Group>
+                                        {clearWay === 'Available Balance' &&
+                                            <Form.Group>
+                                                <label htmlFor='payers'>Input the user who will receive the funds or who will pay for the purchase</label>
+                                                <Form.Control
+                                                    type='text'
+                                                    onChange={handleChange}
+                                                    className='form-control text-white'
+                                                    id='payers'
+                                                    placeholder='Input format is [name:amount,]'
+                                                />
+                                            </Form.Group>
+                                        }
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                        </div>
-                    )
-                })}
-                <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='latereceived'>
-                    Cleared
-                </button>
-                <Online>
-                    <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
-                        <Alert onClose={handleClose} severity="success">
-                            Accepted and moved
-                        </Alert>
-                    </Snackbar>
-                </Online>
-                <Offline>
-                    <Snackbar
-                        open={open} autoHideDuration={5000}
-                        onClose={handleClose}
-                        key={'topcenter'}>
-                        <Alert onClose={handleClose} severity="warning">
-                            Accepted. Will be moved when back online
-                        </Alert>
-                    </Snackbar>
-                </Offline>
-                <Snackbar open={error} autoHideDuration={5000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="error">
-                        {errM}
+                }
+            </div>
+            <button type="button" disabled={false} className="btn btn-primary ro" onClick={display} id='latereceived'>
+                Submit
+            </button>
+            <Online>
+                <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="success">
+                        Entries updated. Will be moved if full payment was made
                     </Alert>
                 </Snackbar>
-            </div>
+            </Online>
+            <Offline>
+                <Snackbar
+                    open={open} autoHideDuration={5000}
+                    onClose={handleClose}
+                    key={'topcenter'}>
+                    <Alert onClose={handleClose} severity="warning">
+                        Entries updated. Will be moved when back online if full payment was made
+                    </Alert>
+                </Snackbar>
+            </Offline>
+            <Snackbar open={error} autoHideDuration={5000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity="error">
+                    {errM}
+                </Alert>
+            </Snackbar>
         </div>
     );
 }
