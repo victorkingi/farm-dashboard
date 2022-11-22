@@ -83,6 +83,7 @@ function LatePayment(props) {
         setError(false);
         setOpen(true);
         setAllChecked(false);
+        setPendChecked({});
     }
 
     const user = useMemo(() => {
@@ -115,7 +116,7 @@ function LatePayment(props) {
                 return;
             }
 
-            if (totalSections.size !== 1) {
+            if (totalSections.size > 1) {
                 setErrM("Selected entries should be of the same buyer or purchased item");
                 setClearWay('');
                 setError(true);
@@ -225,14 +226,14 @@ function LatePayment(props) {
 
         } else if (clearWay === 'Debt Balance') {
             for (const x of Object.values(bpresets)) {
-                const preset = `${x.buyer.join(',')} -> ${x.item.join(',')}`;
+                const preset = `${x.buyers.join(',')} -> ${x.items.join(',')}`;
 
                 if (preset === chosenPreset) {
                     for (const entry of Object.values(pendChecked)) {
                         if (!entry[0]) continue;
 
-                        const tempBuyers = x.buyer.map(k => k.toUpperCase());
-                        const tempItems = x.item.map(k => k.toUpperCase());
+                        const tempBuyers = x.buyers.map(k => k.toUpperCase());
+                        const tempItems = x.items.map(k => k.toUpperCase());
 
                         if (!tempBuyers.concat(tempItems).includes(entry[2].toUpperCase())) {
                             setOpen(false);
@@ -244,7 +245,7 @@ function LatePayment(props) {
 
                     const submit = document.getElementById(`latereceived`);
                     submit.disabled = true;
-                    latePaid(true, x.buyer, x.item);
+                    latePaid(true, x.buyers, x.items);
                     return 0;
                 }
             }
@@ -420,8 +421,8 @@ function LatePayment(props) {
                                                     onSelect={handlePreset}
                                                 >
                                                     {Object.values(bpresets).map((item) => {
-                                                        const preset = `${item.buyer.join(',')} -> ${item.item.join(',')}`;
-                                                        return <Dropdown.Item eventKey={preset}>{preset}</Dropdown.Item>
+                                                        const preset = `${item.buyers.join(',')} -> ${item.items.join(',')}`;
+                                                        return <div key={preset}><Dropdown.Item eventKey={preset}>{preset}</Dropdown.Item></div>
                                                     })}
                                                 </DropdownButton>
                                             </Form.Group>
