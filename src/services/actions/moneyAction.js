@@ -149,7 +149,6 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                             }
                             i++;
                         }
-
                         firestore.collection("pending_transactions").add(val);
                         dispatch({type: 'LATE_REPAID'});
                         doc.ref.delete();

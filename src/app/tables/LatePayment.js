@@ -213,7 +213,7 @@ function LatePayment(props) {
                     setError(true);
                     return 0;
                 }
-                latePaid(true, false);
+                latePaid(true, false, [], []);
             } else {
                 if (expectedTotal !== totalAmount) {
                     setOpen(false);
@@ -221,7 +221,7 @@ function LatePayment(props) {
                     setError(true);
                     return 0;
                 }
-                latePaid(false, false);
+                latePaid(false, false, [], []);
             }
 
         } else if (clearWay === 'Debt Balance') {
@@ -245,7 +245,7 @@ function LatePayment(props) {
 
                     const submit = document.getElementById(`latereceived`);
                     submit.disabled = true;
-                    latePaid(true, x.buyers, x.items);
+                    latePaid(true, true, x.buyers, x.items);
                     return 0;
                 }
             }

@@ -129,7 +129,7 @@ const mapStateToProps = function (state) {
 const mapDispatchToProps = (dispatch) => {
 
     return {
-        hasPaidLate: (details) => dispatch(hasPaidLate(details))
+        hasPaidLate: (allKeys, isOne, isDebt, buyers, items, payers) => dispatch(hasPaidLate(allKeys, isOne, isDebt, buyers, items, payers))
     }
 }
 
@@ -168,7 +168,10 @@ export default compose(
         submit.disabled = true;
         for (let i = 0; i < props.pending?.length; i++) {
             if (props.pending[i].values.section === "CAKES") {
-                const res = await props.hasPaidLate(props.pending[i].id);
+                const trayNo = parseInt(props.pending[i].values.trayNo);
+                const trayPrice = parseInt(props.pending[i].values.trayPrice);
+
+                const res = await props.hasPaidLate([props.pending[i].id], true, false, false, false, `BANK:${trayNo*trayPrice},`);
                 if (res === 'ok') {
                     setError(false);
                     setOpen(true);
