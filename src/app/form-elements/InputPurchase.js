@@ -185,13 +185,14 @@ function InputPurchase(props) {
             }
         }
         let status = true;
-        if (((state.paid && state.paid === true) || !state.paid) && (!state.paid_by || state.paid_by === '')) {
+        console.log(state.paid, state.paid_by)
+        if (state.paid === true && state.paid_by === '') {
             setError('Paid by should not be empty if was paid');
             setOpenError(true);
             return;
         }
 
-        if (state.not_paid && state.not_paid === true && state.paid_by !== '') {
+        if (state.not_paid === true && state.paid_by !== '') {
             setError('Paid by should be empty if not paid');
             setOpenError(true);
             return;
@@ -199,6 +200,7 @@ function InputPurchase(props) {
 
         if (state.not_paid === true) status = false;
         if (status) state.paid_by = `${state.paid_by.toUpperCase()}:${parseInt(state.objectNo) * parseInt(state.objectPrice)},`;
+        else state.paid_by = '';
 
         let values = {
             ...state,

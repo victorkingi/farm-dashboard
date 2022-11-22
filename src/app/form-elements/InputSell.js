@@ -181,6 +181,7 @@ function InputSell(props) {
       setOpenError(true);
       return -1;
     }
+    if (!values.status) values.receiver = '';
     values.receiver = values.receiver.toUpperCase()
     values.section = getSectionAddr(values.section);
     let date = new Date(values.date);
