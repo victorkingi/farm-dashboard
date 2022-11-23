@@ -279,6 +279,34 @@ function Dashboard(props) {
       setPendCheckedEggs(allPend);
   }
 
+  const callFunc = (e) => {
+       e.preventDefault();
+       window.alert("Calling write function...");
+       const run = document.getElementById('run');
+       run.disabled = true;
+
+      const myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+      const raw = JSON.stringify({});
+      const requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+      };
+
+      fetch("https://us-central1-poultry101-f1fa0.cloudfunctions.net/write-entries", requestOptions)
+          .then(response => response.text())
+          .then(result => {
+              console.log(result);
+              window.alert("Success call");
+          })
+          .catch(error => {
+              console.log('error', error)
+              window.alert("Error", error);
+          });
+  }
+
   if (!dash.id) {
       return <div />
   }
@@ -585,8 +613,8 @@ function Dashboard(props) {
                  </div>
              </div>
          </div>
-         <div className="row ">
-           <div className="col-12 grid-margin">
+         <div className="row">
+             <div className="col-12 grid-margin">
              <div className="card">
                <div className="card-body">
                  <h4 className="card-title">Pending Transactions</h4>
@@ -778,33 +806,44 @@ function Dashboard(props) {
                </div>
              </div>
            </div>
-         <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='rewind'>
-             Rewind
-         </button>
-         <Online>
-             <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
-               <Alert onClose={handleClose} severity="success">
-                 Accepted. Rewinded entries
-               </Alert>
-             </Snackbar>
-         </Online>
-         <Offline>
-               <Snackbar
-                   open={open} autoHideDuration={5000}
-                   onClose={handleClose}
-                   key={'topcenter'}>
-                   <Alert onClose={handleClose} severity="warning">
-                       Accepted. Rewinding will happen when back online
+             <div style={{display: 'flex'}}>
+                 <div style={{paddingRight: '30%'}}>
+                    <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='rewind'>
+                        Rewind
+                    </button>
+                 </div>
+                 <div>
+                     {__user__ === 'VICTOR' &&
+                         <button type="button" disabled={false} className="btn btn-primary" onClick={callFunc} id='run'>
+                             Run
+                         </button>
+                     }
+                 </div>
+             </div>
+             <Online>
+                 <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
+                   <Alert onClose={handleClose} severity="success">
+                     Accepted. Rewinded entries
                    </Alert>
-               </Snackbar>
-         </Offline>
-         <Snackbar
-             open={error} autoHideDuration={5000}
-             onClose={handleClose}>
-             <Alert onClose={handleClose} severity="error">
-                 {errM}
-             </Alert>
-         </Snackbar>
+                 </Snackbar>
+             </Online>
+             <Offline>
+                   <Snackbar
+                       open={open} autoHideDuration={5000}
+                       onClose={handleClose}
+                       key={'topcenter'}>
+                       <Alert onClose={handleClose} severity="warning">
+                           Accepted. Rewinding will happen when back online
+                       </Alert>
+                   </Snackbar>
+             </Offline>
+             <Snackbar
+                 open={error} autoHideDuration={5000}
+                 onClose={handleClose}>
+                 <Alert onClose={handleClose} severity="error">
+                     {errM}
+                 </Alert>
+             </Snackbar>
          </div>
        </div>
    );
