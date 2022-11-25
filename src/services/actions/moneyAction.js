@@ -70,6 +70,10 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                     ...doc.data(),
                     paidOn: new Date()
                 }
+                delete val.rejected;
+                delete val.ready;
+                delete val.signal;
+
                 if (isDebt) {
                     val.values.pairing = {
                         buyers,
