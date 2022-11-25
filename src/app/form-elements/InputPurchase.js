@@ -23,6 +23,7 @@ function InputPurchase(props) {
         date: new Date(),
         section: 'Choose Section',
         objectNo: '',
+        objectPrice: '',
         itemName: '',
         vendorName: '',
         category: 'buys',
@@ -66,11 +67,8 @@ function InputPurchase(props) {
     }
 
     const parameterChecks = (values) => {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        if (values.itemName) {
-            values.itemName = values.itemName.charAt(0).toUpperCase().concat(values
-                .itemName.substring(1).toLowerCase());
-        }
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(x => x.toUpperCase());
+
         if (values.section === 'FEEDS') {
             const validVendors = feedsVendors.map(x => x.toUpperCase());
             const validFeeds = feedsType.map(x => x.toUpperCase());
@@ -93,14 +91,14 @@ function InputPurchase(props) {
                 return false;
             }
         }
-        if (values.itemName && values.section === "PPURITY") {
-            const regex = /^([A-Z][a-z]{2},)+$/;
+        if (values.section === "PPURITY") {
+            const regex = /^(([A-Z]|[a-z]){3},)+$/;
             if (!regex.test(values.itemName)) {
                 setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
                 setOpenError(true);
                 return false;
             } else {
-                const enteredMonths = values.itemName.split(',');
+                const enteredMonths = values.itemName.slice(0, -1).split(',').map(x => x.toUpperCase());
                 const found = [];
                 for (let i = 0; i < enteredMonths.length; i++) {
                     for (let p = 0; p < months.length; p++) {
@@ -123,12 +121,12 @@ function InputPurchase(props) {
                         }
                     }
                 }
-                if (found.length+1 !== enteredMonths.length) {
+                if (found.length !== enteredMonths.length || found.length === 0) {
                     setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
                     setOpenError(true);
                     return false;
                 }
-                if (found.length !== parseInt(values.objectNo) || parseInt(values.objectNo) > 12) {
+                if (found.length !== parseInt(values.objectNo)) {
                     setError("Item name should be of this format [Month,Month] i.e. Jan,Feb and object number should be equal to number of months");
                     setOpenError(true);
                     return false;
@@ -160,6 +158,12 @@ function InputPurchase(props) {
             return;
         }
 
+        if(state.paid_by === '' && state.not_paid !== true) {
+            setError('paid by should be selected if paid');
+            setOpenError(true);
+            return;
+        }
+
         if (arr.length < 6) {
             setError('All Inputs should be filled');
             setOpenError(true);
@@ -185,7 +189,6 @@ function InputPurchase(props) {
             }
         }
         let status = true;
-        console.log(state.paid, state.paid_by)
         if (state.paid === true && state.paid_by === '') {
             setError('Paid by should not be empty if was paid');
             setOpenError(true);
@@ -238,6 +241,10 @@ function InputPurchase(props) {
             delete newState.vendorName;
             setState(newState);
         } else {
+            setState({
+                ...state,
+                paid_by: ''
+            });
             setOpen(false);
         }
     };
@@ -296,10 +303,10 @@ function InputPurchase(props) {
     }
 
     useMemo(() => {
-        if (/^([A-Z][a-z]{2},)+$/.test(state.itemName) && state.section === 'Pay Purity') {
+        if (/^(([A-Z]|[a-z]){3},)+$/.test(state.itemName) && state.section === 'Pay Purity') {
             setState({
                 ...state,
-                objectNo: (state.itemName.split(',').length - 1).toString()
+                objectNo: (state.itemName.slice(0, -1).split(',').length).toString()
             });
         } else if (state.section === 'Pay Purity') {
             setState({
