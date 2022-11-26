@@ -131,6 +131,8 @@ function InputPurchase(props) {
                     setOpenError(true);
                     return false;
                 }
+                values.section = 'LABOUR';
+                values.extra_data = 'PURITY';
             }
         } else if (!values.section || values.section === "CHOOSE_SECTION") {
             setError('Section cannot be empty');
