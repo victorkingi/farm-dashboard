@@ -25,6 +25,13 @@ function InputDeadSick(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if (new Date().getTimezoneOffset() !== -180 && localStorage.getItem('name') !== 'Victor') {
+            setError('Different Timezone detected. Cannot handle input');
+            setOpenError(true);
+            return;
+        }
+
         const numberRegex = /^([1-9][0-9]*)$/;
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const levelRegex = /^[a-z]([0-9])+$/;

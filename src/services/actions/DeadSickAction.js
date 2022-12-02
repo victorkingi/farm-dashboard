@@ -15,6 +15,10 @@ export const inputDeadSick = (deadSick, image) => {
             file_name: `${deadSick.section.toUpperCase()}_${image.name}`,
             submittedOn: new Date()
         }
+        let newDate = values.date;
+        newDate.setHours(0, 0, 0, 0);
+        values.date = newDate;
+
         const reader = new FileReader();
         const db = new Localbase('imageUpload');
         reader.addEventListener('load', () => {

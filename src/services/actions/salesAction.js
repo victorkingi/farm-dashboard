@@ -21,10 +21,14 @@ export const inputSell = (values) => {
     getFirestore
   }) => {
     const firestore = getFirestore();
+    let newDate = values.date;
+    newDate.setHours(0, 0, 0, 0);
+    values.date = newDate;
+
     if (JSON.parse(values.status)) {
       firestore.collection('pending_transactions')
           .add({
-            values: values,
+            values,
             submittedOn: new Date()
           });
         dispatch({

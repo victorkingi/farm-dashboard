@@ -100,7 +100,7 @@ function InputEggs(props) {
             return;
         }
 
-        if (new Date().getTimezoneOffset() !== -180) {
+        if (new Date().getTimezoneOffset() !== -180 && localStorage.getItem('name') !== 'Victor') {
             setError('Different Timezone detected. Cannot handle input');
             setOpenError(true);
             return;

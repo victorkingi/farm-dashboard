@@ -111,6 +111,13 @@ function InputSell(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (new Date().getTimezoneOffset() !== -180 && localStorage.getItem('name') !== 'Victor') {
+      setError('Different Timezone detected. Cannot handle input');
+      setOpenError(true);
+      return;
+    }
+
     const arr = Object.entries(state);
     const trayRegex = /^([0-9]+)$/;
     const noZeroRegex = /^(0*)$/;

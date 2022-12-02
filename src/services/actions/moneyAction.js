@@ -7,6 +7,9 @@ export const sendMoney = (values) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firebase = getFirebase();
         const firestore = getFirestore();
+        let newDate = values.date;
+        newDate.setHours(0, 0, 0, 0);
+        values.date = newDate;
 
         if (values.receiver.startsWith("WITHDRAW")) {
             return firebase.auth().onAuthStateChanged(user => {

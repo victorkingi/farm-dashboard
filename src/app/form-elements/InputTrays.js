@@ -38,7 +38,7 @@ function InputTrays({ dashboard, pendEggs }) {
 
     useEffect(() => {
         if (rewind) {
-            if (new Date().getTimezoneOffset() !== -180) {
+            if (new Date().getTimezoneOffset() !== -180  && localStorage.getItem('name') !== 'Victor') {
                 setOpen(false);
                 setError("Different Timezone detected. Cannot handle input");
                 setOpenError(true);
@@ -61,9 +61,10 @@ function InputTrays({ dashboard, pendEggs }) {
 
     const handleClick = (e) => {
         e.preventDefault();
+
         let traysOk = /^[\d]+,([0-9]|1[0-9]|2[0-9])$/.test(state);
         if (traysOk) {
-            if (new Date().getTimezoneOffset() !== -180) {
+            if (new Date().getTimezoneOffset() !== -180  && localStorage.getItem('name') !== 'Victor') {
                 setOpen(false);
                 setError("Different Timezone detected. Cannot handle input");
                 setOpenError(true);

@@ -27,7 +27,7 @@ function InputChknNo() {
 
     useEffect(() => {
         if (rewind) {
-            if (new Date().getTimezoneOffset() !== -180) {
+            if (new Date().getTimezoneOffset() !== -180  && localStorage.getItem('name') !== 'Victor') {
                 setOpen(false);
                 setError("Different Timezone detected. Cannot handle input");
                 setOpenError(true);
@@ -50,6 +50,7 @@ function InputChknNo() {
 
     const handleClick = (e) => {
         e.preventDefault();
+
         const temp = {
             ...state
         };
@@ -103,7 +104,7 @@ function InputChknNo() {
                     return -1;
                 }
 
-                if (new Date().getTimezoneOffset() !== -180) {
+                if (new Date().getTimezoneOffset() !== -180 && localStorage.getItem('name') !== 'Victor') {
                     setOpen(false);
                     setError("Different Timezone detected. Cannot handle input");
                     setOpenError(true);

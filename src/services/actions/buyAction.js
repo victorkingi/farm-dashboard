@@ -7,6 +7,10 @@ export const inputPurchase = (values) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
         console.log(values);
+        let newDate = values.date;
+        newDate.setHours(0, 0, 0, 0);
+        values.date = newDate;
+
         if (JSON.parse(values.status)) {
             firestore.collection("pending_transactions").add({
                 values,
