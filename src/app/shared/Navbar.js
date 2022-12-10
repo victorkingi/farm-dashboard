@@ -250,7 +250,7 @@ function Navbar(props) {
     return (
       <nav className="navbar p-0 fixed-top d-flex flex-row">
         <div className="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
-          <Link className="navbar-brand brand-logo-mini"  to="/"><img src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/logo256.png?alt=media&token=6fb3850c-2e33-46ed-bc2b-4b63d83fee72"} alt="logo" /></Link>
+          <Link className="navbar-brand brand-logo-mini"  to="/"><img src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/logo192.png?alt=media&token=420012cd-80b9-483d-9f10-f3ee2c501988"} alt="logo" /></Link>
         </div>
         <div className="navbar-menu-wrapper flex-grow d-flex align-items-stretch">
           <button className="navbar-dark align-self-center" type="button" onClick={ () => window.location.reload() }>
@@ -325,7 +325,7 @@ function Navbar(props) {
             <Dropdown alignRight as="li" className="nav-item">
               <Dropdown.Toggle as="a" className="nav-link cursor-pointer no-caret">
                 <div className="navbar-profile">
-                  <img className="img-xs rounded-circle" src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/user.png?alt=media&token=0814728c-7abc-4794-8c77-8dba329568b6"} alt="profile" />
+                  <img className="img-xs rounded-circle" src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/user.png?alt=media&token=a5508634-7688-48d4-a079-bfbff0724eb6"} alt="profile" />
                   <p className="mb-0 d-none d-sm-block navbar-profile-name">Hi, {user.__name}</p>
                   <i className="mdi mdi-menu-down d-none d-sm-block"/>
                 </div>

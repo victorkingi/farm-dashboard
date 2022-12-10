@@ -59,14 +59,14 @@ class Sidebar extends Component {
     return (
         <nav className="sidebar sidebar-offcanvas" id="sidebar">
           <div className="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-center fixed-top">
-            <a className="sidebar-brand brand-logo-mini" href="/"><img src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/logo256.png?alt=media&token=6fb3850c-2e33-46ed-bc2b-4b63d83fee72"} alt="logo" /></a>
+            <a className="sidebar-brand brand-logo-mini" href="/"><img src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/logo192.png?alt=media&token=420012cd-80b9-483d-9f10-f3ee2c501988"} alt="logo" /></a>
           </div>
           <ul className="nav">
             <li className="nav-item profile">
               <div className="profile-desc">
                 <div className="profile-pic">
                   <div className="count-indicator">
-                    <img className="img-xs rounded-circle " src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/user.png?alt=media&token=0814728c-7abc-4794-8c77-8dba329568b6"} alt="profile" />
+                    <img className="img-xs rounded-circle " src={"https://firebasestorage.googleapis.com/v0/b/poultry101-f1fa0.appspot.com/o/user.png?alt=media&token=a5508634-7688-48d4-a079-bfbff0724eb6"} alt="profile" />
                     <span className="count bg-success"/>
                   </div>
                   <div className="profile-name">

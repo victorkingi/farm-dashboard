@@ -1,7 +1,7 @@
 export const getSectionAddr = (section) => {
   if (section === 'Cakes') return 'CAKES';
   if (section === 'Other Buyer') return 'SOTHER';
-  if (section === 'Thika Farmers') return 'THIKAFARMERS';
+  if (section === 'Thika Farmers') return 'THIKA FARMERS';
   if (section === 'Duka') return 'DUKA';
   if (section === 'Feeds') return 'FEEDS';
   if (section === 'Drugs') return 'DRUGS';

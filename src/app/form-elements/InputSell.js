@@ -90,7 +90,7 @@ function InputSell(props) {
     const fixedSections = sectionNames.map(x => x.toUpperCase());
     const validNames = buyerNames.map(x => x.toUpperCase());
 
-    if (!validNames.includes(stripBuyer) && !fixedSections.includes(values.section)) {
+    if (!validNames.includes(stripBuyer) && !fixedSections.includes(stripBuyer)) {
       setError('Buyer name does not exist');
       setOpenError(true);
       return false;
@@ -189,7 +189,7 @@ function InputSell(props) {
       return -1;
     }
     if (!values.status) values.receiver = '';
-    values.receiver = values.receiver.toUpperCase()
+    else values.receiver = `${values.receiver.toUpperCase()}:${parseInt(values.trayNo)*parseInt(values.trayPrice)},`;
     values.section = getSectionAddr(values.section);
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
