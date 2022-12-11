@@ -421,7 +421,7 @@ function LatePayment(props) {
                                                     onSelect={handlePreset}
                                                 >
                                                     {Object.values(bpresets).map((item) => {
-                                                        const preset = `${item.buyers.join(',')} -> ${item.items.join(',')}`;
+                                                        const preset = `${item.buyers?.join(',')} -> ${item.items?.join(',')}`;
                                                         return <div key={preset}><Dropdown.Item eventKey={preset}>{preset}</Dropdown.Item></div>
                                                     })}
                                                 </DropdownButton>
