@@ -372,7 +372,7 @@ function LatePayment(props) {
                                                 <td>{numeral(getAmountLeft(item.values)[0]).format('0,0')}</td>
                                                 <td className="text-success"> {item.values?.category === 'buys' ? 'P' : 'S'}</td>
                                                 <td> {sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`} </td>
-                                                <td> {item.values.receiver?.toLowerCase() || 'N/A'} </td>
+                                                <td> {(item.values.receiver?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || (item.values.paid_by?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || 'N/A'} </td>
                                             </tr>
                                         )
                                     })}
