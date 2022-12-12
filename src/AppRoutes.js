@@ -23,6 +23,7 @@ const AnneDebt = lazy(() => import('./app/tables/AnneDebt'));
 const LatePayment = lazy(() => import('./app/tables/LatePayment'));
 const BasicTable = lazy(() => import('./app/tables/BasicTable'));
 const BalancesBasicTable = lazy(() => import('./app/tables/BalancesBasicTable'));
+const Summary = lazy(() => import('./app/tables/Summary'));
 
 const Mdi = lazy(() => import('./app/icons/Mdi'));
 
@@ -59,6 +60,7 @@ function AppRoutes() {
           <Route path="/tables/annedebt" component={ AnneDebt } />
           <Route path="/tables/balances" component={ BalancesBasicTable } />
           <Route path="/tables/entries" component={ BasicTable } />
+          <Route path="/tables/sum" component={ Summary }/>
 
           <Route path="/icons/mdi" component={ Mdi } />
 
