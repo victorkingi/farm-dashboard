@@ -167,6 +167,19 @@ class Sidebar extends Component {
                     <li className="nav-item">
                       <Link
                           className={
+                            this.isPathActive('/tables/sum')
+                                ? 'nav-link active' : 'nav-link' }
+                          to="/tables/sum">
+                        Summary</Link></li>
+                  </ul>
+                </div>
+              </Collapse>
+              <Collapse in={ this.state.tablesMenuOpen }>
+                <div>
+                  <ul className="nav flex-column sub-menu">
+                    <li className="nav-item">
+                      <Link
+                          className={
                             this.isPathActive('/tables/late')
                                 ? 'nav-link active' : 'nav-link' }
                           to="/tables/late">
