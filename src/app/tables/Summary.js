@@ -32,10 +32,10 @@ function SpanningTable({ dash }) {
             tempRows.push(createRow('Soft loan(From Jeff)', 'Ksh '+numeral(dboard.soft_loan).format('0,0')));
             tempRows.push(createRow('Total Earned(includes sales not paid)', 'Ksh '+numeral(dboard.total_earned).format('0,0')));
             tempRows.push(createRow('Total Spent(without the soft loan)', 'Ksh '+numeral(dboard.total_spent-dboard.soft_loan).format('0,0')));
-            //tempRows.push(createRow('Sales Amount Not Settled', 'Ksh '+numeral(dboard.total_late_amt[0]).format('0,0')+' ('+numeral(dboard.total_late_trays).format('0,0')+' Trays)'));
-            //tempRows.push(createRow('Purchases Amount Not Settled', 'Ksh '+numeral(dboard.total_late_amt[1]).format('0,0')));
-            //tempRows.push(createRow('Total Sale Entries Pending Payment', numeral(dboard.total_late_orders[0]).format('0,0')));
-            //tempRows.push(createRow('Total Purchase Entries Pending Payment', numeral(dboard.total_late_orders[1]).format('0,0')));
+            tempRows.push(createRow('Sales Amount Not Settled', 'Ksh '+numeral(dboard.total_late_amt[0]).format('0,0')+' ('+numeral(dboard.total_late_trays).format('0,0')+' Trays)'));
+            tempRows.push(createRow('Purchases Amount Not Settled', 'Ksh '+numeral(dboard.total_late_amt[1]).format('0,0')));
+            tempRows.push(createRow('Total Sale Entries Pending Payment', numeral(dboard.total_late_orders[0]).format('0,0')));
+            tempRows.push(createRow('Total Purchase Entries Pending Payment', numeral(dboard.total_late_orders[1]).format('0,0')));
             tempRows.push(createRow('Total Sales Completed', numeral(dboard.total_orders).format('0,0')));
             tempRows.push(createRow('Total Trays sold(Including sales not paid)', numeral(dboard.total_trays_sold).format('0,0')));
 
