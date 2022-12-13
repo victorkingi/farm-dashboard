@@ -62,7 +62,7 @@ function SpanningTable({ dash }) {
 
     return (
         <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 700 }} aria-label="spanning table">
+            <Table sx={{ minWidth: 1 }} aria-label="spanning table">
                 <TableHead>
                     <TableRow>
                         <TableCell align="center" colSpan={100}>
