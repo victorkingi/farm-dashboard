@@ -28,17 +28,15 @@ function SpanningTable({ dash }) {
             const tempRows = [];
             tempRows.push(createRow('Birds Age(weeks)', age.age.weeks));
             tempRows.push(createRow('Birds Age(months)', age.age.months));
-            tempRows.push(createRow('Net profit', 'Ksh '+numeral(dboard.net_profit).format('0,0')));
+            tempRows.push(createRow('True Net Profit', 'Ksh '+numeral(dboard.net_profit[1]).format('0,0')));
+            tempRows.push(createRow('Perceived Net Profit', 'Ksh '+numeral(dboard.net_profit[0]).format('0,0')));
             tempRows.push(createRow('Soft loan(From Jeff)', 'Ksh '+numeral(dboard.soft_loan).format('0,0')));
-            tempRows.push(createRow('Total Earned(includes sales not paid)', 'Ksh '+numeral(dboard.total_earned).format('0,0')));
-            tempRows.push(createRow('Total Spent(without the soft loan)', 'Ksh '+numeral(dboard.total_spent-dboard.soft_loan).format('0,0')));
             tempRows.push(createRow('Sales Amount Not Settled', 'Ksh '+numeral(dboard.total_late_amt[0]).format('0,0')+' ('+numeral(dboard.total_late_trays).format('0,0')+' Trays)'));
             tempRows.push(createRow('Purchases Amount Not Settled', 'Ksh '+numeral(dboard.total_late_amt[1]).format('0,0')));
             tempRows.push(createRow('Total Sale Entries Pending Payment', numeral(dboard.total_late_orders[0]).format('0,0')));
             tempRows.push(createRow('Total Purchase Entries Pending Payment', numeral(dboard.total_late_orders[1]).format('0,0')));
             tempRows.push(createRow('Total Sales Completed', numeral(dboard.total_orders).format('0,0')));
             tempRows.push(createRow('Total Trays sold(Including sales not paid)', numeral(dboard.total_trays_sold).format('0,0')));
-
 
             tempRows.push(...Object.entries(dboard.aggr_late)
                 .map(item => createRow(`${item[0].endsWith('OTHER') 
@@ -53,7 +51,7 @@ function SpanningTable({ dash }) {
                 .map(item => createRow(`Debt: ${item[0].split('OWE_')[1].split('_').join(' ').toLowerCase()}`,
                     item[0].includes('JEFF') ? 'Ksh '+numeral(item[1] - dboard.owe.JEFF).format('0,0') : 'Ksh '+numeral(item[1]).format('0,0'))));
             tempRows.push(...Object.entries(dboard.pair_bals)
-                .map(item => createRow(`Pairing debt: ${item[0]}`,
+                .map(item => createRow(`Debt: ${item[0]}`,
                     'Ksh '+numeral(item[1]).format('0,0'))));
             setRows(tempRows);
         }
