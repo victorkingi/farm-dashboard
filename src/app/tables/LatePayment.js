@@ -14,8 +14,6 @@ import {Form} from "react-bootstrap";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Dropdown from "react-bootstrap/Dropdown";
 
-const users = ['BANK', 'JEFF', 'VICTOR', 'BABRA', 'PURITY', 'ANNE'];
-
 const getAmountLeft = (values) => {
     let amountPaid = 0;
     let total = 0;
@@ -56,22 +54,28 @@ function LatePayment(props) {
     const [clearWay, setClearWay] = useState('');
     const [bpresets, setBpresets] = useState({});
     const [chosenPreset, setChosenPreset] = useState('Pairing options');
+    const [users, setUsers] = useState([]);
 
     useEffect(() => {
         if (extra) {
             setBpresets(extra.extra_data.balance_out);
+            let employees = extra.extra_data.pay_employees.map(x => x.slice(4));
+            employees.push(...extra.extra_data.sholders);
+            employees.push('BANK');
+            employees = employees.map(x => x.toUpperCase());
+            setUsers(employees);
         }
     }, [extra]);
 
     // undo write events to database
-    const latePaid = async (isOne, isDebt, buyers, items) => {
+    const latePaid = async (isOne, isDebt, buyers, items, _payers) => {
         const allKeys = [];
 
         for (const [key, val] of Object.entries(pendChecked)) {
             const value = val[0];
             if (value) allKeys.push(key);
         }
-        const res = await props.hasPaidLate(allKeys, isOne, isDebt, buyers, items, payers);
+        const res = await props.hasPaidLate(allKeys, isOne, isDebt, buyers, items, _payers);
         const errors = res.filter(x => x !== 'ok');
         if (errors.length !== 0) {
             console.log(res);
@@ -160,14 +164,15 @@ function LatePayment(props) {
             return 0;
         } else if (clearWay === 'Available Balance') {
             const regexCheck = /^(([a-z]|[A-Z])+:[0-9]+,)*$/;
+            const _payers = payers+',';
 
-            if (!regexCheck.test(payers)) {
+            if (!regexCheck.test(_payers)) {
                 setOpen(false);
-                setErrM("Payee should be in this format [name:amount,]");
+                setErrM("Payee should be in this format [name:amount,name:amount]");
                 setError(true);
                 return 0;
             }
-            let x_ = payers.slice(0, -1);
+            let x_ = _payers.slice(0, -1);
             let payerNames_ = x_.split(',');
             let payerNames = [];
             for (const n of payerNames_) {
@@ -213,7 +218,7 @@ function LatePayment(props) {
                     setError(true);
                     return 0;
                 }
-                latePaid(true, false, [], []);
+                latePaid(true, false, [], [], _payers);
             } else {
                 if (expectedTotal !== totalAmount) {
                     setOpen(false);
@@ -221,7 +226,7 @@ function LatePayment(props) {
                     setError(true);
                     return 0;
                 }
-                latePaid(false, false, [], []);
+                latePaid(false, false, [], [], _payers);
             }
 
         } else if (clearWay === 'Debt Balance') {
@@ -319,13 +324,13 @@ function LatePayment(props) {
                                                 </label>
                                             </div>
                                         </th>
-                                        <th> Date </th>
-                                        <th> Status </th>
-                                        <th> Amount left </th>
-                                        <th> Total </th>
-                                        <th> Type </th>
-                                        <th> Name </th>
-                                        <th> Payees/Receivers </th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Amount left</th>
+                                        <th>Total</th>
+                                        <th>Type</th>
+                                        <th>Name</th>
+                                        <th>Payees/Receivers</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -359,7 +364,7 @@ function LatePayment(props) {
                                                         </label>
                                                     </div>
                                                 </td>
-                                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
+                                                <td>{moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")}</td>
                                                 <td>
                                                     {(item?.rejected === true && item?.signal !== 1)
                                                         ? <div className="badge badge-outline-danger">Rejected</div>
@@ -370,9 +375,9 @@ function LatePayment(props) {
                                                 </td>
                                                 <td>{numeral(getAmountLeft(item.values)[1]).format('0,0')}</td>
                                                 <td>{numeral(getAmountLeft(item.values)[0]).format('0,0')}</td>
-                                                <td className="text-success"> {item.values?.category === 'buys' ? 'P' : 'S'}</td>
-                                                <td> {sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`} </td>
-                                                <td> {(item.values.receiver?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || (item.values.paid_by?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || 'N/A'} </td>
+                                                <td className="text-success">{item.values?.category === 'buys' ? 'P' : 'S'}</td>
+                                                <td>{sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`}</td>
+                                                <td>{(item.values.receiver?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || (item.values.paid_by?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || 'N/A'}</td>
                                             </tr>
                                         )
                                     })}

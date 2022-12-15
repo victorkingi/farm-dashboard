@@ -10,7 +10,6 @@ import {sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
-import Localbase from "localbase";
 
 export function getRanColor() {
   const ranR = Math.floor((Math.random()*255)+1).toString(16);
@@ -19,9 +18,8 @@ export function getRanColor() {
   return ("#"+ranR+ranG+ranB).length === 6 ? "#0"+ranR+ranG+ranB : "#"+ranR+ranG+ranB;
 }
 
-let isRun = false;
 function Dashboard(props) {
-  const { acc, dashboard, pend, firestore, verify, pendEggs, lateDuka } = props;
+  const { acc, dashboard, pend, firestore, pendEggs, lateDuka } = props;
 
 
   const [bank, setBank] = useState(0);
@@ -60,62 +58,6 @@ function Dashboard(props) {
           setTotalDuka(total);
       }
   }, [lateDuka]);
-
-  useMemo(() => {
-      let isSubscribed = true;
-      const db = new Localbase('ver_data');
-
-      const writeToDb = async (db) => {
-          console.log("Writing to DB...");
-          const verDoc = await firestore.get({ collection: 'verification_data' });
-          verDoc.docs.forEach((doc_) => {
-              if (doc_.id !== 'verification') return;
-              const data = doc_.data();
-              const hashes = new Array(...data.hashes).sort();
-              const loss = data.loss;
-              const birdsNo = data.birds_no;
-
-              db.collection('hashes').delete().then(() => {
-                  db.collection('hashes').add({
-                      id: 1,
-                      hashes,
-                      loss,
-                      root: verify.root.root,
-                      birdsNo
-                  });
-              }).catch(() => {
-                  db.collection('hashes').add({
-                      id: 1,
-                      hashes,
-                      loss,
-                      root: verify.root.root,
-                      birdsNo
-                  });
-              });
-          });
-      }
-
-      const updateHashes = async () => {
-          const doc = await db.collection('hashes').doc({id: 1}).get();
-          if (doc) {
-              if (doc.root === verify.root.root) {
-                  console.log("root hashes match no update needed");
-                  return;
-              }
-              await writeToDb(db);
-          } else {
-              await writeToDb(db);
-          }
-      }
-      if (isSubscribed && verify?.root && !isRun) {
-          isRun = true;
-          updateHashes();
-      }
-
-      return () => isSubscribed = false;
-
-      //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [verify]);
 
   useEffect(() => {
     let total = 0;
@@ -858,7 +800,6 @@ const mapStateToProps = function(state) {
       acc: state.firestore.ordered.accounts,
       pend: state.firestore.ordered.pending_transactions,
       lateDuka: state.firestore.ordered.late_payment,
-      verify: state.firestore.data.verification_data,
       pendEggs: state.firestore.ordered.pend_eggs_collected
   }
 }
@@ -870,7 +811,6 @@ export default compose(
         {collection: 'accounts'},
         {collection: 'late_payment', where: ['values.buyerName', '==', 'DUKA']},
         {collection: 'pending_transactions' },
-        {collection: 'pend_eggs_collected', orderBy: ['date_', 'asc']},
-        {collection: 'verification_data', doc: 'root'}
+        {collection: 'pend_eggs_collected', orderBy: ['date_', 'asc']}
     ])
 )(Dashboard);
