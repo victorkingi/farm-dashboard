@@ -1,3 +1,5 @@
+import SHA256 from "crypto-js/sha256";
+
 export const getSectionAddr = (section) => {
   if (section === 'Cakes') return 'CAKES';
   if (section === 'Other Buyer') return 'SOTHER';
@@ -25,10 +27,14 @@ export const inputSell = (values) => {
     newDate.setHours(0, 0, 0, 0);
     values.date = newDate;
 
+    let hash = `${values.buyerName}${parseInt(values.date.getTime()/1000)}${values.section}`.toUpperCase();
+    hash = SHA256(hash).toString();
+
     if (JSON.parse(values.status)) {
       firestore.collection('pending_transactions')
           .add({
             values,
+            hash,
             submittedOn: new Date()
           });
         dispatch({
@@ -40,6 +46,7 @@ export const inputSell = (values) => {
         firestore.collection('late_payment')
           .add({
             values,
+            hash,
             submittedOn: new Date()
           });
         dispatch({

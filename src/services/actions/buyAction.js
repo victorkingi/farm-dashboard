@@ -1,3 +1,5 @@
+import SHA256 from "crypto-js/sha256";
+
 /**
  *
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
@@ -11,9 +13,13 @@ export const inputPurchase = (values) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
+        let hash = `${values.itemName}${parseInt(values.date.getTime()/1000)}${values.section}`.toUpperCase();
+        hash = SHA256(hash).toString();
+
         if (JSON.parse(values.status)) {
             firestore.collection("pending_transactions").add({
                 values,
+                hash,
                 submittedOn: new Date()
             });
             dispatch({type: 'INPUT_BUYING', values});
@@ -21,6 +27,7 @@ export const inputPurchase = (values) => {
             firestore.collection('late_payment')
                 .add({
                     values,
+                    hash,
                     submittedOn: new Date()
                 });
             dispatch({

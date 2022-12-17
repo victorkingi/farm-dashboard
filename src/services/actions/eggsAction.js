@@ -1,3 +1,5 @@
+import SHA256 from "crypto-js/sha256";
+
 /**
  *
  * @param eggs
@@ -17,8 +19,13 @@ export const inputTray = (eggs) => {
         let newDate = values.date_;
         newDate.setHours(0, 0, 0, 0);
         values.date_ = newDate.getTime() / 1000;
+
+        let hash = `${parseInt(values.date_)}`.toUpperCase();
+        hash = SHA256(hash).toString();
+
         firestore.collection('pend_eggs_collected').add({
-            ...values
+            ...values,
+            hash
         });
         console.log('done');
     }

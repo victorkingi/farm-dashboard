@@ -1,4 +1,5 @@
 import Localbase from "localbase";
+import SHA256 from "crypto-js/sha256";
 
 export const inputDeadSick = (deadSick, image) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
@@ -19,6 +20,9 @@ export const inputDeadSick = (deadSick, image) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
+        let hash = `${parseInt(values.date.getTime()/1000)}${values.section}${values.level}`.toUpperCase();
+        hash = SHA256(hash).toString();
+
         const reader = new FileReader();
         const db = new Localbase('imageUpload');
         reader.addEventListener('load', () => {
@@ -30,7 +34,7 @@ export const inputDeadSick = (deadSick, image) => {
             }).then(() => {
                 console.log("doc added to local");
                 firestore.collection('pending_upload')
-                    .add({ ...values });
+                    .add({ ...values, hash });
             });
         })
         reader.readAsArrayBuffer(image);

@@ -26,8 +26,7 @@ function SpanningTable({ dash }) {
                 return { desc, qty };
             }
             const tempRows = [];
-            tempRows.push(createRow('Birds Age(weeks)', age.age.weeks));
-            tempRows.push(createRow('Birds Age(months)', age.age.months));
+            tempRows.push(createRow('Birds Age in weeks', String(age.age.weeks)+' ('+age.age.months+' Months)'));
             tempRows.push(createRow('True Net Profit', 'Ksh '+numeral(dboard.net_profit[1]).format('0,0')));
             tempRows.push(createRow('Perceived Net Profit', 'Ksh '+numeral(dboard.net_profit[0]).format('0,0')));
             tempRows.push(createRow('Soft loan(From Jeff)', 'Ksh '+numeral(dboard.soft_loan).format('0,0')));
@@ -75,7 +74,8 @@ function SpanningTable({ dash }) {
                     {rows.map((row) => (
                         <TableRow key={row.desc}>
                             <TableCell>{row.desc}</TableCell>
-                            <TableCell align="right" colSpan={100}>{String(row.qty).endsWith('Trays)') ? (
+                            <TableCell align="right" colSpan={100}>{
+                                String(row.qty).endsWith('Trays)') || String(row.qty).endsWith('Months)') ? (
                                 <div>
                                     {row.qty.split(' (')[0]}<b>{row.qty.slice(row.qty.indexOf(' ('))}</b>
                                 </div>
