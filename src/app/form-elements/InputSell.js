@@ -200,8 +200,8 @@ function InputSell(props) {
           const leaves = document.hashes;
           const tree = new MerkleTree(leaves, SHA256);
           const root = tree.getRoot().toString('hex');
-          const leaf = SHA256(`${values.buyerName.toUpperCase()}${parseInt(values.date.getTime() / 1000)}${values.section.toUpperCase()}`).toString();
-          console.log(`${values.buyerName.toUpperCase()}${parseInt(values.date.getTime() / 1000)}${values.section.toUpperCase()}`)
+          let leaf = `${values.buyerName}${parseInt(values.date.getTime() / 1000)}${values.section}`.toUpperCase();
+          leaf = SHA256(leaf).toString();
           console.log(leaf);
           const proof = tree.getProof(leaf);
           const isAvail = tree.verify(proof, leaf, root);
