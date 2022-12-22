@@ -97,8 +97,6 @@ function Dashboard(props) {
       if (pend?.length > 0) {
         let allDisable  = false;
         for (let k = 0; k < pend.length; k++) {
-          //if we come across the first one where name isn't name break loop
-          if (pend[k].id === 'cleared') continue;
           if (pend[k].values?.name) {
             if (pend[k].values?.name !== __user__
                 && pend[k].values?.name !== "ANNE" && pend[k].values?.name !== "BANK") {
@@ -621,7 +619,7 @@ function Dashboard(props) {
                                                ? <div className="badge badge-outline-danger">Rejected</div>
                                                : (item?.rejected === true && item?.signal === 1)
                                                    ? <div className="badge badge-outline-light">Rejected</div>
-                                                   : (item?.ready === true ? <div className="badge badge-outline-success">Pending</div>
+                                                   : (item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                        : <div className="badge badge-outline-primary">Waiting</div>)}
                                        </td>
                                        <td> {moment(item.date_ * 1000).format("MMM Do YY")} </td>
@@ -698,7 +696,7 @@ function Dashboard(props) {
                                              ? <div className="badge badge-outline-danger">Rejected</div>
                                              : (item?.rejected === true && item?.signal === 1)
                                                  ? <div className="badge badge-outline-light">Rejected</div>
-                                                 : (item?.ready === true ? <div className="badge badge-outline-success">Pending</div>
+                                                 : (item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                      : <div className="badge badge-outline-primary">Waiting</div>)}
                                      </td>
                                      <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
@@ -731,7 +729,7 @@ function Dashboard(props) {
                                        ? <div className="badge badge-outline-danger">Rejected</div>
                                        : (item?.rejected === true && item?.signal === 1)
                                            ? <div className="badge badge-outline-light">Rejected</div>
-                                           : (item?.ready === true ? <div className="badge badge-outline-success">Pending</div>
+                                           : (item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                : <div className="badge badge-outline-primary">Waiting</div>)}
                                </td>
                                <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
@@ -807,10 +805,10 @@ const mapStateToProps = function(state) {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'dashboard_data'},
-        {collection: 'accounts'},
+        {collection: 'dashboard_data', doc: 'dashboard'},
+        {collection: 'accounts', doc: 'accounts'},
         {collection: 'late_payment', where: ['values.buyerName', '==', 'DUKA']},
-        {collection: 'pending_transactions' },
+        {collection: 'pending_transactions', orderBy: ['values.date', 'asc']},
         {collection: 'pend_eggs_collected', orderBy: ['date_', 'asc']}
     ])
 )(Dashboard);

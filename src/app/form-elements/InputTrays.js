@@ -180,7 +180,7 @@ const mapStateToProps = function(state) {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'dashboard_data'},
+        {collection: 'dashboard_data', doc: 'dashboard'},
         {collection: 'pend_eggs_collected', orderBy: ['date_', 'desc']}
     ])
 )(InputTrays);

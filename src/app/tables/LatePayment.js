@@ -265,7 +265,6 @@ function LatePayment(props) {
         if (!late) return 0;
         const allPend = {};
         for (let i = 0; i < late.length; i++) {
-            if (late[i].values.section === 'CAKES') continue;
             const description = sanitize_string(late[i].values)
                 +` ${numeral(late[i].values?.trayNo || late[i].values?.objectNo)
                     .format('0,0')}@${numeral(late[i].values?.trayPrice || late[i].values?.objectPrice)
@@ -324,19 +323,16 @@ function LatePayment(props) {
                                                 </label>
                                             </div>
                                         </th>
-                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Name</th>
                                         <th>Status</th>
                                         <th>Amount left</th>
                                         <th>Total</th>
-                                        <th>Type</th>
-                                        <th>Name</th>
                                         <th>Payees/Receivers</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     {late && late.map((item) => {
-                                        if (item.values?.section === 'CAKES') return '';
-
                                         return (
                                             <tr key={item.id}>
                                                 <td>
@@ -364,19 +360,18 @@ function LatePayment(props) {
                                                         </label>
                                                     </div>
                                                 </td>
-                                                <td>{moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")}</td>
+                                                <td className="text-success">{item.values?.category === 'buys' ? 'P' : 'S'}</td>
+                                                <td>({moment(item.values?.date?.toDate()).format("MMM Do YY")})<br/>{sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`}</td>
                                                 <td>
                                                     {(item?.rejected === true && item?.signal !== 1)
                                                         ? <div className="badge badge-outline-danger">Rejected</div>
                                                         : (item?.rejected === true && item?.signal === 1)
                                                             ? <div className="badge badge-outline-light">Rejected</div>
-                                                            : (item?.ready === true ? <div className="badge badge-outline-success">Pending</div>
+                                                            : (item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                                 : <div className="badge badge-outline-primary">Waiting</div>)}
                                                 </td>
                                                 <td>{numeral(getAmountLeft(item.values)[1]).format('0,0')}</td>
                                                 <td>{numeral(getAmountLeft(item.values)[0]).format('0,0')}</td>
-                                                <td className="text-success">{item.values?.category === 'buys' ? 'P' : 'S'}</td>
-                                                <td>{sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`}</td>
                                                 <td>{(item.values.receiver?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || (item.values.paid_by?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || 'N/A'}</td>
                                             </tr>
                                         )
@@ -483,7 +478,7 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-        {collection: 'late_payment', orderBy: ['values.date', 'desc']},
+        {collection: 'late_payment', where: ['values.section', '!=', 'CAKES']},
         {collection: 'extra_data', doc: 'extra_data'}
     ])
 )(LatePayment);

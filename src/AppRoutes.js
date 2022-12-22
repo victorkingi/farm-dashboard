@@ -5,10 +5,6 @@ import Spinner from './app/shared/Spinner';
 
 const Dashboard = lazy(() => import('./app/dashboard/Dashboard'));
 
-const Buttons = lazy(() => import('./app/basic-ui/Buttons'));
-const Dropdowns = lazy(() => import('./app/basic-ui/Dropdowns'));
-const Typography = lazy(() => import('./app/basic-ui/Typography'));
-
 const InputTrays = lazy(() => import('./app/form-elements/InputTrays'));
 const InputSell = lazy(() => import('./app/form-elements/InputSell'));
 const InputPurchase = lazy(() => import('./app/form-elements/InputPurchase'));
@@ -25,25 +21,18 @@ const BasicTable = lazy(() => import('./app/tables/BasicTable'));
 const BalancesBasicTable = lazy(() => import('./app/tables/BalancesBasicTable'));
 const Summary = lazy(() => import('./app/tables/Summary'));
 
-const Mdi = lazy(() => import('./app/icons/Mdi'));
-
 const ChartJs = lazy(() => import('./app/charts/ChartJs'));
 
 const Error404 = lazy(() => import('./app/error-pages/Error404'));
 const Error500 = lazy(() => import('./app/error-pages/Error500'));
 
 const Login = lazy(() => import('./app/user-pages/Login'));
-const Register1 = lazy(() => import('./app/user-pages/Register'));
 
 function AppRoutes() {
     return (
       <Suspense fallback={<Spinner/>}>
         <Switch>
           <Route exact path="/" component={ Dashboard } />
-
-          <Route path="/basic-ui/buttons" component={ Buttons } />
-          <Route path="/basic-ui/dropdowns" component={ Dropdowns } />
-          <Route path="/basic-ui/typography" component={ Typography } />
 
           <Route path="/inputs/trays" component={ InputTrays } />
           <Route path="/inputs/sale" component={ InputSell } />
@@ -62,13 +51,9 @@ function AppRoutes() {
           <Route path="/tables/entries" component={ BasicTable } />
           <Route path="/tables/sum" component={ Summary }/>
 
-          <Route path="/icons/mdi" component={ Mdi } />
-
           <Route path="/charts/chart-js" component={ ChartJs } />
 
-
           <Route path="/user-pages/login-1" component={ Login } />
-          <Route path="/user-pages/register-1" component={ Register1 } />
 
           <Route path="/error-pages/error-404" component={ Error404 } />
           <Route path="/error-pages/error-500" component={ Error500 } />

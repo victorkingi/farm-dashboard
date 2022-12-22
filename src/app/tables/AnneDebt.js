@@ -136,7 +136,7 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-        {collection: 'late_payment', orderBy: ['submittedOn', 'desc']}
+        {collection: 'late_payment', where: ['values.section', '==', 'CAKES']}
     ])
 )(function AnneDebt(props) {
     const [open, setOpen] = useState(false);
@@ -188,11 +188,9 @@ export default compose(
     const getValues = () => {
         const arr = []
         for (let i = 0; i < props.pending?.length; i++) {
-            if (props.pending[i].values.section === "CAKES") {
-                arr.push(props.pending[i].values);
-            }
+            arr.push(props.pending[i].values);
         }
-        return arr;
+        return arr.sort((a, b) => a.date.toDate() - b.date.toDate());
     }
     function createData() {
         const monthNames = ["January", "February", "March", "April", "May", "June",

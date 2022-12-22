@@ -82,14 +82,7 @@ function DInvoice({ invoices, acc, late, extraData }) {
 
     useEffect(() => {
         if (invoices) {
-            let counter = 0;
-            for (const doc of invoices) {
-                if (doc.id === 'count') {
-                    counter = doc.num;
-                    break;
-                }
-            }
-            setInvoiceNum(counter);
+            setInvoiceNum(invoices[0]?.num);
         }
     }, [invoices]);
 
@@ -352,8 +345,8 @@ const mapStateToProps = function(state) {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'invoices'},
-        {collection: 'accounts'},
+        {collection: 'invoices', doc: 'count'},
+        {collection: 'accounts', doc: 'accounts'},
         {collection: 'extra_data', doc: 'extra_data'},
         {collection: 'late_payment', where: ['values.category', '==', 'buys']}
     ])

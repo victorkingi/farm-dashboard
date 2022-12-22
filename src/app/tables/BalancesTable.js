@@ -527,5 +527,5 @@ function EnhancedTable(props) {
 
 export default compose(
     connect(),
-    firestoreConnect([])
+    firestoreConnect()
 )(EnhancedTable);
