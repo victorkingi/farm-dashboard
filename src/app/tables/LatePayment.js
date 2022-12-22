@@ -332,7 +332,7 @@ function LatePayment(props) {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {late && late.map((item) => {
+                                    {late && Array(...late).sort((a, b) => b.values.date.toDate() - a.values.date.toDate()).map((item) => {
                                         return (
                                             <tr key={item.id}>
                                                 <td>
