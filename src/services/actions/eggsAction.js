@@ -13,19 +13,19 @@ export const inputTray = (eggs) => {
         const name =  disName.substring(0, disName.lastIndexOf(" ")).toUpperCase();
         let values = {
             ...eggs,
-            submittedBy: name,
-            submittedOn: new Date()
+            submitted_by: name,
+            submitted_on: new Date()
         }
         let newDate = values.date_;
         newDate.setHours(0, 0, 0, 0);
-        values.date_ = newDate.getTime() / 1000;
+        values.date = newDate;
+        delete values.date_;
 
         let hash = `${parseInt(values.date_)}`.toUpperCase();
         hash = SHA256(hash).toString();
 
-        firestore.collection('pend_eggs_collected').add({
-            ...values,
-            hash
+        firestore.collection('pend_eggs_collected').doc(hash).set({
+            values
         });
         console.log('done');
     }

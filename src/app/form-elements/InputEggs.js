@@ -26,7 +26,7 @@ const getEggsDiff = (temp) => {
 function InputEggs(props) {
     const [state, setState] = useState({
         date_: new Date(),
-        category: 'eggs',
+        category: 'eggs_collected',
         extra_data: ''
     });
     const [open, setOpen] = useState(false);

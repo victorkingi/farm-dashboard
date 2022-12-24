@@ -24,7 +24,7 @@ function InputMoney(props) {
     const [state, setState] = useState({
         from: 'From',
         to: 'To',
-        category: 'send',
+        category: 'trades',
         date: new Date(),
         extra_data: ''
     });

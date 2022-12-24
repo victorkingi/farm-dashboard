@@ -27,9 +27,9 @@ function InputSell(props) {
     category: 'sales',
     date: new Date(),
     section: 'Choose Section',
-    buyerName: '',
-    trayPrice: '350',
-    trayNo: '1',
+    buyer_name: '',
+    tray_price: '350',
+    tray_no: '1',
     receiver: localStorage.getItem('name'),
     extra_data: ''
   });
@@ -38,7 +38,7 @@ function InputSell(props) {
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [sectionNames, setSectionNames] = useState([]);
-  const [buyerNames, setBuyerNames] = useState([]);
+  const [buyer_names, setBuyerNames] = useState([]);
 
   let name = firebase.auth().currentUser?.displayName;
   name = name ? name.substring(0, name.lastIndexOf(' '))
@@ -57,13 +57,13 @@ function InputSell(props) {
       let amount = parseInt(document.loss.amount);
       if (amount !== 0) {
         if (amount < 0) amount *= -1;
-        const price = Math.round(amount/parseInt(state.trayNo));
-        if (price > 300 || isNaN(price)) setState({...state, trayPrice: `${isNaN(price) ? '350' : price > 1000 ? '350' : price}`})
-        else setState({...state, trayPrice: '350'})
+        const price = Math.round(amount/parseInt(state.tray_no));
+        if (price > 300 || isNaN(price)) setState({...state, tray_price: `${isNaN(price) ? '350' : price > 1000 ? '350' : price}`})
+        else setState({...state, tray_price: '350'})
       }
     });
           // eslint-disable-next-line
-  }, [state.trayNo]);
+  }, [state.tray_no]);
 
   const checkDate = (date) => {
     if (date.getTime() > new Date().getTime()) {
@@ -86,16 +86,16 @@ function InputSell(props) {
       setOpenError(true);
       return false;
     }
-    const stripBuyer = values.buyerName.trim().toUpperCase();
+    const stripBuyer = values.buyer_name.trim().toUpperCase();
     const fixedSections = sectionNames.map(x => x.toUpperCase());
-    const validNames = buyerNames.map(x => x.toUpperCase());
+    const validNames = buyer_names.map(x => x.toUpperCase());
 
     if (!validNames.includes(stripBuyer) && !fixedSections.includes(stripBuyer)) {
       setError('Buyer name does not exist');
       setOpenError(true);
       return false;
     }
-    values.buyerName = stripBuyer;
+    values.buyer_name = stripBuyer;
 
     let proceed = checkDate(values.date);
     if (proceed) {
@@ -103,7 +103,7 @@ function InputSell(props) {
       if (trayCheck) {
         const allKeys = Object.keys(trayCheck[0]).filter(val => val !== 'id');
         const trayInvalid = allKeys.includes(epoch.toString());
-        return !trayInvalid && !!values.buyerName;
+        return !trayInvalid && !!values.buyer_name;
       }
     }
     return false;
@@ -141,20 +141,20 @@ function InputSell(props) {
           return;
         }
         if (arr[i][1] !== 'Other Buyer') {
-          if (state.section !== state.buyerName) {
+          if (state.section !== state.buyer_name) {
             setError('Section and buyer name should be the same');
             setOpenError(true);
             return;
           }
         } else {
-          if (state.section === state.buyerName) {
+          if (state.section === state.buyer_name) {
             setError('Section and buyer name should not be equal');
             setOpenError(true);
             return;
           }
         }
       }
-      if (arr[i][0] === 'trayNo' || arr[i][0] === 'trayPrice') {
+      if (arr[i][0] === 'tray_no' || arr[i][0] === 'tray_price') {
         if (!trayRegex.test(arr[i][1])) {
           setError('Tray price and amount cannot be negative or not a number');
           setOpenError(true);
@@ -189,7 +189,7 @@ function InputSell(props) {
       return -1;
     }
     if (!values.status) values.receiver = '';
-    else values.receiver = `${values.receiver.toUpperCase()}:${parseInt(values.trayNo)*parseInt(values.trayPrice)},`;
+    else values.receiver = `${values.receiver.toUpperCase()}:${parseInt(values.tray_no)*parseInt(values.tray_price)},`;
     values.section = getSectionAddr(values.section);
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
@@ -200,7 +200,7 @@ function InputSell(props) {
           const leaves = document.hashes;
           const tree = new MerkleTree(leaves, SHA256);
           const root = tree.getRoot().toString('hex');
-          let leaf = `${values.buyerName}${parseInt(values.date.getTime() / 1000)}${values.section}`.toUpperCase();
+          let leaf = `${values.buyer_name}${parseInt(values.date.getTime() / 1000)}${values.section}`.toUpperCase();
           leaf = SHA256(leaf).toString();
           console.log(leaf);
           const proof = tree.getProof(leaf);
@@ -265,7 +265,7 @@ function InputSell(props) {
       setState({
         ...state,
         section: e,
-        buyerName: e
+        buyer_name: e
       });
     }
   };
@@ -280,7 +280,7 @@ function InputSell(props) {
   const handleBuyer = (e) => {
     setState({
       ...state,
-      buyerName: e
+      buyer_name: e
     });
   }
 
@@ -352,38 +352,38 @@ function InputSell(props) {
                 </DropdownButton>
               </Form.Group>
               <Form.Group>
-                <label htmlFor='buyerName'>Buyer Name</label>
+                <label htmlFor='buyer_name'>Buyer Name</label>
                 <DropdownButton
                     alignRight
-                    title={state.buyerName || 'Choose Buyer Name'}
-                    id='buyerName'
+                    title={state.buyer_name || 'Choose Buyer Name'}
+                    id='buyer_name'
                     onSelect={handleBuyer}
                 >
-                  {buyerNames.map(x => {
+                  {buyer_names.map(x => {
                     return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
                   })}
                 </DropdownButton>
               </Form.Group>
               <Form.Group>
-                <label htmlFor='trayNo'>Number of Trays</label>
+                <label htmlFor='tray_no'>Number of Trays</label>
                 <Form.Control
                   type='text'
                   onChange={handleSelect}
-                  value={state.trayNo}
+                  value={state.tray_no}
                   className="form-control text-white"
-                  id='trayNo'
+                  id='tray_no'
                   placeholder='Number of Trays'
                 />
               </Form.Group>
               <Form.Group>
-                <label htmlFor='trayPrice'>Price per Tray</label>
+                <label htmlFor='tray_price'>Price per Tray</label>
                 <Form.Control
                   type='text'
                   onChange={handleSelect}
                   className="form-control text-white"
-                  id='trayPrice'
+                  id='tray_price'
                   placeholder='Price per Tray'
-                  value={state.trayPrice}
+                  value={state.tray_price}
                 />
               </Form.Group>
               <Form.Group>

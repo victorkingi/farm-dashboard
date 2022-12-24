@@ -15,7 +15,7 @@ function Withdraw(props) {
     const [state, setState] = useState({
         name: "My Balance",
         receiver: 'To',
-        category: 'send',
+        category: 'trades',
         reason: 'WITHDRAW',
         extra_data: ''
     });

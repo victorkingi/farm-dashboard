@@ -107,7 +107,9 @@ function Navbar(props) {
           return;
         }
 
-        for (const tx of pending_upload) {
+        for (let tx of pending_upload) {
+          tx = tx.values;
+
           if (!(docs.map(x => x.file_name).includes(tx.file_name))) {
             setOpen(false);
             setError("Cloud document "+tx.file_name.slice(0, 10)+" does not exist locally");
@@ -215,7 +217,7 @@ function Navbar(props) {
                 async () => {
                   const url = await uploadTask.snapshot.ref.getDownloadURL();
                   console.log('done', url);
-                  const query = await firestore.get({ collection: 'pending_upload', where: ['file_name', '==', key] });
+                  const query = await firestore.get({ collection: 'pending_upload', where: ['values.file_name', '==', key] });
                   if (query.size === 0) {
                     setOpen(false);
                     setError("Uploaded file doesn't have a reference");
@@ -246,14 +248,12 @@ function Navbar(props) {
                     let to_add = doc.data();
                     let to_del_id = doc.id;
                     console.log("to be deleted", to_del_id);
-                    delete to_add.photo;
-                    to_add = {
-                      ...to_add,
-                      url
-                    }
+                    delete to_add.values.photo;
+                    to_add.values.url = url;
+
                     // delete local doc
                     db.collection('dead_sick').doc({file_name: key}).delete();
-                    firestore.add({ collection: 'pending_transactions' }, to_add);
+                    firestore.set({ collection: 'pending_transactions', doc: to_del_id }, to_add);
                     firestore.delete({ collection: 'pending_upload', doc: to_del_id });
 
                     setOpenError(false);
@@ -333,9 +333,11 @@ function Navbar(props) {
                 <Dropdown.Divider />
                 {
                   pending_upload?.length > 0 ? pending_upload.map((item) => {
+                    const id = item.id;
+                    item = item.values;
                     return (
                         <Dropdown.Item
-                            key={item.id}
+                            key={id}
                             className="dropdown-item preview-item"
                             onClick={evt =>evt.preventDefault()}>
                           <div className="preview-thumbnail">
@@ -346,7 +348,7 @@ function Navbar(props) {
                             </div>
                           </div>
                           <div className="preview-item-content">
-                            <p className="preview-subject mb-1">Uploading {moment(item.submittedOn.toDate()).fromNow()} submission</p>
+                            <p className="preview-subject mb-1">Uploading {moment(item.submitted_on.toDate()).fromNow()} submission</p>
                             <p className="text-muted ellipsis mb-0">
                                 <Line
                                       percent={state.percent.get(item.file_name)} strokeWidth="4" strokeColor={state.color.get(item.file_name)} />
@@ -436,6 +438,6 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-      {collection: 'pending_upload', orderBy: ['submittedOn', 'asc']},
+      {collection: 'pending_upload', orderBy: ['values.submitted_on', 'asc']},
       {collection: 'verification_data', doc: 'root'}
     ]))(Navbar);

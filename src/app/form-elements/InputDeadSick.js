@@ -14,7 +14,7 @@ import {Offline, Online} from "react-detect-offline";
 function InputDeadSick(props) {
     const [state, setState] = useState({
         date: new Date(),
-        category: 'deadSick',
+        category: 'dead_sick',
         extra_data: ''
     });
     const [open, setOpen] = useState(false);
@@ -39,7 +39,7 @@ function InputDeadSick(props) {
         const arr = Object.entries(state);
 
         for (let i = 0; i < arr.length; i++) {
-            if (arr[i][0] === "chickenNo") {
+            if (arr[i][0] === "num") {
                 if (!numberRegex.test(arr[i][1])) {
                     setError('Chicken number cannot be negative or not a number');
                     setOpenError(true);
@@ -74,7 +74,7 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        if (!numberRegex.test(state.chickenNo)) {
+        if (!numberRegex.test(state.num)) {
             setError('Chicken number cannot be negative, 0 or not a number');
             setOpenError(true);
             return;
@@ -194,8 +194,8 @@ function InputDeadSick(props) {
                                     <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="level" placeholder="row name" />
                                 </Form.Group>
                                 <Form.Group>
-                                    <label htmlFor="chickenNo">Number of Chickens</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="chickenNo" placeholder="Number of Chickens" />
+                                    <label htmlFor="num">Number of Chickens</label>
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="num" placeholder="Number of Chickens" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="reason">Reason (and Treatment Given)</label>

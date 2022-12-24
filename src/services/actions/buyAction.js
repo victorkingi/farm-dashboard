@@ -13,23 +13,20 @@ export const inputPurchase = (values) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
-        let hash = `${values.itemName}${parseInt(values.date.getTime()/1000)}${values.section}`.toUpperCase();
+        let hash = `${values.item_name}${parseInt(values.date.getTime()/1000)}${values.section}`.toUpperCase();
         hash = SHA256(hash).toString();
+        values.submitted_on = new Date();
 
         if (JSON.parse(values.status)) {
-            firestore.collection("pending_transactions").add({
-                values,
-                hash,
-                submittedOn: new Date()
+            firestore.collection('pending_transactions')
+                .doc(hash).set({
+                values
             });
             dispatch({type: 'INPUT_BUYING', values});
         } else {
-            firestore.collection('late_payment')
-                .add({
-                    values,
-                    hash,
-                    submittedOn: new Date()
-                });
+            firestore.collection('late_payment').doc(hash).set({
+                values
+            });
             dispatch({
                 type: 'INPUT_BUYING',
                 values

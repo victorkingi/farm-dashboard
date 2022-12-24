@@ -33,11 +33,11 @@ function InputChknNo() {
                 setOpenError(true);
                 return -1;
             }
-            firestore.doc(`chickenNo/exact`)
+            firestore.doc(`chicken_no/exact`)
                 .update({
                     [today]: -1
                 });
-            firestore.doc(`chickenNo/by`)
+            firestore.doc(`chicken_no/by`)
                 .update({
                     [today]: name
                 });
@@ -74,10 +74,10 @@ function InputChknNo() {
 
                 if (document.birdsNo) {
                     let chicks = document.birdsNo;
-                    let chickenNo = temp.chicks.split(',');
-                    chickenNo.pop();
-                    chickenNo = chickenNo.map(item => parseInt(item));
-                    const total = chickenNo.reduce((res, item) => res + item, 0);
+                    let chicken_no = temp.chicks.split(',');
+                    chicken_no.pop();
+                    chicken_no = chicken_no.map(item => parseInt(item));
+                    const total = chicken_no.reduce((res, item) => res + item, 0);
                     if (total !== chicks.total) {
                         setOpen(false);
                         setError(`Expected ${chicks.total} birds but got ${total}. Some dead birds were not entered`);
@@ -87,7 +87,7 @@ function InputChknNo() {
                     const levelOrder = ['a1', 'b1', 'c1', 'a2', 'b2', 'c2', 'a3', 'b3', 'c3', 'a4', 'b4', 'c4'];
                     let idx = 0;
                     let allSame = true;
-                    for (const x of chickenNo) {
+                    for (const x of chicken_no) {
                         if (x !== chicks[levelOrder[idx]]) allSame = false;
                         idx++;
                     }
@@ -110,11 +110,11 @@ function InputChknNo() {
                     setOpenError(true);
                     return -1;
                 }
-                firestore.doc(`chickenNo/exact`)
+                firestore.doc(`chicken_no/exact`)
                     .update({
                         [today]: temp.chicks
                     });
-                firestore.doc(`chickenNo/by`)
+                firestore.doc(`chicken_no/by`)
                     .update({
                         [today]: name
                     });

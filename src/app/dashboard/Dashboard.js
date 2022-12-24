@@ -21,7 +21,6 @@ export function getRanColor() {
 function Dashboard(props) {
   const { acc, dashboard, pend, firestore, pendEggs, lateDuka } = props;
 
-
   const [bank, setBank] = useState(0);
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
@@ -53,7 +52,7 @@ function Dashboard(props) {
       if (lateDuka) {
           let total = 0;
           for (const x of lateDuka) {
-              total += parseInt(x.values.trayPrice) * parseInt(x.values.trayNo);
+              total += parseInt(x.values.tray_price) * parseInt(x.values.tray_no);
           }
           setTotalDuka(total);
       }
@@ -82,7 +81,7 @@ function Dashboard(props) {
         if (pendEggs.length > 0) {
             let allDisable  = false;
             for (let k = 0; k < pendEggs.length; k++) {
-                if (pendEggs[k].submittedBy !== __user__) {
+                if (pendEggs[k].submitted_by !== __user__) {
                     allDisable = true;
                     break;
                 }
@@ -104,7 +103,7 @@ function Dashboard(props) {
                 break;
             }
           }
-          if (pend[k].submittedBy && pend[k].submittedBy !== __user__) {
+          if (pend[k].submitted_by && pend[k].submitted_by !== __user__) {
               allDisable = true;
               break;
           }
@@ -173,13 +172,13 @@ function Dashboard(props) {
   };
 
   const getAmount = (item) => {
-     if (item?.values?.trayNo)
-       return parseInt(item?.values?.trayNo)
-           * parseFloat(item?.values?.trayPrice);
-     else if (item?.values?.objectNo)
-       return  parseInt(item?.values?.objectNo)
-           * parseFloat(item?.values?.objectPrice);
-     else if (item?.values?.amount) return item?.values?.amount;
+     if (item.tray_no)
+       return parseInt(item.tray_no)
+           * parseInt(item.tray_price);
+     else if (item.item_no)
+       return  parseInt(item.item_no)
+           * parseInt(item.item_price);
+     else if (item.amount) return item.amount;
    }
 
   const display = (e) => {
@@ -594,8 +593,8 @@ function Dashboard(props) {
                            </thead>
                            <tbody>
                            {pendEggs && pendEggs.map((item) => {
-                               let disCheckBox = __user__ !== item.submittedBy;
-
+                               let disCheckBox = __user__ !== item.submitted_by;
+                               const item_vals = item.values;
                                return (
                                    <tr key={item.id} className={`text-${(item.rejected === true || item.rejected === false) ? 'white' : 'muted'}`}>
                                        <td>
@@ -622,12 +621,12 @@ function Dashboard(props) {
                                                    : (item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                        : <div className="badge badge-outline-primary">Waiting</div>)}
                                        </td>
-                                       <td> {moment(item.date_ * 1000).format("MMM Do YY")} </td>
-                                       <td> {item.trays_store} </td>
-                                       <td> {item.extra_data.split(';')[2]} </td>
-                                       <td> {item.eggs.slice(0, item.eggs.length-1)} </td>
-                                       <td> {item.broken} </td>
-                                       <td> {item.submittedBy.charAt(0) + item.submittedBy.slice(1).toLowerCase()} </td>
+                                       <td> {moment(item_vals.date.toDate()).format("MMM Do YY")} </td>
+                                       <td> {item_vals.trays_store} </td>
+                                       <td> {item_vals.extra_data.split(';')[2]} </td>
+                                       <td> {item_vals.eggs.slice(0, item_vals.eggs.length-1)} </td>
+                                       <td> {item_vals.broken} </td>
+                                       <td> {item_vals.submitted_by.charAt(0) + item_vals.submitted_by.slice(1).toLowerCase()} </td>
                                    </tr>
                                )
                            })}
@@ -672,9 +671,10 @@ function Dashboard(props) {
                          let disCheckBox = __user__ !== item.values?.name;
                          disCheckBox = disCheckBox && "ANNE" !== item.values?.name;
                          disCheckBox = disCheckBox && "BANK" !== item.values?.name;
-                         if (item.id === "cleared") return null;
-                         if (item.category === 'deadSick') {
-                             disCheckBox = __user__ !== item.submittedBy;
+                         const item_vals = item.values;
+
+                         if (item_vals.category === 'dead_sick') {
+                             disCheckBox = __user__ !== item_vals.submitted_by;
                              return (
                                  <tr key={item.id} className={`text-${(item.rejected === true || item.rejected === false) ? 'white' : 'muted'}`}>
                                      <td>
@@ -699,8 +699,8 @@ function Dashboard(props) {
                                                  : (item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                      : <div className="badge badge-outline-primary">Waiting</div>)}
                                      </td>
-                                     <td> {moment(item?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
-                                     <td>{item.section} Chicken(s)</td>
+                                     <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
+                                     <td>{item_vals.section} Chicken(s)</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
@@ -732,11 +732,16 @@ function Dashboard(props) {
                                            : (item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                : <div className="badge badge-outline-primary">Waiting</div>)}
                                </td>
-                               <td> {moment(item.values?.date?.toDate() || item?.submittedOn?.toDate()).format("MMM Do YY")} </td>
-                               <td> {item.values?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item.values)} </td>
-                               <td>{['buys', 'sales'].includes(item.values?.category) ? 'N/A' : (item.values?.name !== 'BLACK_HOLE' ? cleanAddress(item.values?.name) : 'N/A')}</td>
-                               <td>{(item.values?.receiver === 'BLACK_HOLE' ? 'N/A' : (item.values?.receiver && item.values?.reason !== "WITHDRAW" ? (item.values?.receiver && item.values?.receiver.charAt(0)+item.values?.receiver.slice(1).toLowerCase()) : item.values?.reason === "WITHDRAW" ? (item.values?.initiator && item.values?.initiator.charAt(0)+item.values?.initiator.slice(1).toLowerCase()) : (item.values?.name && item.values?.name.charAt(0)+item.values?.name.slice(1).toLowerCase())))}</td>
-                               <td> {numeral(parseFloat(getAmount(item))).format("0,0")} </td>
+                               <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
+                               <td> {item_vals?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item_vals)} </td>
+                               <td>{['purchases', 'sales'].includes(item_vals?.category) ? 'N/A' : (item_vals?.name !== 'BLACK_HOLE' ? cleanAddress(item_vals?.name) : 'N/A')}</td>
+                               <td>{(item_vals?.receiver === 'BLACK_HOLE' ? 'N/A' : (item_vals?.receiver
+                               && item_vals?.reason !== "WITHDRAW" ? (item_vals?.receiver
+                                   && item_vals?.receiver.charAt(0)+item_vals?.receiver.slice(1).toLowerCase())
+                                   : item_vals?.reason === "WITHDRAW" ? (item_vals?.initiator
+                                       && item_vals?.initiator.charAt(0)+item_vals?.initiator.slice(1).toLowerCase())
+                                       : (item_vals?.name && item_vals?.name.charAt(0)+item_vals?.name.slice(1).toLowerCase())))}</td>
+                               <td> {numeral(parseInt(getAmount(item_vals))).format("0,0")} </td>
                            </tr>
                          )
                      })}
@@ -807,8 +812,8 @@ export default compose(
     firestoreConnect([
         {collection: 'dashboard_data', doc: 'dashboard'},
         {collection: 'accounts', doc: 'accounts'},
-        {collection: 'late_payment', where: ['values.buyerName', '==', 'DUKA']},
+        {collection: 'late_payment', where: ['values.buyer_name', '==', 'DUKA']},
         {collection: 'pending_transactions', orderBy: ['values.date', 'asc']},
-        {collection: 'pend_eggs_collected', orderBy: ['date_', 'asc']}
+        {collection: 'pend_eggs_collected', orderBy: ['values.date', 'asc']}
     ])
 )(Dashboard);

@@ -19,7 +19,7 @@ const getAmountLeft = (values) => {
     let total = 0;
 
     if (values.hasOwnProperty('receiver')) {
-        total = parseInt(values.trayNo) * parseInt(values.trayPrice);
+        total = parseInt(values.tray_no) * parseInt(values.tray_price);
 
         if (values.receiver !== '') {
             let paid = values.receiver.slice(0, -1).split(',');
@@ -30,7 +30,7 @@ const getAmountLeft = (values) => {
     }
 
     if (values.hasOwnProperty('paid_by')) {
-        total = parseInt(values.objectNo) * parseInt(values.objectPrice);
+        total = parseInt(values.item_no) * parseInt(values.item_price);
 
         if (values.paid_by !== '') {
             let paid = values.paid_by.slice(0, -1).split(',');
@@ -107,7 +107,7 @@ function LatePayment(props) {
             for (const x of Object.values(pendChecked)) {
                 if (x[0] === false) continue;
                 if (x[1] === 'sales') foundSale = true;
-                else if (x[1] === 'buys') foundBuy = true;
+                else if (x[1] === 'purchases') foundBuy = true;
                 totalSections.add(x[2]);
                 if (foundSale && foundBuy) break;
             }
@@ -266,16 +266,16 @@ function LatePayment(props) {
         const allPend = {};
         for (let i = 0; i < late.length; i++) {
             const description = sanitize_string(late[i].values)
-                +` ${numeral(late[i].values?.trayNo || late[i].values?.objectNo)
-                    .format('0,0')}@${numeral(late[i].values?.trayPrice || late[i].values?.objectPrice)
+                +` ${numeral(late[i].values?.tray_no || late[i].values?.item_no)
+                    .format('0,0')}@${numeral(late[i].values?.tray_price || late[i].values?.item_price)
                     .format('0,0')} on ${moment(late[i].values.date.toDate()).format("MMM Do YY")}`;
 
             allPend[late[i].id] = [
                 all,
                 late[i].values.category,
-                late[i].values?.vendorName ? `${late[i].values?.itemName}(${late[i].values?.vendorName})` : (late[i].values?.itemName || late[i].values?.buyerName),
+                late[i].values?.vendor_name ? `${late[i].values?.item_name}(${late[i].values?.vendor_name})` : (late[i].values?.item_name || late[i].values?.buyer_name),
                 description,
-                late[i].values?.objectPrice ? (parseInt(late[i].values.objectPrice) * parseInt(late[i].values.objectNo)) : (parseInt(late[i].values.trayPrice) * parseInt(late[i].values.trayNo))
+                late[i].values?.item_price ? (parseInt(late[i].values.item_price) * parseInt(late[i].values.item_no)) : (parseInt(late[i].values.tray_price) * parseInt(late[i].values.tray_no))
             ];
         }
         setPendChecked(allPend);
@@ -345,14 +345,14 @@ function LatePayment(props) {
                                                                        [item.id]: [
                                                                            !pendChecked[item.id],
                                                                            item.values.category,
-                                                                           item.values?.vendorName ? `${item.values?.itemName}(${item.values?.vendorName})` : (item.values?.itemName || item.values?.buyerName),
+                                                                           item.values?.vendor_name ? `${item.values?.item_name}(${item.values?.vendor_name})` : (item.values?.item_name || item.values?.buyer_name),
                                                                            sanitize_string(item.values)
-                                                                           +` ${numeral(item.values?.trayNo 
-                                                                               || item.values?.objectNo)
-                                                                               .format('0,0')}@${numeral(item.values?.trayPrice 
-                                                                               || item.values?.objectPrice)
+                                                                           +` ${numeral(item.values?.tray_no 
+                                                                               || item.values?.item_no)
+                                                                               .format('0,0')}@${numeral(item.values?.tray_price 
+                                                                               || item.values?.item_price)
                                                                                .format('0,0')} on ${moment(item.values.date.toDate()).format("MMM Do YY")}`,
-                                                                           item.values?.objectPrice ? (parseInt(item.values.objectPrice) * parseInt(item.values.objectNo)) : (parseInt(item.values?.trayNo) * parseInt(item.values?.trayPrice))
+                                                                           item.values?.item_price ? (parseInt(item.values.item_price) * parseInt(item.values.item_no)) : (parseInt(item.values?.tray_no) * parseInt(item.values?.tray_price))
                                                                        ]})}
                                                                    id={item.id} name={item.id}
                                                             />
@@ -360,8 +360,8 @@ function LatePayment(props) {
                                                         </label>
                                                     </div>
                                                 </td>
-                                                <td className="text-success">{item.values?.category === 'buys' ? 'P' : 'S'}</td>
-                                                <td>({moment(item.values?.date?.toDate()).format("MMM Do YY")})<br/>{sanitize_string(item.values)} {`${numeral(item.values?.trayNo || item.values?.objectNo).format('0,0')}@${numeral(item.values?.trayPrice || item.values?.objectPrice).format('0,0')}`}</td>
+                                                <td className="text-success">{item.values?.category === 'purchases' ? 'P' : 'S'}</td>
+                                                <td>({moment(item.values?.date?.toDate()).format("MMM Do YY")})<br/>{sanitize_string(item.values)} {`${numeral(item.values?.tray_no || item.values?.item_no).format('0,0')}@${numeral(item.values?.tray_price || item.values?.item_price).format('0,0')}`}</td>
                                                 <td>
                                                     {(item?.rejected === true && item?.signal !== 1)
                                                         ? <div className="badge badge-outline-danger">Rejected</div>

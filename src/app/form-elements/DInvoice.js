@@ -30,7 +30,7 @@ function DInvoice({ invoices, acc, late, extraData }) {
     const [usersDebt, setUsersDebt] = useState([]);
     const [purchases, setPurchases] = useState([]);
     const [sectionNames, setSectionNames] = useState([]);
-    const [buyerNames, setBuyerNames] = useState([]);
+    const [buyer_names, setBuyerNames] = useState([]);
     const [isClicked, setIsClicked] = useState(false);
 
     useEffect(() => {
@@ -46,9 +46,9 @@ function DInvoice({ invoices, acc, late, extraData }) {
             let _purchases = [];
             for (const x of late) {
                 _purchases.push({
-                    id: `${x.values.itemName}${x.values.vendorName ? ' '+x.values.vendorName : ''}`,
-                    amount: parseInt(x.values.objectPrice)
-                        * parseInt(x.values.objectNo)});
+                    id: `${x.values.item_name}${x.values.vendor_name ? ' '+x.values.vendor_name : ''}`,
+                    amount: parseInt(x.values.item_price)
+                        * parseInt(x.values.item_no)});
             }
             _purchases = _purchases.map(x => {
                 return {id: x.id.charAt(0)+x.id.slice(1).toLowerCase(), amount: x.amount}
@@ -162,7 +162,7 @@ function DInvoice({ invoices, acc, late, extraData }) {
 
         const buyers = state.buyers !== '' ? state.buyers.slice(0, -1).split(',') : [];
         const otherBuyers = sectionNames.map(x => x.toUpperCase());
-        const validNames = buyerNames.map(x => x.toUpperCase());
+        const validNames = buyer_names.map(x => x.toUpperCase());
 
         for (const x of buyers) {
             if (!validNames.includes(x.toUpperCase()) && !otherBuyers.includes(x.toUpperCase())) {
@@ -297,7 +297,7 @@ function DInvoice({ invoices, acc, late, extraData }) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Buyer Name(s) to include</label>
-                                <p className="text-primary">Valid names: {sectionNames.join(', ')+', '+buyerNames.join(', ')}</p>
+                                <p className="text-primary">Valid names: {sectionNames.join(', ')+', '+buyer_names.join(', ')}</p>
                                 <Form.Control value={state.buyers} type="text" onChange={handleSelect} className="form-control text-white" id="buyers" placeholder="buyer names (comma separated)" />
                             </Form.Group>
                             <Form.Group>
@@ -348,6 +348,6 @@ export default compose(
         {collection: 'invoices', doc: 'count'},
         {collection: 'accounts', doc: 'accounts'},
         {collection: 'extra_data', doc: 'extra_data'},
-        {collection: 'late_payment', where: ['values.category', '==', 'buys']}
+        {collection: 'late_payment', where: ['values.category', '==', 'purchases']}
     ])
 )(DInvoice);

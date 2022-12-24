@@ -11,10 +11,10 @@ export const inputDeadSick = (deadSick, image) => {
 
         let values = {
             ...deadSick,
-            submittedBy: name,
+            submitted_by: name,
             url: '',
             file_name: `${deadSick.section.toUpperCase()}_${image.name}`,
-            submittedOn: new Date()
+            submitted_on: new Date()
         }
         let newDate = values.date;
         newDate.setHours(0, 0, 0, 0);
@@ -34,7 +34,7 @@ export const inputDeadSick = (deadSick, image) => {
             }).then(() => {
                 console.log("doc added to local");
                 firestore.collection('pending_upload')
-                    .add({ ...values, hash });
+                    .doc(hash).set({ values });
             });
         })
         reader.readAsArrayBuffer(image);

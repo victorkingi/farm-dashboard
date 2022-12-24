@@ -37,11 +37,11 @@ function Row(props) {
     const [open, setOpen] = React.useState(false);
     const classes = useRowStyles();
     let total = 0;
-    let trayNo = 0;
+    let tray_no = 0;
 
     const getTotal = (historyRow) => {
         total += parseFloat(historyRow.amount) * parseFloat(historyRow.tPrice);
-        trayNo += parseInt(historyRow.amount);
+        tray_no += parseInt(historyRow.amount);
     }
 
     return (
@@ -92,7 +92,7 @@ function Row(props) {
                                         <TableCell component="th" scope="row">
                                             <b><em>Subtotal</em></b>
                                         </TableCell>
-                                        <TableCell align="right"><b>{trayNo}</b></TableCell>
+                                        <TableCell align="right"><b>{tray_no}</b></TableCell>
                                         <TableCell align="right" />
                                         <TableCell align="right">
                                             <b><em>Ksh.{numeral(total).format("0,0")}</em></b>
@@ -168,10 +168,10 @@ export default compose(
         submit.disabled = true;
         for (let i = 0; i < props.pending?.length; i++) {
             if (props.pending[i].values.section === "CAKES") {
-                const trayNo = parseInt(props.pending[i].values.trayNo);
-                const trayPrice = parseInt(props.pending[i].values.trayPrice);
+                const tray_no = parseInt(props.pending[i].values.tray_no);
+                const tray_price = parseInt(props.pending[i].values.tray_price);
 
-                const res = await props.hasPaidLate([props.pending[i].id], true, false, false, false, `BANK:${trayNo*trayPrice},`);
+                const res = await props.hasPaidLate([props.pending[i].id], true, false, false, false, `BANK:${tray_no*tray_price},`);
                 if (res === 'ok') {
                     setError(false);
                     setOpen(true);
@@ -206,10 +206,10 @@ export default compose(
                     const getDate = used[i].date.toDate().toLocaleDateString();
                     history.push({
                         date: getDate,
-                        amount: parseInt(used[i].trayNo),
-                        tPrice: parseFloat(used[i].trayPrice)
+                        amount: parseInt(used[i].tray_no),
+                        tPrice: parseFloat(used[i].tray_price)
                     });
-                    total += parseFloat(used[i].trayPrice) * parseInt(used[i].trayNo);
+                    total += parseFloat(used[i].tray_price) * parseInt(used[i].tray_no);
                 }
             }
             if (history.length > 0) {

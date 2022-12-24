@@ -15,6 +15,7 @@ export const sendMoney = (values) => {
 
         let hash = `${parseInt(values.date.getTime()/1000)}${values.amount}${values.from}${values.to}`.toUpperCase();
         hash = SHA256(hash).toString();
+        values.submitted_on = new Date();
 
         if (values.receiver.startsWith("WITHDRAW")) {
             return firebase.auth().onAuthStateChanged(user => {
@@ -24,10 +25,8 @@ export const sendMoney = (values) => {
                             window.alert("You are not an admin");
                             return -1;
                         } else {
-                            firestore.collection("pending_transactions").add({
-                                values,
-                                hash,
-                                submittedOn: new Date()
+                            firestore.collection("pending_transactions").doc(hash).set({
+                                values
                             });
                             dispatch({type: 'MONEY_SENT', values});
                         }
@@ -35,10 +34,8 @@ export const sendMoney = (values) => {
                 }
             });
         } else {
-            firestore.collection("pending_transactions").add({
-                values,
-                hash,
-                submittedOn: new Date()
+            firestore.collection("pending_transactions").doc(hash).set({
+                values
             });
             dispatch({type: 'MONEY_SENT', values});
         }
@@ -77,9 +74,9 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                     return 'late doc does not exist';
                 }
                 let val = {
-                    ...doc.data(),
-                    paidOn: new Date()
+                    ...doc.data()
                 }
+                val.values.paid_on = new Date()
                 delete val.rejected;
                 delete val.ready;
                 delete val.signal;
@@ -89,17 +86,17 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                         buyers,
                         items
                     };
-                    firestore.collection("pending_transactions").add(val);
+                    firestore.collection("pending_transactions").doc(key).set({ ...val });
                     dispatch({type: 'LATE_REPAID'});
                     doc.ref.delete();
 
                 } else {
                     let keyField = 'paid_by';
-                    let needed = parseInt(val.values.objectNo) * parseInt(val.values.objectPrice);
+                    let needed = parseInt(val.values.item_no) * parseInt(val.values.item_price);
 
                     if (val.values.category === 'sales') {
                         keyField = 'receiver';
-                        needed = parseInt(val.values.trayNo) * parseInt(val.values.trayPrice);
+                        needed = parseInt(val.values.tray_no) * parseInt(val.values.tray_price);
                     }
 
                     if (isOne) {
@@ -120,7 +117,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
 
                         if (totalPaid === needed) {
                             console.log("total paid", totalPaid);
-                            firestore.collection("pending_transactions").add(val);
+                            firestore.collection("pending_transactions").doc(key).set({ ...val });
                             dispatch({type: 'LATE_REPAID'});
                             doc.ref.delete();
 
@@ -128,12 +125,12 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                             console.log("overpaid", totalPaid, needed);
                             return `overpaid by Ksh.${totalPaid-needed}`;
                         } else {
-                            delete val.paidOn;
-                            if (val.hasOwnProperty('halfPaid')) val.halfPaid.push(...[val.values[keyField], new Date()]);
-                            else val.halfPaid = [val.values[keyField], new Date()];
+                            delete val.values.paid_on;
+                            if (val.values.hasOwnProperty('halfPaid')) val.values.halfPaid.push(...[val.values[keyField], new Date()]);
+                            else val.values.halfPaid = [val.values[keyField], new Date()];
                             dispatch({type: 'LATE_REPAID'});
 
-                            doc.ref.update(val);
+                            doc.ref.update({...val});
                         }
                     } else {
                         val.values[keyField] = '';
@@ -163,7 +160,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                             }
                             i++;
                         }
-                        firestore.collection("pending_transactions").add(val);
+                        firestore.collection("pending_transactions").doc(key).set({ ...val });
                         dispatch({type: 'LATE_REPAID'});
                         doc.ref.delete();
                     }

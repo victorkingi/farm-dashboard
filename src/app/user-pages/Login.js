@@ -40,16 +40,16 @@ function Login(props) {
           if (!doc.exists) {
             batch.set(checkCount, {
               total: 0,
-              submittedOn: new Date()
+              submitted_on: new Date()
             });
           }
           batch.set(docRef, {
-            submittedOn: new Date()
+            submitted_on: new Date()
           });
           batch.set(tokenRef, {
             token,
             email,
-            submittedOn: new Date()
+            submitted_on: new Date()
           });
 
           batch.commit().then(() => {

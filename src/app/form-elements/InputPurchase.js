@@ -22,11 +22,11 @@ function InputPurchase(props) {
     const [state, setState] = useState({
         date: new Date(),
         section: 'Choose Section',
-        objectNo: '',
-        objectPrice: '',
-        itemName: '',
-        vendorName: '',
-        category: 'buys',
+        item_no: '',
+        item_price: '',
+        item_name: '',
+        vendor_name: '',
+        category: 'purchases',
         paid_by: '',
         extra_data: ''
     });
@@ -72,20 +72,20 @@ function InputPurchase(props) {
         if (values.section === 'FEEDS') {
             const validVendors = feedsVendors.map(x => x.toUpperCase());
             const validFeeds = feedsType.map(x => x.toUpperCase());
-            if (!values.vendorName) {
+            if (!values.vendor_name) {
                 console.log("Vendor name cannot be empty");
                 setError("Vendor name cannot be empty");
                 setOpenError(true);
                 return false;
             }
-            values.vendorName = values.vendorName.toUpperCase();
-            if (!validVendors.includes(values.vendorName)) {
+            values.vendor_name = values.vendor_name.toUpperCase();
+            if (!validVendors.includes(values.vendor_name)) {
                 console.log("invalid vendor name");
                 setError("invalid vendor name");
                 setOpenError(true);
                 return false;
             }
-            if (!validFeeds.includes(values.itemName.toUpperCase())) {
+            if (!validFeeds.includes(values.item_name.toUpperCase())) {
                 setError("Invalid feeds item name. It can only be Layers, Chick, Growers or Starter");
                 setOpenError(true);
                 return false;
@@ -93,12 +93,12 @@ function InputPurchase(props) {
         }
         if (values.section === "PPURITY") {
             const regex = /^(([A-Z]|[a-z]){3},)+$/;
-            if (!regex.test(values.itemName)) {
+            if (!regex.test(values.item_name)) {
                 setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
                 setOpenError(true);
                 return false;
             } else {
-                const enteredMonths = values.itemName.slice(0, -1).split(',').map(x => x.toUpperCase());
+                const enteredMonths = values.item_name.slice(0, -1).split(',').map(x => x.toUpperCase());
                 const found = [];
                 for (let i = 0; i < enteredMonths.length; i++) {
                     for (let p = 0; p < months.length; p++) {
@@ -126,7 +126,7 @@ function InputPurchase(props) {
                     setOpenError(true);
                     return false;
                 }
-                if (found.length !== parseInt(values.objectNo)) {
+                if (found.length !== parseInt(values.item_no)) {
                     setError("Item name should be of this format [Month,Month] i.e. Jan,Feb and object number should be equal to number of months");
                     setOpenError(true);
                     return false;
@@ -157,7 +157,7 @@ function InputPurchase(props) {
         }
 
         const priceAmountRegex = /^([\d]+)$/;
-        const bSizeRegex = /^[0-9]+$/.test(state.bagSize);
+        const bSizeRegex = /^[0-9]+$/.test(state.bag_size);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
 
@@ -179,14 +179,14 @@ function InputPurchase(props) {
             return;
         }
         for (let i = 0; i < arr.length; i++) {
-            if (arr[i][0] === "objectNo" || arr[i][0] === "objectPrice") {
+            if (arr[i][0] === "item_no" || arr[i][0] === "item_price") {
                 if (!priceAmountRegex.test(arr[i][1])) {
                     setError('Object price and amount cannot be negative, zero or not a number');
                     setOpenError(true);
                     return;
                 }
             }
-            if (arr[i][1] === "" && arr[i][0] === "vendorName" && state.section === "Feeds") {
+            if (arr[i][1] === "" && arr[i][0] === "vendor_name" && state.section === "Feeds") {
                 setError('All Inputs should be filled');
                 setOpenError(true);
                 return;
@@ -211,7 +211,7 @@ function InputPurchase(props) {
         }
 
         if (state.not_paid === true) status = false;
-        if (status) state.paid_by = `${state.paid_by.toUpperCase()}:${parseInt(state.objectNo) * parseInt(state.objectPrice)},`;
+        if (status) state.paid_by = `${state.paid_by.toUpperCase()}:${parseInt(state.item_no) * parseInt(state.item_price)},`;
         else state.paid_by = '';
 
         let values = {
@@ -224,10 +224,10 @@ function InputPurchase(props) {
         delete values.paid;
 
         if (values.section !== "Feeds") {
-            delete values.vendorName;
-            delete values.bagSize;
+            delete values.vendor_name;
+            delete values.bag_size;
         } else {
-            values.bagSize += 'kg';
+            values.bag_size += 'kg';
         }
 
         values.section = getSectionAddr(values.section);
@@ -236,7 +236,7 @@ function InputPurchase(props) {
         values.date = date;
         let proceed = parameterChecks(values);
         if (proceed) {
-            values.itemName = values.itemName.toUpperCase();
+            values.item_name = values.item_name.toUpperCase();
             props.inputPurchase(values);
             setOpenError(false);
             setOpen(true);
@@ -245,9 +245,9 @@ function InputPurchase(props) {
                 paid_by: '',
                 extra_data: ''
             }
-            delete state.bagSize;
-            delete newState.bagSize;
-            delete newState.vendorName;
+            delete state.bag_size;
+            delete newState.bag_size;
+            delete newState.vendor_name;
             setState(newState);
         } else {
             setState({
@@ -276,7 +276,7 @@ function InputPurchase(props) {
     const handleVendor = (e) => {
         setState({
             ...state,
-            vendorName: e
+            vendor_name: e
         });
     }
 
@@ -312,19 +312,19 @@ function InputPurchase(props) {
     }
 
     useMemo(() => {
-        if (/^(([A-Z]|[a-z]){3},)+$/.test(state.itemName) && state.section === 'Pay Purity') {
+        if (/^(([A-Z]|[a-z]){3},)+$/.test(state.item_name) && state.section === 'Pay Purity') {
             setState({
                 ...state,
-                objectNo: (state.itemName.slice(0, -1).split(',').length).toString()
+                item_no: (state.item_name.slice(0, -1).split(',').length).toString()
             });
         } else if (state.section === 'Pay Purity') {
             setState({
                 ...state,
-                objectNo: '0'
+                item_no: '0'
             });
         }
         // eslint-disable-next-line
-    }, [state.itemName]);
+    }, [state.item_name]);
 
     const handlePaidBy = (e) => {
         setState({
@@ -395,11 +395,11 @@ function InputPurchase(props) {
                             </Form.Group>
                             {isFeeds &&
                                 <Form.Group>
-                                    <label htmlFor="vendorName">Vendor Name</label>
+                                    <label htmlFor="vendor_name">Vendor Name</label>
                                     <DropdownButton
                                         alignRight
-                                        title={state.vendorName || 'Choose Feeds vendor'}
-                                        id="vendorName"
+                                        title={state.vendor_name || 'Choose Feeds vendor'}
+                                        id="vendor_name"
                                         onSelect={handleVendor}
                                     >
                                         {feedsVendors.map(x => {
@@ -410,11 +410,11 @@ function InputPurchase(props) {
                             }
                             {isFeeds &&
                                 <Form.Group>
-                                    <label htmlFor="bagSize">Bag size(kg)</label>
+                                    <label htmlFor="bag_size">Bag size(kg)</label>
                                     <div className="input-group">
                                         <Form.Control type="text"
                                                       onChange={handleSelect}
-                                                      className="form-control text-white" value={state.bagSize} id="bagSize" placeholder="Size of bag of feeds in kg" />
+                                                      className="form-control text-white" value={state.bag_size} id="bag_size" placeholder="Size of bag of feeds in kg" />
                                         <div className="input-group-append">
                                             <span className="input-group-text">kg</span>
                                         </div>
@@ -422,19 +422,19 @@ function InputPurchase(props) {
                                 </Form.Group>
                             }
                             <Form.Group>
-                                <label htmlFor="itemName">Item Name</label>
+                                <label htmlFor="item_name">Item Name</label>
                                 <Form.Control type="text"
-                                              value={state.itemName}
+                                              value={state.item_name}
                                               onChange={handleSelect}
-                                              className="form-control text-white" id="itemName" placeholder="Name of Item" />
+                                              className="form-control text-white" id="item_name" placeholder="Name of Item" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="objectNo">Number of Objects</label>
-                                <Form.Control value={state.objectNo} type="text" onChange={handleSelect} className="form-control text-white" id="objectNo" placeholder="Number of Objects" />
+                                <label htmlFor="item_no">Number of Objects</label>
+                                <Form.Control value={state.item_no} type="text" onChange={handleSelect} className="form-control text-white" id="item_no" placeholder="Number of Objects" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="objectPrice">Price per Object</label>
-                                <Form.Control value={state.objectPrice} type="text" onChange={handleSelect} className="form-control text-white" id="objectPrice" placeholder="Price per Object" />
+                                <label htmlFor="item_price">Price per Object</label>
+                                <Form.Control value={state.item_price} type="text" onChange={handleSelect} className="form-control text-white" id="item_price" placeholder="Price per Object" />
                             </Form.Group>
                             {!state.not_paid && <Form.Group>
                                 <label htmlFor='receiver'>Paid by</label>
