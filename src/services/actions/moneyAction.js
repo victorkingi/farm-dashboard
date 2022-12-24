@@ -56,14 +56,22 @@ export const sendMoney = (values) => {
 export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
-
         const payersObj = {};
-        let x_ = payers.slice(0, -1);
-        let payerNames_ = x_.split(',');
-        for (const n of payerNames_) {
-            payersObj[n.split(':')[0].toUpperCase()] = parseInt(n.split(':')[1]);
-        }
         let payerArray = Object.entries(payersObj);
+
+        if (payers) {
+            let x_ = payers.slice(0, -1);
+            let payerNames_ = x_.split(',');
+            for (const n of payerNames_) {
+                payersObj[n.split(':')[0].toUpperCase()] = parseInt(n.split(':')[1]);
+            }
+            payerArray = Object.entries(payersObj);
+        }
+        if (!payers && !isDebt) {
+            console.log("invalid arguments provided");
+            window.alert("invalid arguments");
+            return Promise.resolve(['fail']);
+        }
         let allRes = [];
 
         for (const key of allKeys) {
