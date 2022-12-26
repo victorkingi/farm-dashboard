@@ -21,7 +21,7 @@ export const inputTray = (eggs) => {
         values.date = newDate;
         delete values.date_;
 
-        let hash = `${parseInt(values.date_)}`.toUpperCase();
+        let hash = `${parseInt(values.date.getTime()/1000)}`.toUpperCase();
         hash = SHA256(hash).toString();
 
         firestore.collection('pend_eggs_collected').doc(hash).set({

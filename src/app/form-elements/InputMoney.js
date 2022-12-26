@@ -66,7 +66,7 @@ function InputMoney(props) {
             return;
         }
 
-        const priceAmountRegex = /^([\d]+)$/;
+        const priceAmountRegex = /^(\d+)$/;
         const noZeroRegex = /^(0*)$/;
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
