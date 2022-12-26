@@ -48,10 +48,10 @@ function SpanningTable({ dash }) {
                     item[1].toLowerCase())));
             tempRows.push(...Object.entries(dboard.other_debts)
                 .map(item => createRow(`Debt: ${item[0].split('OWE_')[1].split('_').join(' ').toLowerCase()}`,
-                    item[0].includes('JEFF') ? 'Ksh '+numeral(item[1] - dboard.owe.JEFF).format('0,0') : 'Ksh '+numeral(item[1]).format('0,0'))));
+                    item[0].includes('JEFF') ? 'Ksh '+numeral((item[1] - dboard.owe.JEFF) * -1).format('0,0') : 'Ksh '+numeral(item[1]).format('0,0'))));
             tempRows.push(...Object.entries(dboard.pair_bals)
                 .map(item => createRow(`Debt: ${item[0]}`,
-                    'Ksh '+numeral(item[1]).format('0,0'))));
+                    'Ksh '+numeral(parseInt(item[1])*-1).format('0,0'))));
             setRows(tempRows);
         }
     }, [dash]);
