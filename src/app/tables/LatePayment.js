@@ -103,7 +103,7 @@ function LatePayment(props) {
             let foundSale = false;
             let foundBuy = false;
             let totalSections = new Set();
-
+            console.log("AVAIL", pendChecked)
             for (const x of Object.values(pendChecked)) {
                 if (x[0] === false) continue;
                 if (x[1] === 'sales') foundSale = true;
@@ -130,7 +130,8 @@ function LatePayment(props) {
             setError(false);
             submit.disabled = false;
         }
-    }, [clearWay, pendChecked]);
+        // eslint-disable-next-line
+    }, [clearWay]);
 
     if (!user.__user) {
         return (
@@ -334,16 +335,16 @@ function LatePayment(props) {
                                     <tbody>
                                     {late && Array(...late).sort((a, b) => b.values.date.toDate() - a.values.date.toDate()).map((item) => {
                                         return (
-                                            <tr key={item.id}>
+                                            <tr key={item.id.slice(0,5)} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
                                                 <td>
                                                     <div className="form-check form-check-muted m-0">
                                                         <label className="form-check-label">
                                                             <input type="checkbox"
                                                                    className="form-check-input" defaultValue={0}
                                                                    checked={pendChecked[item.id] ? pendChecked[item.id][0] : false}
-                                                                   onChange={() => setPendChecked({...pendChecked,
+                                                                   onClick={() => setPendChecked({...pendChecked,
                                                                        [item.id]: [
-                                                                           !pendChecked[item.id],
+                                                                           !(pendChecked[item.id] ? pendChecked[item.id][0] : false),
                                                                            item.values.category,
                                                                            item.values?.vendor_name ? `${item.values?.item_name}(${item.values?.vendor_name})` : (item.values?.item_name || item.values?.buyer_name),
                                                                            sanitize_string(item.values)
@@ -367,7 +368,8 @@ function LatePayment(props) {
                                                         ? <div className="badge badge-outline-danger">Rejected</div>
                                                         : (item?.rejected === true && item?.signal === 1)
                                                             ? <div className="badge badge-outline-light">Rejected</div>
-                                                            : (item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
+                                                            : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
+                                                                : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Failed</div>
                                                                 : <div className="badge badge-outline-primary">Waiting</div>)}
                                                 </td>
                                                 <td>{numeral(getAmountLeft(item.values)[1]).format('0,0')}</td>
