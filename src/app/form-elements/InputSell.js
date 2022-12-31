@@ -112,7 +112,7 @@ function InputSell(props) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (new Date().getTimezoneOffset() !== -180 && localStorage.getItem('name') !== 'Victor') {
+    if (new Date().getTimezoneOffset() !== -180) {
       setError('Different Timezone detected. Cannot handle input');
       setOpenError(true);
       return;

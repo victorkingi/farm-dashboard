@@ -14,7 +14,7 @@ export const sendMoney = (values) => {
         values.date = newDate;
 
         let hash = `${parseInt(values.date.getTime()/1000)}${values.amount}${values.from}${values.to}`.toUpperCase();
-        hash = SHA256(hash).toString();
+        hash = SHA256(SHA256(hash).toString()+'0').toString();
         values.submitted_on = new Date();
 
         if (values.receiver.startsWith("WITHDRAW")) {
