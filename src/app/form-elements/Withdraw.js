@@ -13,10 +13,10 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 
 function Withdraw(props) {
     const [state, setState] = useState({
+        date: new Date(),
         name: "My Balance",
         receiver: 'To',
         category: 'trades',
-        reason: 'WITHDRAW',
         extra_data: ''
     });
     const [open, setOpen] = useState(false);
@@ -69,10 +69,12 @@ function Withdraw(props) {
                 values.receiver = `WITHDRAW_${curUser}`;
                 values.name = values.name === 'Bank' ? 'BANK' : curUser;
                 values.initiator = curUser;
+                values.extra_data += 'WITHDRAW';
 
                 const user = firebase.auth().currentUser;
                 const credential = firebase.auth.AuthCredential
                     .fromJSON({ email: user_.email, password: values.pass });
+
                 user.reauthenticateWithCredential(credential)
                     .then(() => {
                         delete values.pass;
@@ -85,9 +87,9 @@ function Withdraw(props) {
                             extra_data: ''
                         });
                     }).catch((error) => {
-                    setError(error.message.substring(0, error.message.lastIndexOf('.')));
-                    setOpenError(true);
-                    return -1;
+                        setError(error.message.substring(0, error.message.lastIndexOf('.')));
+                        setOpenError(true);
+                        return -1;
                 })
             } else {
                 console.log("signed out")
@@ -165,7 +167,7 @@ function Withdraw(props) {
                             <br />
                             <Form.Group>
                                 <label htmlFor="amount">Amount</label>
-                                <Form.Control type="number" onChange={handleSelect} className="form-control text-white" id="amount" placeholder="Enter Amount" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="amount" placeholder="Enter Amount" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="extra_data">Extra info (optional)</label>

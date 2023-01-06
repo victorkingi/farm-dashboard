@@ -13,7 +13,7 @@ export const sendMoney = (values) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
-        let hash = `${parseInt(values.date.getTime()/1000)}${values.amount}${values.from}${values.to}`.toUpperCase();
+        let hash = `${parseInt(values.date.getTime()/1000)}${values.amount}${values.name}${values.receiver}`.toUpperCase();
         hash = SHA256(SHA256(hash).toString()+'0').toString();
         values.submitted_on = new Date();
 
