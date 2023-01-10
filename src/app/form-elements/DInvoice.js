@@ -193,7 +193,7 @@ function DInvoice({ invoices, acc, late, extraData }) {
         const raw = JSON.stringify({
             buyers: buyers.toString(),
             cleanName: cleanName,
-            discount: (state.discount+(debtPurchaseCheck*2)).toString(),
+            discount: (parseInt(state.discount)+(debtPurchaseCheck*2)).toString(),
             owe: debtCheck.toString(),
             purchases: state.purchases.slice(0, -1)
         });
