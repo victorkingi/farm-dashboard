@@ -11,7 +11,7 @@ import {Alert} from "../form-elements/InputEggs";
 import Snackbar from "@material-ui/core/Snackbar";
 
 function ChartJs(props) {
-    const { dashboard, eggs } = props;
+    const { dashboard } = props;
 
     const [isEgg, setIsEgg] = useState(true);
     const [period, setPeriod] = useState('week');
@@ -52,10 +52,10 @@ function ChartJs(props) {
     });
 
     useEffect(() => {
-        if (dashboard && eggs) {
-            const dayData_ = eggs.state.trays_collected_to_timestamp;
-            const weekTray_ = eggs.state.week_trays_and_exact;
-            const monthTray_ = eggs.state.month_trays_and_exact;
+        if (dashboard) {
+            const dayData_ = dashboard[0].trays_collected_to_timestamp;
+            const weekTray_ = dashboard[0].week_trays_and_exact;
+            const monthTray_ = dashboard[0].month_trays_and_exact;
 
             const weekExact_ = dashboard[0].week_laying_chart_exact; // laying
             const weekGiven_ = dashboard[0].week_laying_chart_given; // laying
@@ -123,15 +123,15 @@ function ChartJs(props) {
 
             for (const vals of Object.values(weekTray_)) {
                 if (JSON.stringify(vals) === '{}') continue;
-                weekTraysList.exact.push(parseInt(vals.exact.split(',')[0]));
-                weekTraysList.given.push(parseInt(vals.trays_collected.split(',')[0]));
+                weekTraysList.exact.push(parseInt(vals.exact?.split(',')[0] || 0));
+                weekTraysList.given.push(parseInt(vals.trays_collected?.split(',')[0] || 0));
             }
             for (const vals of Object.values(monthTray_)) {
                 if (JSON.stringify(vals) === '{}') continue;
 
-                monthLevel_.exact.push(parseInt(vals.exact.split(',')[0]));
+                monthLevel_.exact.push(parseInt(vals.exact?.split(',')[0] || 0));
                 monthLevel_.pexact.push(vals.percent_exact || 0);
-                monthLevel_.given.push(parseInt(vals.trays_collected.split(',')[0]));
+                monthLevel_.given.push(parseInt(vals.trays_collected?.split(',')[0] || 0));
                 monthLevel_.pgiven.push(vals.percent_given || 0);
                 monthLevel_.a1.push(vals.a1 || 0);
                 monthLevel_.a2.push(vals.a2 || 0);
@@ -336,7 +336,7 @@ function ChartJs(props) {
                 }]
             });
         }
-    }, [dashboard, eggs]);
+    }, [dashboard]);
 
     useEffect(() => {
         if (chart === 'Laying Percent') setIsEgg(true);
@@ -543,15 +543,13 @@ function ChartJs(props) {
 
 const mapStateToProps = (state) => {
     return {
-        dashboard: state.firestore.ordered.dashboard_data,
-        eggs: state.firestore.data.eggs_collected
+        dashboard: state.firestore.ordered.dashboard_data
     }
 }
 
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'dashboard_data', doc: 'dashboard'},
-        {collection: 'eggs_collected', doc: 'state'}
+        {collection: 'dashboard_data', doc: 'dashboard'}
     ])
 )(ChartJs);
