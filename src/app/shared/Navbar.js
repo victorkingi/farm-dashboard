@@ -336,7 +336,7 @@ function Navbar(props) {
                 {pending_upload?.length > 0 && <span className="count bg-danger"/>}
               </Dropdown.Toggle>
               <Dropdown.Menu className="dropdown-menu navbar-dropdown preview-list">
-                <h6 className="p-3 mb-0">Notifications</h6>
+                <h6 className="p-3 mb-0">Uploads</h6>
                 <Dropdown.Divider />
                 {
                   pending_upload?.length > 0 ? pending_upload.map((item) => {
@@ -355,7 +355,7 @@ function Navbar(props) {
                             </div>
                           </div>
                           <div className="preview-item-content">
-                            <p className="preview-subject mb-1">Uploading {moment(item.submitted_on.toDate()).fromNow()} submission</p>
+                            <p className="preview-subject mb-1">Uploading {item.submitted_by.toLowerCase()} entry {moment(item.submitted_on.toDate()).fromNow()}</p>
                             <p className="text-muted ellipsis mb-0">
                                 <Line
                                       percent={state.percent.get(item.file_name)} strokeWidth="4" strokeColor={state.color.get(item.file_name)} />
