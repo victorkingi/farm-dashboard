@@ -99,18 +99,25 @@ function Navbar(props) {
         const db = new Localbase('imageUpload');
         const storageRef = storage.ref();
         const docs = await db.collection('dead_sick').get();
+        let p = localStorage.getItem('name') || '';
+        p = p.toUpperCase();
 
         if (docs.length === 0) {
-          setOpen(false);
-          setError("Found "+pending_upload.length+" Cloud documents and locals that may not have corresponding local");
-          setOpenError(true);
-          return;
+          for (let tx of pending_upload) {
+            tx = tx.values;
+
+            if (p === tx.submitted_by) {
+              setOpen(false);
+              setError("Found cloud document that does not have corresponding local");
+              setOpenError(true);
+              return;
+            }
+          }
         }
 
         for (let tx of pending_upload) {
           tx = tx.values;
-
-          if (!(docs.map(x => x.file_name).includes(tx.file_name))) {
+          if (!(docs.map(x => x.file_name).includes(tx.file_name)) && p === tx.submitted_by) {
             setOpen(false);
             setError("Cloud document "+tx.file_name.slice(0, 10)+" does not exist locally");
             setOpenError(true);
