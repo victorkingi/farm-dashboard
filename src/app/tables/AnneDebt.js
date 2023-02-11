@@ -167,12 +167,13 @@ export default compose(
         const submit = document.getElementById("submit");
         submit.disabled = true;
         for (let i = 0; i < props.pending?.length; i++) {
-            if (props.pending[i].values.section === "CAKES") {
+            if (props.pending[i].values.section === "CAKES" && props.pending[i].skip !== true) {
                 const tray_no = parseInt(props.pending[i].values.tray_no);
                 const tray_price = parseInt(props.pending[i].values.tray_price);
 
                 const res = await props.hasPaidLate([props.pending[i].id], true, false, false, false, `BANK:${tray_no*tray_price},`);
-                if (res === 'ok') {
+                let fres = res.reduce((a, b) => a === b, 'ok');
+                if (fres) {
                     setError(false);
                     setOpen(true);
                 } else {

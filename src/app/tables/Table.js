@@ -265,7 +265,7 @@ const getFieldName = (to_use) => {
     if (to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Eggs Collected'
     || to_use === 'Trades' || to_use === 'Dead or Sick') return ['type', `${(to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Trades') ? to_use.slice(0, to_use.length-1) : to_use}`]
     if (to_use.startsWith('Submitted by ')) return ['by', `${to_use.slice(13, to_use.length).toUpperCase()}`];
-    return ['data.section', `${to_use === 'Pay Purity' ? 'PPURITY' : to_use === 'Other Sales' ? 'SOTHER' : to_use === 'Other Purchases' ? 'POTHER' : to_use === 'Thika Farmers' ? 'THIKAFARMERS' : to_use.toUpperCase() }`]
+    return ['data.section', `${to_use === 'Pay Purity' ? 'LABOUR' : to_use === 'Other Sales' ? 'SOTHER' : to_use === 'Other Purchases' ? 'POTHER' : to_use === 'Thika Farmers' ? 'THIKA FARMERS' : to_use.toUpperCase() }`]
 }
 
 let isRun = false;
@@ -494,10 +494,11 @@ function EnhancedTable(props) {
                     if (tx.type === 'Purchase' && tx.data.section === 'FEEDS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                 }
                 else if (action === 'Pay Purity') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'PPURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    if (tx.type === 'Purchase' && tx.data.section === 'LABOUR') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                 }
                 else if (action === 'Thika Farmers') {
-                    if (tx.type === 'Sale' && tx.data.section === 'THIKAFARMERS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    if (tx.type === 'Sale'
+                        && tx.data.section === 'THIKA FARMERS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
                 }
                 else if (action === 'Cakes') {
                     if (tx.type === 'Sale' && tx.data.section === 'CAKES') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
