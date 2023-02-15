@@ -32,6 +32,11 @@ import CardContent from '@mui/material/CardContent';
 import { BrowserView, MobileView } from 'react-device-detect';
 import {firestore} from "../../services/api/fbConfig";
 
+const validVendors = [
+    'PEMBE',
+    'THIKA FARMERS',
+    'KINYANJUI'
+]
 
 function createData(name, date, subm, status, hash) {
     return {
@@ -646,7 +651,7 @@ function EnhancedTable(props) {
                                         : row.name === 'Dead or Sick'
                                             ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()}`
                                             : row.name === 'Sale' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.tray_no).format(',')}@${numeral(data.tray_price).format(',')}`
-                                                : row.name === 'Purchase' ? `(${by}) ${data.item_name.toLowerCase()} ${numeral(data.item_no).format(',')}@${numeral(data.item_price).format(',')}`
+                                                : row.name === 'Purchase' ? `(${by}) ${data.item_name.toLowerCase()}${validVendors.includes(data.extra_data.split(';')[2]) ? '('+data.extra_data.split(';')[2].toLowerCase()+')' : ''} ${numeral(data.item_no).format(',')}@${numeral(data.item_price).format(',')}`
                                                     : row.name === 'Trade' ? `from ${from} to ${to}` : '';
 
                                     return (
