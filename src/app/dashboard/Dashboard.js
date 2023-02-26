@@ -257,7 +257,7 @@ function Dashboard(props) {
                                      < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
                                          {dash.week_profit[1] < 0
                                              ? numeral(dash.week_profit[1]).format("0,0.0")
-                                             : '+'.concat(dash.week_profit[1])}%
+                                             : '+'.concat(numeral(dash.week_profit[1]).format("0,0.0"))}%
                                      </p>
                                  </div>
                              </div>
