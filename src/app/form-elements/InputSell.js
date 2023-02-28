@@ -218,6 +218,16 @@ function InputSell(props) {
               ...state,
               extra_data: ''
             });
+
+            // add hash to local
+            db.collection('hashes').doc({ id: 1 }).get().then(document => {
+              const leaves = document.hashes;
+              leaves.push(leaf);
+
+              db.collection('hashes').doc({ id: 1 }).update({
+                hashes: leaves
+              });
+            })
           }
         });
     }
