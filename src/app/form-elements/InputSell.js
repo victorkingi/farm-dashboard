@@ -196,7 +196,10 @@ function InputSell(props) {
     values.date = date;
     let proceed = parameterChecks(values);
     if (proceed) {
-        db.collection('hashes').doc({ id: 1 }).get().then(document => {
+      const lock = localStorage.getItem('LOCK');
+      if (lock === null || lock === '0') {
+        localStorage.setItem('LOCK', '1');
+        db.collection('hashes').doc({id: 1}).get().then(document => {
           const leaves = document.hashes;
           const tree = new MerkleTree(leaves, SHA256);
           const root = tree.getRoot().toString('hex');
@@ -206,10 +209,12 @@ function InputSell(props) {
           const proof = tree.getProof(leaf);
           const isAvail = tree.verify(proof, leaf, root);
           console.log(isAvail);
-          if(isAvail) {
+          if (isAvail) {
             setError('Entry already exists');
             setOpenError(true);
             setOpen(false);
+            localStorage.setItem('LOCK', '0');
+            console.log("lock freed");
           } else {
             props.inputSell(values);
             setOpenError(false);
@@ -220,16 +225,24 @@ function InputSell(props) {
             });
 
             // add hash to local
-            db.collection('hashes').doc({ id: 1 }).get().then(document => {
+            db.collection('hashes').doc({id: 1}).get().then(document => {
               const leaves = document.hashes;
               leaves.push(leaf);
 
-              db.collection('hashes').doc({ id: 1 }).update({
+              db.collection('hashes').doc({id: 1}).update({
                 hashes: leaves
+              }).then(() => {
+                console.log("trie updated");
+                localStorage.setItem('LOCK', '0');
+                console.log("lock freed");
               });
             })
           }
         });
+      } else {
+        console.log("lock being used");
+        return 0;
+      }
     }
   };
 

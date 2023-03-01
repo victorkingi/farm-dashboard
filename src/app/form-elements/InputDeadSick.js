@@ -23,7 +23,7 @@ function InputDeadSick(props) {
     const [error, setError] = useState('');
     const [image, setImage] = useState(null);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (new Date().getTimezoneOffset() !== -180 && localStorage.getItem('name') !== 'Victor') {
@@ -84,13 +84,21 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        props.inputDeadSick(state, image);
-        setOpenError(false);
-        setOpen(true);
-        setState({
-            ...state,
-            extra_data: ''
-        });
+        const isAvail = await props.inputDeadSick(state, image);
+        console.log("returned", isAvail);
+        if (isAvail === 'LOCK') return;
+        if (isAvail === true) {
+            setError('Entry already exists');
+            setOpenError(true);
+            setOpen(false);
+        } else {
+            setOpenError(false);
+            setOpen(true);
+            setState({
+                ...state,
+                extra_data: ''
+            });
+        }
     };
 
     const handleDate = (date) => {

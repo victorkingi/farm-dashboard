@@ -57,7 +57,7 @@ function InputMoney(props) {
         return checkDate(values.date);
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (new Date().getTimezoneOffset() !== -180) {
@@ -122,13 +122,21 @@ function InputMoney(props) {
         console.log(values);
         let proceed = parameterSendingChecks(values);
         if (proceed) {
-            props.sendMoney(values);
-            setOpenError(false);
-            setOpen(true);
-            setState({
-                ...state,
-                extra_data: ''
-            });
+            const isAvail = await props.sendMoney(values);
+            console.log("returned", isAvail);
+            if (isAvail === 'LOCK') return;
+            if (isAvail === true) {
+                setError('Entry already exists');
+                setOpenError(true);
+                setOpen(false);
+            } else {
+                setOpenError(false);
+                setOpen(true);
+                setState({
+                    ...state,
+                    extra_data: ''
+                });
+            }
         }
     };
 

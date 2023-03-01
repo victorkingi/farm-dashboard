@@ -36,7 +36,7 @@ function InputEggs(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const trayStoreRegex = /^[0-9]+,([0-9]|1[0-9]|2[0-9])$/;
         const eggsRegex = /^([0-9]+,){11}[0-9]+$/;
@@ -108,27 +108,34 @@ function InputEggs(props) {
         temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
         delete temp.bags_store;
         const offBy = getEggsDiff(temp);
-        props.inputTray(temp);
-
-        if (offBy !== 0) {
-            if (offBy > 0) {
-                setOpenM(`Got ${offBy} less eggs than expected. Data Submitted`);
-                setOfflineM(`Got ${offBy} less eggs than expected. Data will be submitted automatically when back online`);
-            } else {
-                setOpenM(`Got ${Math.abs(offBy)} more eggs than expected. Data Submitted`);
-                setOfflineM(`Got ${Math.abs(offBy)} more eggs than expected. Data will be submitted automatically when back online`);
-            }
+        const isAvail = await props.inputTray(temp);
+        console.log("returned", isAvail);
+        if (isAvail === 'LOCK') return;
+        if (isAvail === true) {
+            setError('Entry already exists');
+            setOpenError(true);
+            setOpen(false);
         } else {
-            setOfflineM("Data will be submitted automatically when back online");
-            setOpenM("Data Submitted");
-        }
+            if (offBy !== 0) {
+                if (offBy > 0) {
+                    setOpenM(`Got ${offBy} less eggs than expected. Data Submitted`);
+                    setOfflineM(`Got ${offBy} less eggs than expected. Data will be submitted automatically when back online`);
+                } else {
+                    setOpenM(`Got ${Math.abs(offBy)} more eggs than expected. Data Submitted`);
+                    setOfflineM(`Got ${Math.abs(offBy)} more eggs than expected. Data will be submitted automatically when back online`);
+                }
+            } else {
+                setOfflineM("Data will be submitted automatically when back online");
+                setOpenM("Data Submitted");
+            }
 
-        setOpenError(false);
-        setOpen(true);
-        setState({
-            ...state,
-            extra_data: ''
-        });
+            setOpenError(false);
+            setOpen(true);
+            setState({
+                ...state,
+                extra_data: ''
+            });
+        }
     };
 
     const handleClose = (event, reason) => {

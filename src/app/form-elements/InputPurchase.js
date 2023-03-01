@@ -147,7 +147,7 @@ function InputPurchase(props) {
         return checkDate(values.date);
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (new Date().getTimezoneOffset() !== -180) {
@@ -237,18 +237,26 @@ function InputPurchase(props) {
         let proceed = parameterChecks(values);
         if (proceed) {
             values.item_name = values.item_name.toUpperCase();
-            props.inputPurchase(values);
-            setOpenError(false);
-            setOpen(true);
-            const newState = {
-                ...state,
-                paid_by: '',
-                extra_data: ''
+            const isAvail = await props.inputPurchase(values);
+            console.log("returned", isAvail);
+            if (isAvail === 'LOCK') return;
+            if (isAvail === true) {
+                setError('Entry already exists');
+                setOpenError(true);
+                setOpen(false);
+            } else {
+                setOpenError(false);
+                setOpen(true);
+                const newState = {
+                    ...state,
+                    paid_by: '',
+                    extra_data: ''
+                }
+                delete state.bag_size;
+                delete newState.bag_size;
+                delete newState.vendor_name;
+                setState(newState);
             }
-            delete state.bag_size;
-            delete newState.bag_size;
-            delete newState.vendor_name;
-            setState(newState);
         } else {
             setState({
                 ...state,
