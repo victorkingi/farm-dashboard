@@ -153,7 +153,7 @@ function InputPurchase(props) {
         if (new Date().getTimezoneOffset() !== -180) {
             setError('Different Timezone detected. Cannot handle input');
             setOpenError(true);
-            return;
+            //return;
         }
 
         const priceAmountRegex = /^([\d]+)$/;
