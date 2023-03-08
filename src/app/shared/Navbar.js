@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import { Dropdown } from 'react-bootstrap';
@@ -13,9 +13,10 @@ import Snackbar from "@material-ui/core/Snackbar";
 import Localbase from "localbase";
 
 const uploadLock = [];
-let isRun = false;
+const db = new Localbase('ver_data');
 
 function Navbar(props) {
+  const lock = useRef(0);
   const { pending_upload, firestore, firebase, verify } = props;
   const [state, setState] = useState({
     color: new Map(),
@@ -36,53 +37,36 @@ function Navbar(props) {
 
   useMemo(() => {
     let isSubscribed = true;
-    const db = new Localbase('ver_data');
 
-    const writeToDb = async (db) => {
+    const writeToDb = async () => {
       console.log("Writing to DB...");
-      const verDoc = await firestore.get({ collection: 'verification_data' });
-      verDoc.docs.forEach((doc_) => {
-        if (doc_.id !== 'verification') return;
-        const data = doc_.data();
-        const hashes = new Array(...data.hashes).sort();
-        const loss = data.loss;
-        const birdsNo = data.birds_no;
-
-        db.collection('hashes').delete().then(() => {
-          db.collection('hashes').add({
-            id: 1,
-            hashes,
-            loss,
-            root: verify.root.root,
-            birdsNo
-          });
-        }).catch(() => {
-          db.collection('hashes').add({
-            id: 1,
-            hashes,
-            loss,
-            root: verify.root.root,
-            birdsNo
-          });
+      let verDoc = await firestore.get({ collection: 'verification_data', doc: 'verification' });
+      verDoc = verDoc.data();
+      const hashes = new Array(...verDoc.hashes).sort();
+      const loss = verDoc.loss;
+      const birdsNo = verDoc.birds_no;
+      await db.collection('hashes').doc('ver').set({
+          hashes,
+          loss,
+          root: verify.root.root,
+          birdsNo
         });
-      });
+      return Promise.resolve(0);
     }
 
-    const updateHashes = async () => {
-      const doc = await db.collection('hashes').doc({id: 1}).get();
-      if (doc) {
-        if (doc.root === verify.root.root) {
-          console.log("root hashes match no update needed");
-          return;
-        }
-        await writeToDb(db);
-      } else {
-        await writeToDb(db);
-      }
-    }
-    if (isSubscribed && verify?.root && !isRun) {
-      isRun = true;
-      updateHashes();
+    if (isSubscribed && verify?.root && lock.current === 0) {
+      lock.current = 1;
+      const res = db.collection('hashes').doc('ver')
+          .get().then((doc) => {
+            if (doc !== null) {
+              if (doc.root === verify.root.root) {
+                console.log("root hashes match no update needed");
+                return Promise.resolve(1);
+              }
+            }
+            return writeToDb();
+      });
+      if (res) lock.current = 0;
     }
 
     return () => isSubscribed = false;
