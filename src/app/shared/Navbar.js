@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import { Dropdown } from 'react-bootstrap';
@@ -14,9 +14,9 @@ import Localbase from "localbase";
 
 const uploadLock = [];
 const db = new Localbase('ver_data');
+let lock = false;
 
 function Navbar(props) {
-  const lock = useRef(0);
   const { pending_upload, firestore, firebase, verify } = props;
   const [state, setState] = useState({
     color: new Map(),
@@ -39,6 +39,11 @@ function Navbar(props) {
     let isSubscribed = true;
 
     const writeToDb = async () => {
+      if (lock) {
+        console.log("lock held");
+        return Promise.reject(1);
+      }
+      lock = true;
       console.log("Writing to DB...");
       let verDoc = await firestore.get({ collection: 'verification_data', doc: 'verification' });
       verDoc = verDoc.data();
@@ -51,12 +56,13 @@ function Navbar(props) {
           root: verify.root.root,
           birdsNo
         });
+      console.log("lock done");
+      lock = false;
       return Promise.resolve(0);
     }
 
-    if (isSubscribed && verify?.root && lock.current === 0) {
-      lock.current = 1;
-      const res = db.collection('hashes').doc('ver')
+    if (isSubscribed && verify?.root) {
+      db.collection('hashes').doc('ver')
           .get().then((doc) => {
             if (doc !== null) {
               if (doc.root === verify.root.root) {
@@ -66,7 +72,6 @@ function Navbar(props) {
             }
             return writeToDb();
       });
-      if (res) lock.current = 0;
     }
 
     return () => isSubscribed = false;

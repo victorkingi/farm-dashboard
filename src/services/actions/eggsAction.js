@@ -32,7 +32,7 @@ export const inputTray = (eggs) => {
             const verDb = new Localbase('ver_data');
 
             return verDb.collection('hashes')
-                .doc({ id: 1 }).get().then(document => {
+                .doc('ver').get().then(document => {
                     const leaves = document.hashes;
                     const tree = new MerkleTree(leaves, SHA256);
                     const root = tree.getRoot().toString('hex');
@@ -51,11 +51,11 @@ export const inputTray = (eggs) => {
                         console.log('done');
 
                         // add hash to local
-                        return verDb.collection('hashes').doc({ id: 1 }).get().then(document => {
+                        return verDb.collection('hashes').doc('ver').get().then(document => {
                             const leaves = document.hashes;
                             leaves.push(hash);
 
-                            return verDb.collection('hashes').doc({ id: 1 }).update({
+                            return verDb.collection('hashes').doc('ver').update({
                                 hashes: leaves
                             }).then(() => {
                                 console.log("trie updated");

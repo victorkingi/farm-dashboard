@@ -118,15 +118,15 @@ function Dashboard(props) {
               setOpen(true);
               setAllCheckedEggs(false);
 
-              // add hash to local
-              verDb.collection('hashes').doc({ id: 1 }).get().then(document => {
+              // delete hash from local
+              verDb.collection('hashes').doc('ver').get().then(document => {
                   const leaves = document.hashes;
                   const idx = leaves.indexOf(key);
                   if (idx === -1) {
                       console.log("no hash in trie");
                   } else {
                       leaves.splice(idx, 1);
-                      verDb.collection('hashes').doc({ id: 1 }).update({
+                      verDb.collection('hashes').doc('ver').update({
                           hashes: leaves
                       }).then(() => {
                           console.log("trie updated");
@@ -143,14 +143,14 @@ function Dashboard(props) {
               setAllChecked(false);
 
               // add hash to local
-              verDb.collection('hashes').doc({ id: 1 }).get().then(document => {
+              verDb.collection('hashes').doc('ver').get().then(document => {
                   const leaves = document.hashes;
                   const idx = leaves.indexOf(key);
                   if (idx === -1) {
                       console.log("no hash in trie");
                   } else {
                       leaves.splice(idx, 1);
-                      verDb.collection('hashes').doc({ id: 1 }).update({
+                      verDb.collection('hashes').doc('ver').update({
                           hashes: leaves
                       }).then(() => {
                           console.log("trie updated");

@@ -53,7 +53,7 @@ function InputSell(props) {
 
 
   useEffect(() => {
-    db.collection('hashes').doc({ id: 1 }).get().then(document => {
+    db.collection('hashes').doc('ver').get().then(document => {
       let amount = parseInt(document.loss.amount);
       if (amount !== 0) {
         if (amount < 0) amount *= -1;
@@ -199,7 +199,7 @@ function InputSell(props) {
       const lock = localStorage.getItem('LOCK');
       if (lock === null || lock === '0') {
         localStorage.setItem('LOCK', '1');
-        db.collection('hashes').doc({id: 1}).get().then(document => {
+        db.collection('hashes').doc('ver').get().then(document => {
           const leaves = document.hashes;
           const tree = new MerkleTree(leaves, SHA256);
           const root = tree.getRoot().toString('hex');
@@ -225,11 +225,11 @@ function InputSell(props) {
             });
 
             // add hash to local
-            db.collection('hashes').doc({id: 1}).get().then(document => {
+            db.collection('hashes').doc('ver').get().then(document => {
               const leaves = document.hashes;
               leaves.push(leaf);
 
-              db.collection('hashes').doc({id: 1}).update({
+              db.collection('hashes').doc('ver').update({
                 hashes: leaves
               }).then(() => {
                 console.log("trie updated");

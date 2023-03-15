@@ -70,7 +70,7 @@ function InputChknNo() {
             temp.chicks += ',';
 
             const verifyAndPush = async () => {
-                const document = await db.collection('hashes').doc({ id: 1 }).get();
+                const document = await db.collection('hashes').doc('ver').get();
 
                 if (document.birdsNo) {
                     let chicks = document.birdsNo;
