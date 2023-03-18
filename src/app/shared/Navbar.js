@@ -47,7 +47,8 @@ function Navbar(props) {
       console.log("Writing to DB...");
       let verDoc = await firestore.get({ collection: 'verification_data', doc: 'verification' });
       verDoc = verDoc.data();
-      const hashes = new Array(...verDoc.hashes).sort();
+      let verHashes = verDoc?.hashes || [];
+      const hashes = new Array(...verHashes).sort();
       const loss = verDoc.loss;
       const birdsNo = verDoc.birds_no;
       await db.collection('hashes').doc('ver').set({
