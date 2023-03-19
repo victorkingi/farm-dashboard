@@ -544,7 +544,16 @@ function Dashboard(props) {
                          </div>
                        </div>
                      </div>
-                       <h6 className="text-white-80 font-weight-normal">Trays and Eggs in Store <br /> ({moment(dash.last_trays_date*1000).format('MMM Do YY')})</h6>
+                       <h6 className="text-white-80 font-weight-normal">Trays and Eggs in Store
+                           <br />
+                           ({moment(
+                               dash.last_trays_date*1000).format('MMM Do YY')})
+                           <br />
+                           <p className="font-weight-light">
+                               Last EC: {moment(
+                               dash.last_ec * 1000).format('MMM Do YY')}
+                           </p>
+                       </h6>
                    </div>
                  </div>
            </div>
