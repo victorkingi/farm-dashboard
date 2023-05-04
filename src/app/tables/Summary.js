@@ -41,7 +41,7 @@ function SpanningTable({ dash }) {
                 .map(item => createRow(`${item[0].endsWith('OTHER') 
                     ? ((item[0][0] === 'S' && 'Other sales') 
                         || (item[0][0] === 'P' && 'Other purchases')) 
-                    : item[0].charAt(0)+item[0].slice(1).toLowerCase()} not paid`, item[0] !== 'FEEDS' ?
+                    : item[0].charAt(0)+item[0].slice(1).toLowerCase()} not paid`, (item[0] !== 'FEEDS' && item[0] !== 'POTHER') ?
                     'Ksh '+numeral(item[1][1]).format('0,0')+' ('+numeral(item[1][0]).format('0,0')+' Trays)' : 'Ksh '+numeral(item[1][1]).format('0,0'))));
             tempRows.push(...Object.entries(dboard.last_paid_date)
                 .map(item => createRow(`${item[0].charAt(0)+item[0].slice(1).toLowerCase()} last paid month`,
