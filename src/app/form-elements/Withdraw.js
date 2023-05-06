@@ -79,21 +79,13 @@ function Withdraw(props) {
                     .then(async () => {
                         delete values.pass;
                         delete state.pass;
-                        const isAvail = await props.sendMoney(values);
-                        console.log("returned", isAvail);
-                        if (isAvail === 'LOCK') return;
-                        if (isAvail === true) {
-                            setError('Entry already exists');
-                            setOpenError(true);
-                            setOpen(false);
-                        } else {
-                            setOpenError(false);
-                            setOpen(true);
-                            setState({
-                                ...state,
-                                extra_data: ''
-                            });
-                        }
+                        props.sendMoney(values);
+                        setOpenError(false);
+                        setOpen(true);
+                        setState({
+                            ...state,
+                            extra_data: ''
+                        });
                     }).catch((error) => {
                         setError(error.message.substring(0, error.message.lastIndexOf('.')));
                         setOpenError(true);

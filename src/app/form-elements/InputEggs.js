@@ -108,34 +108,28 @@ function InputEggs(props) {
         temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
         delete temp.bags_store;
         const offBy = getEggsDiff(temp);
-        const isAvail = await props.inputTray(temp);
-        console.log("returned", isAvail);
-        if (isAvail === 'LOCK') return;
-        if (isAvail === true) {
-            setError('Entry already exists');
-            setOpenError(true);
-            setOpen(false);
-        } else {
-            if (offBy !== 0) {
-                if (offBy > 0) {
-                    setOpenM(`Got ${offBy} less eggs than expected. Data Submitted`);
-                    setOfflineM(`Got ${offBy} less eggs than expected. Data will be submitted automatically when back online`);
-                } else {
-                    setOpenM(`Got ${Math.abs(offBy)} more eggs than expected. Data Submitted`);
-                    setOfflineM(`Got ${Math.abs(offBy)} more eggs than expected. Data will be submitted automatically when back online`);
-                }
-            } else {
-                setOfflineM("Data will be submitted automatically when back online");
-                setOpenM("Data Submitted");
-            }
+        
+        props.inputTray(temp);
 
-            setOpenError(false);
-            setOpen(true);
-            setState({
-                ...state,
-                extra_data: ''
-            });
+        if (offBy !== 0) {
+            if (offBy > 0) {
+                setOpenM(`Got ${offBy} less eggs than expected. Data Submitted`);
+                setOfflineM(`Got ${offBy} less eggs than expected. Data will be submitted automatically when back online`);
+            } else {
+                setOpenM(`Got ${Math.abs(offBy)} more eggs than expected. Data Submitted`);
+                setOfflineM(`Got ${Math.abs(offBy)} more eggs than expected. Data will be submitted automatically when back online`);
+            }
+        } else {
+            setOfflineM("Data will be submitted automatically when back online");
+            setOpenM("Data Submitted");
         }
+
+        setOpenError(false);
+        setOpen(true);
+        setState({
+            ...state,
+            extra_data: ''
+        });
     };
 
     const handleClose = (event, reason) => {

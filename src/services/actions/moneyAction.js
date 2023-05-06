@@ -1,6 +1,4 @@
 import SHA256 from "crypto-js/sha256";
-import Localbase from "localbase";
-import MerkleTree from "merkletreejs";
 
 /**
  * will be affected only if amount > balance
@@ -20,68 +18,28 @@ export const sendMoney = (values) => {
         values.submitted_on = new Date();
 
         console.log("hash to use", hash);
-        const lock = localStorage.getItem('LOCK');
-        if (lock === null || lock === '0') {
-            localStorage.setItem('LOCK', '1');
-            const verDb = new Localbase('ver_data');
 
-            return verDb.collection('hashes')
-                .doc('ver').get().then(document => {
-                    const leaves = document.hashes;
-                    const tree = new MerkleTree(leaves, SHA256);
-                    const root = tree.getRoot().toString('hex');
-                    const proof = tree.getProof(hash);
-                    const isAvail = tree.verify(proof, hash, root);
-                    console.log(isAvail);
-
-                    if(isAvail) {
-                        localStorage.setItem('LOCK', '0');
-                        console.log("lock freed");
-                        return true;
-                    } else {
-                        if (values.receiver.startsWith("WITHDRAW")) {
-                            firebase.auth().onAuthStateChanged(user => {
-                                if (user) {
-                                    return user.getIdTokenResult().then(idToken => {
-                                        if (!idToken.claims.admin) {
-                                            window.alert("You are not an admin");
-                                            localStorage.setItem('LOCK', '0');
-                                            console.log("lock freed");
-                                            return -1;
-                                        } else {
-                                            firestore.collection("pending_transactions").doc(hash).set({
-                                                values
-                                            });
-                                            dispatch({type: 'MONEY_SENT', values});
-                                        }
-                                    });
-                                }
-                            });
+        if (values.receiver.startsWith("WITHDRAW")) {
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    return user.getIdTokenResult().then(idToken => {
+                        if (!idToken.claims.admin) {
+                            window.alert("You are not an admin");
+                            return -1;
                         } else {
                             firestore.collection("pending_transactions").doc(hash).set({
                                 values
                             });
                             dispatch({type: 'MONEY_SENT', values});
                         }
-
-                        // add hash to local
-                        return verDb.collection('hashes').doc('ver').get().then(document => {
-                            const leaves = document.hashes;
-                            leaves.push(hash);
-
-                            return verDb.collection('hashes').doc('ver').update({
-                                hashes: leaves
-                            }).then(() => {
-                                console.log("trie updated");
-                                localStorage.setItem('LOCK', '0');
-                                console.log("lock freed");
-                            });
-                        });
-                    }
-                });
+                    });
+                }
+            });
         } else {
-            console.log("lock being used");
-            return Promise.resolve('LOCK');
+            firestore.collection("pending_transactions").doc(hash).set({
+                values
+            });
+            dispatch({type: 'MONEY_SENT', values});
         }
     }
 }

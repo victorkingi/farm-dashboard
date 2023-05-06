@@ -12,8 +12,6 @@ import { Alert } from './InputEggs';
 import { getSectionAddr, inputSell } from '../../services/actions/salesAction';
 import { Offline, Online } from 'react-detect-offline';
 import { firebase } from '../../services/api/fbConfig';
-import  SHA256 from 'crypto-js/sha256';
-import MerkleTree from 'merkletreejs';
 import Localbase from "localbase";
 import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
@@ -196,53 +194,13 @@ function InputSell(props) {
     values.date = date;
     let proceed = parameterChecks(values);
     if (proceed) {
-      const lock = localStorage.getItem('LOCK');
-      if (lock === null || lock === '0') {
-        localStorage.setItem('LOCK', '1');
-        db.collection('hashes').doc('ver').get().then(document => {
-          const leaves = document.hashes;
-          const tree = new MerkleTree(leaves, SHA256);
-          const root = tree.getRoot().toString('hex');
-          let leaf = `${values.buyer_name}${parseInt(values.date.getTime() / 1000)}${values.section}`.toUpperCase();
-          leaf = SHA256(leaf).toString();
-          console.log(leaf);
-          const proof = tree.getProof(leaf);
-          const isAvail = tree.verify(proof, leaf, root);
-          console.log(isAvail);
-          if (isAvail) {
-            setError('Entry already exists');
-            setOpenError(true);
-            setOpen(false);
-            localStorage.setItem('LOCK', '0');
-            console.log("lock freed");
-          } else {
-            props.inputSell(values);
-            setOpenError(false);
-            setOpen(true);
-            setState({
-              ...state,
-              extra_data: ''
-            });
-
-            // add hash to local
-            db.collection('hashes').doc('ver').get().then(document => {
-              const leaves = document.hashes;
-              leaves.push(leaf);
-
-              db.collection('hashes').doc('ver').update({
-                hashes: leaves
-              }).then(() => {
-                console.log("trie updated");
-                localStorage.setItem('LOCK', '0');
-                console.log("lock freed");
-              });
-            })
-          }
+        props.inputSell(values);
+        setOpenError(false);
+        setOpen(true);
+        setState({
+          ...state,
+          extra_data: ''
         });
-      } else {
-        console.log("lock being used");
-        return 0;
-      }
     }
   };
 

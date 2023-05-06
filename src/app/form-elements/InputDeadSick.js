@@ -84,21 +84,14 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        const isAvail = await props.inputDeadSick(state, image);
-        console.log("returned", isAvail);
-        if (isAvail === 'LOCK') return;
-        if (isAvail === true) {
-            setError('Entry already exists');
-            setOpenError(true);
-            setOpen(false);
-        } else {
-            setOpenError(false);
-            setOpen(true);
-            setState({
-                ...state,
-                extra_data: ''
-            });
-        }
+        props.inputDeadSick(state, image);
+       
+        setOpenError(false);
+        setOpen(true);
+        setState({
+            ...state,
+            extra_data: ''
+        });
     };
 
     const handleDate = (date) => {

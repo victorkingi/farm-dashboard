@@ -10,7 +10,6 @@ import {sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
-import Localbase from "localbase";
 
 export function getRanColor() {
   const ranR = Math.floor((Math.random()*255)+1).toString(16);
@@ -109,30 +108,12 @@ function Dashboard(props) {
 
   // undo write events to database
   const rollBack = () => {
-      const verDb = new Localbase('ver_data');
-
       for (const [key, value] of Object.entries(pendCheckedEggs)) {
           if (value) {
               firestore.collection("pend_eggs_collected").doc(key).delete();
               setError(false);
               setOpen(true);
               setAllCheckedEggs(false);
-
-              // delete hash from local
-              verDb.collection('hashes').doc('ver').get().then(document => {
-                  const leaves = document.hashes;
-                  const idx = leaves.indexOf(key);
-                  if (idx === -1) {
-                      console.log("no hash in trie");
-                  } else {
-                      leaves.splice(idx, 1);
-                      verDb.collection('hashes').doc('ver').update({
-                          hashes: leaves
-                      }).then(() => {
-                          console.log("trie updated");
-                      });
-                  }
-              });
           }
       }
       for (const [key, value] of Object.entries(pendChecked)) {
@@ -141,22 +122,6 @@ function Dashboard(props) {
               setError(false);
               setOpen(true);
               setAllChecked(false);
-
-              // add hash to local
-              verDb.collection('hashes').doc('ver').get().then(document => {
-                  const leaves = document.hashes;
-                  const idx = leaves.indexOf(key);
-                  if (idx === -1) {
-                      console.log("no hash in trie");
-                  } else {
-                      leaves.splice(idx, 1);
-                      verDb.collection('hashes').doc('ver').update({
-                          hashes: leaves
-                      }).then(() => {
-                          console.log("trie updated");
-                      });
-                  }
-              });
           }
       }
 
