@@ -46,7 +46,7 @@ function InputEggs(props) {
 
     useEffect(() => {
         if (extraData) {
-          setGroups(Object.values(extraData[0].groups) || []);
+          setGroups(Object.values(extraData[0].groups || {}) || []);
         }
       }, [extraData]);
 

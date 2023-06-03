@@ -48,7 +48,7 @@ function InputPurchase(props) {
             setEmployeeNames(extraData[0].pay_employees || []);
             setFeedsVendors(extraData[0].feeds_vendors || []);
             setFeedsType(extraData[0].feeds_type || []);
-            setGroups(Object.values(extraData[0].groups) || []);
+            setGroups(Object.values(extraData[0].groups || {}) || []);
         }
     }, [extraData]);
 

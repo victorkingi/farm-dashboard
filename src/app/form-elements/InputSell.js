@@ -47,7 +47,7 @@ function InputSell(props) {
     if (extraData) {
       setSectionNames(extraData[0].main_buyers || []);
       setBuyerNames(extraData[0].buyer_names || []);
-      setGroups(Object.values(extraData[0].groups) || []);
+      setGroups(Object.values(extraData[0].groups || {}) || []);
     }
   }, [extraData]);
 
