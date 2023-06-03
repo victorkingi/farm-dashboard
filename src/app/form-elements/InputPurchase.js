@@ -224,6 +224,7 @@ function InputPurchase(props) {
 
         delete values.not_paid;
         delete values.paid;
+        if (!values.flock) values.group = "0::0";
         delete values.flock;
 
         if (values.section !== "Feeds") {

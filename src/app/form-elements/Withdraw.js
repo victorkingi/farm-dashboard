@@ -91,6 +91,7 @@ function Withdraw(props) {
                     .then(async () => {
                         delete values.pass;
                         delete state.pass;
+                        if (!values.flock) values.group = "0::0";
                         delete values.flock;
                         props.sendMoney(values);
                         setOpenError(false);

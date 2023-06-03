@@ -96,6 +96,7 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
+        if (!state.flock) state.group = "0::0";
         delete state.flock;
         props.inputDeadSick(state, image);
        

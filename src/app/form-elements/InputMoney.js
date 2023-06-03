@@ -125,6 +125,7 @@ function InputMoney(props) {
         }
         delete values.from;
         delete values.to;
+        if (!values.flock) values.group = "0::0";
         delete values.flock;
         values.receiver = cleanSendReceive(values.receiver, name);
         values.name = cleanSendReceive(values.name, name);

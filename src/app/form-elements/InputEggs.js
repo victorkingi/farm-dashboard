@@ -121,6 +121,7 @@ function InputEggs(props) {
         }
         temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
         delete temp.bags_store;
+        if (!temp.flock) temp.group = "0::0";
         delete temp.flock;
         const offBy = getEggsDiff(temp);
         
