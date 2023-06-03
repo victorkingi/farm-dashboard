@@ -10,8 +10,13 @@ import {Offline, Online} from "react-detect-offline";
 import {firebase} from '../../services/api/fbConfig';
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
+import {compose} from "redux";
+import {firestoreConnect} from "react-redux-firebase";
+
 
 function Withdraw(props) {
+    const { extraData } = props;
+
     const [state, setState] = useState({
         date: new Date(),
         name: "My Balance",
@@ -23,6 +28,13 @@ function Withdraw(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+    const [groups, setGroups] = useState([]);
+
+    useEffect(() => {
+        if (extraData) {
+          setGroups(Object.values(extraData[0].groups) || []);
+        }
+      }, [extraData]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -79,6 +91,7 @@ function Withdraw(props) {
                     .then(async () => {
                         delete values.pass;
                         delete state.pass;
+                        delete values.flock;
                         props.sendMoney(values);
                         setOpenError(false);
                         setOpen(true);
@@ -107,6 +120,18 @@ function Withdraw(props) {
         setOpen(false);
         setOpenError(false);
     };
+
+    const handleFlock = (e) => {
+        if (extraData) {
+          const object = extraData[0].groups;
+          let g = Object.keys(object).find(key => object[key] === e);
+          setState({
+            ...state,
+            group: g,
+            flock: e
+          });
+        }
+      }
 
     const handleSelect = (e) => {
         if (e.target) {
@@ -154,6 +179,19 @@ function Withdraw(props) {
                         <h4 className="card-title">Withdraw</h4>
                         <p className="card-description"> Withdraw from</p>
                         <form className="forms-sample">
+                            <Form.Group>
+                                <label htmlFor='flock'>Flock</label>
+                                <DropdownButton
+                                    alignRight
+                                    title={state.flock || 'Choose Flock'}
+                                    id='flock'
+                                    onSelect={handleFlock}
+                                >
+                                    {Array(...groups).sort().map(x => {
+                                        return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                                    })}
+                                </DropdownButton>
+                            </Form.Group>
                             <DropdownButton
                                 alignRight
                                 title={state.name}
@@ -209,4 +247,15 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default connect(null, mapDispatchToProps)(Withdraw);
+const mapStateToProps = function(state) {
+    return {
+      extraData: state.firestore.ordered.extra_data
+    }
+}
+
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    firestoreConnect([
+      {collection: 'extra_data', doc: 'extra_data'}
+    ])
+)(Withdraw);

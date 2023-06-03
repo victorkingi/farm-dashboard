@@ -9,6 +9,11 @@ import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import "react-datepicker/dist/react-datepicker.css";
 import {Offline, Online} from "react-detect-offline";
+import DropdownButton from 'react-bootstrap/DropdownButton';
+import Dropdown from 'react-bootstrap/Dropdown';
+import {compose} from "redux";
+import {firestoreConnect} from "react-redux-firebase";
+
 
 export function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -24,6 +29,8 @@ const getEggsDiff = (temp) => {
 
 //
 function InputEggs(props) {
+    const { extraData } = props;
+
     const [state, setState] = useState({
         date_: new Date(),
         category: 'eggs_collected',
@@ -35,6 +42,13 @@ function InputEggs(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+    const [groups, setGroups] = useState([]);
+
+    useEffect(() => {
+        if (extraData) {
+          setGroups(Object.values(extraData[0].groups) || []);
+        }
+      }, [extraData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -107,6 +121,7 @@ function InputEggs(props) {
         }
         temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
         delete temp.bags_store;
+        delete temp.flock;
         const offBy = getEggsDiff(temp);
         
         props.inputTray(temp);
@@ -157,6 +172,18 @@ function InputEggs(props) {
         }
     }
 
+    const handleFlock = (e) => {
+        if (extraData) {
+          const object = extraData[0].groups;
+          let g = Object.keys(object).find(key => object[key] === e);
+          setState({
+            ...state,
+            group: g,
+            flock: e
+          });
+        }
+      }
+
     const componentDidMount = () => {
         bsCustomFileInput.init()
     }
@@ -201,6 +228,19 @@ function InputEggs(props) {
                             <Form.Group>
                                 <label htmlFor="level">Level ordering</label>
                                 <Form.Control disabled type="text" className="form-control text-white" id="level" placeholder="A,B,C" />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor='flock'>Flock</label>
+                                <DropdownButton
+                                    alignRight
+                                    title={state.flock || 'Choose Flock'}
+                                    id='flock'
+                                    onSelect={handleFlock}
+                                >
+                                    {Array(...groups).sort().map(x => {
+                                        return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                                    })}
+                                </DropdownButton>
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="eggs">Eggs column 1</label>
@@ -266,4 +306,15 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default connect(null, mapDispatchToProps)(InputEggs);
+const mapStateToProps = function(state) {
+    return {
+      extraData: state.firestore.ordered.extra_data
+    }
+}
+
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    firestoreConnect([
+      {collection: 'extra_data', doc: 'extra_data'}
+    ])
+)(InputEggs);

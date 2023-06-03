@@ -38,6 +38,7 @@ function InputPurchase(props) {
     const [employeeNames, setEmployeeNames] = useState([]);
     const [feedsVendors, setFeedsVendors] = useState([]);
     const [feedsType, setFeedsType] = useState([]);
+    const [groups, setGroups] = useState([]);
 
     let name = firebase.auth().currentUser?.displayName || '';
     name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
@@ -47,6 +48,7 @@ function InputPurchase(props) {
             setEmployeeNames(extraData[0].pay_employees || []);
             setFeedsVendors(extraData[0].feeds_vendors || []);
             setFeedsType(extraData[0].feeds_type || []);
+            setGroups(Object.values(extraData[0].groups) || []);
         }
     }, [extraData]);
 
@@ -222,6 +224,7 @@ function InputPurchase(props) {
 
         delete values.not_paid;
         delete values.paid;
+        delete values.flock;
 
         if (values.section !== "Feeds") {
             delete values.vendor_name;
@@ -333,6 +336,18 @@ function InputPurchase(props) {
         });
     }
 
+    const handleFlock = (e) => {
+        if (extraData) {
+          const object = extraData[0].groups;
+          let g = Object.keys(object).find(key => object[key] === e);
+          setState({
+            ...state,
+            group: g,
+            flock: e
+          });
+        }
+      }
+
     const componentDidMount = () => {
         bsCustomFileInput.init()
     }
@@ -375,6 +390,19 @@ function InputPurchase(props) {
                                     className="form-control text-white"
                                     id='date'
                                 />
+                            </Form.Group>
+                            <Form.Group>
+                                <label htmlFor='flock'>Flock</label>
+                                <DropdownButton
+                                    alignRight
+                                    title={state.flock || 'Choose Flock'}
+                                    id='flock'
+                                    onSelect={handleFlock}
+                                >
+                                    {Array(...groups).sort().map(x => {
+                                        return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                                    })}
+                                </DropdownButton>
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="section">Section</label>

@@ -10,8 +10,13 @@ import {Redirect} from "react-router-dom";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Offline, Online} from "react-detect-offline";
+import {compose} from "redux";
+import {firestoreConnect} from "react-redux-firebase";
+
 
 function InputDeadSick(props) {
+    const { extraData } = props;
+
     const [state, setState] = useState({
         date: new Date(),
         category: 'dead_sick',
@@ -22,6 +27,13 @@ function InputDeadSick(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
     const [image, setImage] = useState(null);
+    const [groups, setGroups] = useState([]);
+
+    useEffect(() => {
+        if (extraData) {
+          setGroups(Object.values(extraData[0].groups) || []);
+        }
+      }, [extraData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -84,6 +96,7 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
+        delete state.flock;
         props.inputDeadSick(state, image);
        
         setOpenError(false);
@@ -108,6 +121,18 @@ function InputDeadSick(props) {
         setOpen(false);
         setOpenError(false);
     };
+
+    const handleFlock = (e) => {
+        if (extraData) {
+          const object = extraData[0].groups;
+          let g = Object.keys(object).find(key => object[key] === e);
+          setState({
+            ...state,
+            group: g,
+            flock: e
+          });
+        }
+      }
 
     const handleSelect = (e) => {
         if (e.target) {
@@ -178,6 +203,19 @@ function InputDeadSick(props) {
                                         id='date'
                                     />
                                 </Form.Group>
+                                <Form.Group>
+                                    <label htmlFor='flock'>Flock</label>
+                                    <DropdownButton
+                                        alignRight
+                                        title={state.flock || 'Choose Flock'}
+                                        id='flock'
+                                        onSelect={handleFlock}
+                                    >
+                                        {Array(...groups).sort().map(x => {
+                                            return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                                        })}
+                                    </DropdownButton>
+                                </Form.Group>
                                 <label htmlFor="section">Section</label>
                                 <DropdownButton
                                     alignRight
@@ -245,4 +283,15 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default connect(null, mapDispatchToProps)(InputDeadSick);
+const mapStateToProps = function(state) {
+    return {
+      extraData: state.firestore.ordered.extra_data
+    }
+}
+
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    firestoreConnect([
+      {collection: 'extra_data', doc: 'extra_data'}
+    ])
+)(InputDeadSick);

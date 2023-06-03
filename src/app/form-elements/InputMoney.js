@@ -11,6 +11,9 @@ import {sendMoney} from "../../services/actions/moneyAction";
 import {Offline, Online} from "react-detect-offline";
 import {firebase} from '../../services/api/fbConfig';
 import DatePicker from "react-datepicker";
+import {compose} from "redux";
+import {firestoreConnect} from "react-redux-firebase";
+
 
 const cleanSendReceive = (str, name) => {
     let str1 = str.toUpperCase();
@@ -21,6 +24,8 @@ const cleanSendReceive = (str, name) => {
 }
 
 function InputMoney(props) {
+    const { extraData } = props;
+
     const [state, setState] = useState({
         from: 'From',
         to: 'To',
@@ -32,6 +37,13 @@ function InputMoney(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
+    const [groups, setGroups] = useState([]);
+
+    useEffect(() => {
+        if (extraData) {
+          setGroups(Object.values(extraData[0].groups) || []);
+        }
+      }, [extraData]);
 
     const parameterSendingChecks = (values) => {
         if (values.name === values.receiver) {
@@ -113,6 +125,7 @@ function InputMoney(props) {
         }
         delete values.from;
         delete values.to;
+        delete values.flock;
         values.receiver = cleanSendReceive(values.receiver, name);
         values.name = cleanSendReceive(values.name, name);
         values.initiator = cleanSendReceive(values.initiator, name);
@@ -173,6 +186,18 @@ function InputMoney(props) {
         }
     }
 
+    const handleFlock = (e) => {
+        if (extraData) {
+          const object = extraData[0].groups;
+          let g = Object.keys(object).find(key => object[key] === e);
+          setState({
+            ...state,
+            group: g,
+            flock: e
+          });
+        }
+      }
+
     const handleDate = (date) => {
         setState({
             ...state,
@@ -220,6 +245,19 @@ function InputMoney(props) {
                                         className="form-control text-white"
                                         id='date'
                                     />
+                                </Form.Group>
+                                <Form.Group>
+                                    <label htmlFor='flock'>Flock</label>
+                                    <DropdownButton
+                                        alignRight
+                                        title={state.flock || 'Choose Flock'}
+                                        id='flock'
+                                        onSelect={handleFlock}
+                                    >
+                                        {Array(...groups).sort().map(x => {
+                                            return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
+                                        })}
+                                    </DropdownButton>
                                 </Form.Group>
                                 <DropdownButton
                                     alignRight
@@ -287,4 +325,15 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default connect(null, mapDispatchToProps)(InputMoney);
+const mapStateToProps = function(state) {
+    return {
+      extraData: state.firestore.ordered.extra_data
+    }
+}
+
+export default compose(
+    connect(mapStateToProps, mapDispatchToProps),
+    firestoreConnect([
+      {collection: 'extra_data', doc: 'extra_data'}
+    ])
+)(InputMoney);
