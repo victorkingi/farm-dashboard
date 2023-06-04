@@ -114,11 +114,6 @@ function InputEggs(props) {
             return;
         }
 
-        if (new Date().getTimezoneOffset() !== -180) {
-            setError('Different Timezone detected. Cannot handle input');
-            setOpenError(true);
-            return;
-        }
         temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
         delete temp.bags_store;
         if (!temp.flock) temp.group = "0::0";

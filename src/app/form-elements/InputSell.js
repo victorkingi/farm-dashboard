@@ -36,7 +36,6 @@ function InputSell(props) {
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [sectionNames, setSectionNames] = useState([]);
-  const [groups, setGroups] = useState([]);
   const [buyer_names, setBuyerNames] = useState([]);
 
   let name = firebase.auth().currentUser?.displayName;
@@ -47,7 +46,6 @@ function InputSell(props) {
     if (extraData) {
       setSectionNames(extraData[0].main_buyers || []);
       setBuyerNames(extraData[0].buyer_names || []);
-      setGroups(Object.values(extraData[0].groups || {}) || []);
     }
   }, [extraData]);
 
@@ -110,12 +108,6 @@ function InputSell(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (new Date().getTimezoneOffset() !== -180) {
-      setError('Different Timezone detected. Cannot handle input');
-      setOpenError(true);
-      return;
-    }
 
     const arr = Object.entries(state);
     const trayRegex = /^([0-9]+)$/;
@@ -254,18 +246,6 @@ function InputSell(props) {
     }
   };
 
-  const handleFlock = (e) => {
-    if (extraData) {
-      const object = extraData[0].groups;
-      let g = Object.keys(object).find(key => object[key] === e);
-      setState({
-        ...state,
-        group: g,
-        flock: e
-      });
-    }
-  }
-
   const handleTransfer = (e) => {
     setState({
       ...state,
@@ -329,19 +309,6 @@ function InputSell(props) {
                   className="form-control text-white"
                   id='date'
                 />
-              </Form.Group>
-              <Form.Group>
-                <label htmlFor='flock'>Flock</label>
-                <DropdownButton
-                  alignRight
-                  title={state.flock || 'Choose Flock'}
-                  id='flock'
-                  onSelect={handleFlock}
-                >
-                  {Array(...groups).sort().map(x => {
-                    return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
-                  })}
-                </DropdownButton>
               </Form.Group>
               <Form.Group>
                 <label htmlFor='section'>Section</label>

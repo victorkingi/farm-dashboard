@@ -152,12 +152,6 @@ function InputPurchase(props) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (new Date().getTimezoneOffset() !== -180) {
-            setError('Different Timezone detected. Cannot handle input');
-            setOpenError(true);
-            return;
-        }
-
         const priceAmountRegex = /^([\d]+)$/;
         const bSizeRegex = /^[0-9]+$/.test(state.bag_size);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
