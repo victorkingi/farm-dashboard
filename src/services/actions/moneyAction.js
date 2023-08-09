@@ -1,5 +1,3 @@
-import SHA256 from "crypto-js/sha256";
-
 /**
  * will be affected only if amount > balance
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
@@ -13,11 +11,7 @@ export const sendMoney = (values) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
-        let hash = `${parseInt(values.date.getTime()/1000)}${values.amount}${values.name}${values.receiver}`.toUpperCase();
-        hash = SHA256(SHA256(hash).toString()+'0').toString();
         values.submitted_on = new Date();
-
-        console.log("hash to use", hash);
 
         if (values.receiver.startsWith("WITHDRAW")) {
             firebase.auth().onAuthStateChanged(user => {
@@ -27,8 +21,9 @@ export const sendMoney = (values) => {
                             window.alert("You are not an admin");
                             return -1;
                         } else {
-                            firestore.collection("pending_transactions").doc(hash).set({
-                                values
+                            firestore.collection("pending_transactions").add({
+                                values,
+                                hash: ''
                             });
                             dispatch({type: 'MONEY_SENT', values});
                         }
@@ -36,8 +31,9 @@ export const sendMoney = (values) => {
                 }
             });
         } else {
-            firestore.collection("pending_transactions").doc(hash).set({
-                values
+            firestore.collection("pending_transactions").add({
+                values,
+                hash: ''
             });
             dispatch({type: 'MONEY_SENT', values});
         }

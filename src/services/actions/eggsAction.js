@@ -24,7 +24,8 @@ export const inputTray = (eggs) => {
         hash = SHA256(hash).toString();
         console.log("hash to use", hash);
 
-        firestore.collection('pend_eggs_collected').doc(hash).set({
+        firestore.collection('pend_eggs_collected').add({
+            hash,
             values
         });
         console.log('done');

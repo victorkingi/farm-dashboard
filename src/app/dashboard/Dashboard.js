@@ -19,15 +19,12 @@ export function getRanColor() {
 }
 
 function Dashboard(props) {
-  const { acc, dashboard, pend, firestore, pendEggs, lateDuka } = props;
+  const { dashboard, pend, firestore, pendEggs } = props;
 
-  const [bank, setBank] = useState(0);
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
-  const [done, setDone] = useState(false);
   const [done1, setDone1] = useState(false);
   const [done3, setDone3] = useState(false);
-  const [done4, setDone4] = useState(false);
   const [error, setError] = useState(false);
   const [errM, setErrM] = useState('');
   const [disable, setDisable] = useState(false);
@@ -36,8 +33,6 @@ function Dashboard(props) {
   const [allCheckedEggs, setAllCheckedEggs] = useState(false);
   const [pendCheckedEggs, setPendCheckedEggs] = useState({});
   const [disableEggs, setDisableEggs] = useState(false);
-  const [totalDuka, setTotalDuka] = useState(0);
-  const [oweJeff, setOweJeff] = useState(0);
 
   let __user__ = localStorage.getItem('name');
   __user__ = __user__ !== null ? __user__.toUpperCase() : '';
@@ -47,16 +42,6 @@ function Dashboard(props) {
       setDash(dashboard[0]);
     }
   }, [dashboard]);
-
-  useEffect(() => {
-      if (lateDuka) {
-          let total = 0;
-          for (const x of lateDuka) {
-              total += parseInt(x.values.tray_price) * parseInt(x.values.tray_no);
-          }
-          setTotalDuka(total);
-      }
-  }, [lateDuka]);
 
   useEffect(() => {
     let total = 0;
@@ -132,23 +117,6 @@ function Dashboard(props) {
 
     return {__user};
   }, []);
-
-  useEffect(() => {
-      if (acc) {
-          const addrs = [];
-          for (let [addr, val] of Object.entries(acc[0])) {
-              if (addr.endsWith('BANK')) {
-                  addrs.push(addr);
-              }
-              if (addr === 'OWE_JEFF') setOweJeff(val);
-          }
-          let bankTotal = 0;
-          for (let addr of addrs) {
-              bankTotal += acc[0][addr];
-          }
-          setBank(bankTotal);
-      }
-  }, [acc]);
 
   if (!user.__user) {
     return (
@@ -247,33 +215,6 @@ function Dashboard(props) {
    return (
        <div>
          <div className="row">
-             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-                 <div className="card">
-                     <div className="card-body">
-                         <div className="row">
-                             <div className="col-9">
-                                 <div className="d-flex align-items-center align-self-start">
-                                     <h3 className="mb-0">KSh {numeral(dash.week_profit[0]).format("0,0")}</h3>
-                                     <p className={`text-${dash.week_profit[1]
-                                     < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                                         {dash.week_profit[1] < 0
-                                             ? numeral(dash.week_profit[1]).format("0,0.0")
-                                             : '+'.concat(numeral(dash.week_profit[1]).format("0,0.0"))}%
-                                     </p>
-                                 </div>
-                             </div>
-                             <div className="col-3">
-                                 <div
-                                     className={`icon icon-box-${dash.week_profit[1]< 0 ? 'danger' : 'success'}`}>
-                      <span
-                          className={`mdi mdi-arrow-${dash.week_profit[1] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
-                                 </div>
-                             </div>
-                         </div>
-                         <h6 className="text-white-80 font-weight-normal">Week Profit ({moment(dash.week_profit[2]*1000).format('MMM Do YY')})</h6>
-                     </div>
-                 </div>
-             </div>
              <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
                  <div className="card">
                      <div className="card-body">
@@ -395,92 +336,6 @@ function Dashboard(props) {
                      </div>
                  </div>
              </div>
-             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-                 <div className="card">
-                     <div className="card-body">
-                         <div className="row">
-                             <div className="col-9">
-                                 <div className="d-flex align-items-center align-self-start">
-                                     <h3 className="mb-0">Ksh {!done4 &&
-                                         <CountUp
-                                             start={__user__ === 'JEFF' ? Math.abs(((dash.owe[__user__]+totalDuka)-oweJeff) - 100) : Math.abs(dash.owe[__user__] - 100)}
-                                             end={__user__ === 'JEFF' ? (dash.owe[__user__]+totalDuka)-oweJeff : dash.owe[__user__]}
-                                             duration={2.75}
-                                             delay={1}
-                                             onEnd={() => setDone4(true)}
-                                         />}{done4 && numeral(__user__ === 'JEFF' ? (dash.owe[__user__]+totalDuka)-oweJeff : dash.owe[__user__]).format("0,0")}</h3>
-                                     <p className={`text-success ml-2 mb-0 font-weight-medium`}>
-                                         {'+'.concat(numeral().format("0,0.0"))}%
-                                     </p>
-                                 </div>
-                             </div>
-                             <div className="col-3">
-                                 <div
-                                     className={`icon icon-box-success`}>
-                    <span
-                        className={`mdi mdi-arrow-top-right icon-item`}/>
-                                 </div>
-                             </div>
-                         </div>
-                         <h6 className="text-white-80 font-weight-normal">Current Debt</h6>
-                     </div>
-                 </div>
-             </div>
-             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-             <div className="card">
-               <div className="card-body">
-                 <div className="row">
-                   <div className="col-9">
-                     <div className="d-flex align-items-center align-self-start">
-                       <h3 className="mb-0">Ksh {!done &&
-                           <CountUp
-                               start={Math.abs(dash.withdraw[__user__] - 100)}
-                               end={dash.withdraw[__user__]}
-                               duration={2.75}
-                               delay={1}
-                               onEnd={() => setDone(true)}
-                           />}{done && numeral(dash.withdraw[__user__]).format("0,0")}</h3>
-                       <p className={`text-success ml-2 mb-0 font-weight-medium`}>
-                         {'+'.concat(numeral().format("0,0.0"))}%
-                       </p>
-                     </div>
-                   </div>
-                   <div className="col-3">
-                     <div
-                         className={`icon icon-box-success`}>
-                      <span
-                          className={`mdi mdi-arrow-top-right icon-item`}/>
-                     </div>
-                   </div>
-                 </div>
-                 <h6 className="text-white-80 font-weight-normal">Amount Available to Withdraw</h6>
-               </div>
-             </div>
-           </div>
-             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-             <div className="card">
-               <div className="card-body">
-                     <div className="row">
-                       <div className="col-9">
-                         <div className="d-flex align-items-center align-self-start">
-                           <h3 className="mb-0">Ksh {numeral(bank).format("0,0")}</h3>
-                           <p className={`text-success ml-2 mb-0 font-weight-medium`}>
-                             {'+'.concat(numeral().format("0,0.0"))}%
-                           </p>
-                         </div>
-                       </div>
-                       <div className="col-3">
-                         <div
-                             className={`icon icon-box-success`}>
-                      <span
-                          className={`mdi mdi-arrow-top-right icon-item`}/>
-                         </div>
-                       </div>
-                     </div>
-                 <h6 className="text-white-80 font-weight-normal">Bank Balance</h6>
-               </div>
-             </div>
-           </div>
            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
                  <div className="card">
                    <div className="card-body">
@@ -629,7 +484,7 @@ function Dashboard(props) {
                                                            : <div className="badge badge-outline-primary">Waiting</div>)}
                                        </td>
                                        <td> {moment(item_vals.date.toDate()).format("MMM Do YY")} </td>
-                                       <td> {item_vals.trays_store} </td>
+                                       <td> flock: {parseInt(item_vals.subgroups?.split('::')[0])+1 || parseInt(item_vals.group?.split('::')[0])+1}, trays: ({item_vals.trays_store}) </td>
                                        <td> {item_vals.extra_data.split(';')[2]} </td>
                                        <td> {item_vals.eggs.slice(0, item_vals.eggs.length-1)} </td>
                                        <td> {item_vals.broken} </td>

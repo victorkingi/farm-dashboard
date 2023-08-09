@@ -46,14 +46,23 @@ function InputEggs(props) {
 
     useEffect(() => {
         if (extraData) {
-          setGroups(Object.values(extraData[0].groups || {}) || []);
+            let groups = extraData[0].subgroups || {};
+            groups = Object.keys(groups).filter(
+                key => key.split('::')[1] === '0').reduce(
+                    (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
+
+            setGroups(Object.values(groups) || []);
         }
       }, [extraData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const trayStoreRegex = /^[0-9]+,([0-9]|1[0-9]|2[0-9])$/;
-        const eggsRegex = /^([0-9]+,){11}[0-9]+$/;
+        let eggsRegex = /^([0-9]+,){11}[0-9]+$/;
+
+        if (state.flock === 'flock 2') 
+            eggsRegex = /^([0-9]+,){5}[0-9]+$/;
+
         const bagsRegex = /^[0-9]+$/.test(state.bags_store);
         const brokenRegex = /^[0-9]+$/.test(state.broken);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
@@ -64,6 +73,13 @@ function InputEggs(props) {
         if (state.eggs1 && state.eggs2 && state.eggs3 && state.eggs4) {
             temp.eggs = state.eggs1 + ',' + state.eggs2
                 + ',' + state.eggs3 + ',' + state.eggs4;
+            delete temp.eggs1;
+            delete temp.eggs2;
+            delete temp.eggs3;
+            delete temp.eggs4;
+        } else if (state.eggs1 && state.eggs2) {
+            temp.eggs = state.eggs1 + ',' + state.eggs2;
+            console.log("change", temp.eggs);
             delete temp.eggs1;
             delete temp.eggs2;
             delete temp.eggs3;
@@ -80,7 +96,7 @@ function InputEggs(props) {
         temp.eggs += ',';
 
         for (let i = 0; i < arr.length; i++) {
-            if ((arr[i][1] === "" || !arr[i][1]) && arr[i][0] !== "extra_data") {
+            if ((arr[i][1] === "" || !arr[i][1]) && (arr[i][0] !== "extra_data" && arr[i][0] !== "bags_store")) {
                 setError('All Inputs should be filled');
                 setOpenError(true);
                 console.log("some inputs empty");
@@ -102,8 +118,9 @@ function InputEggs(props) {
                 return;
             }
         }
+
         if (!bagsRegex) {
-            setError('Bags entered should only be a number');
+            setError('Bags in store should be a number');
             setOpenError(true);
             return;
         }
@@ -116,8 +133,12 @@ function InputEggs(props) {
 
         temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
         delete temp.bags_store;
-        if (!temp.flock) temp.group = "0::0;0::1;0::2;0::3;0::4;0::5;0::6;0::7;0::8;0::9;0::10;0::11";
         delete temp.flock;
+        if (!temp.subgroups) {
+            setError('Flock not selected');
+            setOpenError(true);
+            return;
+        }
         const offBy = getEggsDiff(temp);
         
         props.inputTray(temp);
@@ -170,15 +191,16 @@ function InputEggs(props) {
 
     const handleFlock = (e) => {
         if (extraData) {
-          const object = extraData[0].groups;
+          const object = extraData[0].subgroups;
           let g = Object.keys(object).find(key => object[key] === e);
           setState({
             ...state,
-            group: g,
+            subgroups: g,
             flock: e
           });
         }
-      }
+    }
+    console.log(state.flock);
 
     const componentDidMount = () => {
         bsCustomFileInput.init()
@@ -246,14 +268,16 @@ function InputEggs(props) {
                                 <label htmlFor="eggs">Eggs column 2</label>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="eggs2" placeholder="Eggs in column 2 (comma separated)" />
                             </Form.Group>
+                            {(state.flock === 'flock 1' || !state.flock)  && 
                             <Form.Group>
                                 <label htmlFor="eggs">Eggs column 3</label>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="eggs3" placeholder="Eggs in column 3 (comma separated)" />
-                            </Form.Group>
+                            </Form.Group>}
+                            {(state.flock === 'flock 1' || !state.flock) &&
                             <Form.Group>
                                 <label htmlFor="eggs">Eggs column 4</label>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="eggs4" placeholder="Eggs in column 4 (comma separated)" />
-                            </Form.Group>
+                            </Form.Group>}
                             <Form.Group>
                                 <label htmlFor="broken">Broken</label>
                                 <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="broken" placeholder="Broken Eggs" />

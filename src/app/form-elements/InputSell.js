@@ -174,7 +174,7 @@ function InputSell(props) {
     };
     delete values.not_paid;
     delete values.paid;
-    if (!values.flock) values.group = "0::0;0::1;0::2;0::3;0::4;0::5;0::6;0::7;0::8;0::9;0::10;0::11";
+    if (!values.flock) values.subgroups = "0::0;1::0";
     delete values.flock;
     if (!values.status && localStorage.getItem('name') !== values.receiver) {
       setError('Sale should be paid if money was transferred');

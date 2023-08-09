@@ -20,7 +20,8 @@ export const inputDeadSick = (deadSick, image) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
-        let hash = `${parseInt(values.date.getTime()/1000)}${values.section}${values.level}`.toUpperCase();
+        let hash = `${values.subgroups}${parseInt(values.date.getTime()/1000)}${values.section}${values.level}`.toUpperCase();
+        console.log("hash", hash);
         hash = SHA256(hash).toString();
         console.log("hash to use", hash);
 
@@ -34,8 +35,7 @@ export const inputDeadSick = (deadSick, image) => {
                 time: new Date().getTime()
             }).then(() => {
                 console.log("doc added to local");
-                firestore.collection('pending_upload')
-                    .doc(hash).set({ values });
+                firestore.collection('pending_upload').add({ values, hash });
             });
         });
         reader.readAsArrayBuffer(image);

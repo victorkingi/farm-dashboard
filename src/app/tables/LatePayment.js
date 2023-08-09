@@ -480,7 +480,7 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-        {collection: 'late_payment', where: ['values.section', '!=', 'CAKES']},
+        {collection: 'late_payment'},
         {collection: 'extra_data', doc: 'extra_data'}
     ])
 )(LatePayment);

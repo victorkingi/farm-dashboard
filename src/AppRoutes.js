@@ -15,7 +15,6 @@ const InputChickenNo = lazy(() => import('./app/form-elements/InputChickenNo'));
 const Withdraw = lazy(() => import('./app/form-elements/Withdraw'));
 const DInvoice = lazy(() => import('./app/form-elements/DInvoice'));
 
-const AnneDebt = lazy(() => import('./app/tables/AnneDebt'));
 const LatePayment = lazy(() => import('./app/tables/LatePayment'));
 const BasicTable = lazy(() => import('./app/tables/BasicTable'));
 const BalancesBasicTable = lazy(() => import('./app/tables/BalancesBasicTable'));
@@ -46,7 +45,6 @@ function AppRoutes() {
           <Route path="/downloads/invoice" component={ DInvoice }/>
 
           <Route path="/tables/late" component={ LatePayment } />
-          <Route path="/tables/annedebt" component={ AnneDebt } />
           <Route path="/tables/balances" component={ BalancesBasicTable } />
           <Route path="/tables/entries" component={ BasicTable } />
           <Route path="/tables/sum" component={ Summary }/>

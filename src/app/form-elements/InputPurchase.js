@@ -48,7 +48,13 @@ function InputPurchase(props) {
             setEmployeeNames(extraData[0].pay_employees || []);
             setFeedsVendors(extraData[0].feeds_vendors || []);
             setFeedsType(extraData[0].feeds_type || []);
-            setGroups(Object.values(extraData[0].groups || {}) || []);
+            
+            let groups = extraData[0].subgroups || {};
+            groups = Object.keys(groups).filter(
+                key => key.split('::')[1] === '0').reduce(
+                    (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
+
+            setGroups(Object.values(groups) || []);
         }
     }, [extraData]);
 
@@ -218,8 +224,12 @@ function InputPurchase(props) {
 
         delete values.not_paid;
         delete values.paid;
-        if (!values.flock) values.group = "0::0;0::1;0::2;0::3;0::4;0::5;0::6;0::7;0::8;0::9;0::10;0::11";
         delete values.flock;
+        if (!values.subgroups) {
+            setError('Flock not selected');
+            setOpenError(true);
+            return;
+        }
 
         if (values.section !== "Feeds") {
             delete values.vendor_name;
@@ -333,11 +343,11 @@ function InputPurchase(props) {
 
     const handleFlock = (e) => {
         if (extraData) {
-          const object = extraData[0].groups;
+          const object = extraData[0].subgroups;
           let g = Object.keys(object).find(key => object[key] === e);
           setState({
             ...state,
-            group: g,
+            subgroups: g,
             flock: e
           });
         }

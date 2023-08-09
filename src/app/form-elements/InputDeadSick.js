@@ -31,7 +31,12 @@ function InputDeadSick(props) {
 
     useEffect(() => {
         if (extraData) {
-          setGroups(Object.values(extraData[0].groups || {}) || []);
+            let groups = extraData[0].subgroups || {};
+            groups = Object.keys(groups).filter(
+                key => key.split('::')[1] === '0').reduce(
+                    (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
+
+            setGroups(Object.values(groups) || []);
         }
       }, [extraData]);
 
@@ -90,8 +95,31 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        if (!state.flock) state.group = "0::0;0::1;0::2;0::3;0::4;0::5;0::6;0::7;0::8;0::9;0::10;0::11";
         delete state.flock;
+        if (!state.subgroups) {
+            setError('Flock not selected');
+            setOpenError(true);
+            return;
+        }
+        if (!extraData) {
+            setError('stale data, refresh page');
+            setOpenError(true);
+            return;
+        }
+        let exactSubgrp = Object(extraData[0].subgroups);
+        exactSubgrp = Object.keys(exactSubgrp)
+            .find(key => exactSubgrp[key] === state.level);
+
+        if (exactSubgrp) {
+            state.subgroups = exactSubgrp;
+            delete state.level;
+        }
+        else {
+            setError('no flock group match found');
+            setOpenError(true);
+            return;
+        }
+
         props.inputDeadSick(state, image);
        
         setOpenError(false);
@@ -119,11 +147,11 @@ function InputDeadSick(props) {
 
     const handleFlock = (e) => {
         if (extraData) {
-          const object = extraData[0].groups;
+          const object = extraData[0].subgroups;
           let g = Object.keys(object).find(key => object[key] === e);
           setState({
             ...state,
-            group: g,
+            subgroups: g,
             flock: e
           });
         }
