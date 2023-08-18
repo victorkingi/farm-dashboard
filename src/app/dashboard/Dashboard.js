@@ -24,7 +24,6 @@ function Dashboard(props) {
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
   const [done1, setDone1] = useState(false);
-  const [done3, setDone3] = useState(false);
   const [error, setError] = useState(false);
   const [errM, setErrM] = useState('');
   const [disable, setDisable] = useState(false);
@@ -150,7 +149,7 @@ function Dashboard(props) {
      rollBack();
    }
 
-  if (JSON.stringify(dash) !== JSON.stringify({}) && dash?.week_profit) {
+  if (JSON.stringify(dash) !== JSON.stringify({})) {
 
    const addAllEntries = (all) => {
       if (!pend) return 0;
@@ -223,30 +222,27 @@ function Dashboard(props) {
                                  <div className="d-flex align-items-center align-self-start">
                                      <h3 className="mb-0">{!done1 &&
                                          <CountUp
-                                             start={Math.abs(dash.laying.day[0]-10)}
-                                             end={dash.laying.day[0]}
+                                             start={Math.abs(Object.values(dash.laying_day['0'])[0]-10)}
+                                             end={Object.values(dash.laying_day['0'])[0]}
                                              duration={2.75}
                                              delay={1}
                                              onEnd={() => setDone1(true)}
-                                         />}{done1 && numeral(dash.laying.day[0]).format("0,0")}%</h3>
-                                     <p className={`text-${ dash.laying.day[1]
-                                     < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                                         {dash.laying.day[1] < 0
-                                             ? numeral(dash.laying.day[1]).format("0,0.0")
-                                             : '+'.concat(numeral(dash.laying.day[1]).format("0,0.0"))}%
+                                         />}{done1 && numeral(Object.values(dash.laying_day['0'])[0]).format("0,0")}%</h3>
+                                     <p className={`text-success ml-2 mb-0 font-weight-medium`}>
+                                         {'+'.concat(numeral().format("0,0.0"))}%
                                      </p>
                                  </div>
 
                              </div>
                              <div className="col-3">
                                  <div
-                                     className={`icon icon-box-${dash.laying.day[1] < 0 ? 'danger' : 'success'}`}>
+                                     className={`icon icon-box-success`}>
                       <span
-                          className={`mdi mdi-arrow-${dash.laying.day[1] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                          className={`mdi mdi-arrow-top-right icon-item`}/>
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-white-80 font-weight-normal">Lay Percent Day ({moment(dash.laying.day[2]*1000).format('MMM Do YY')})</h6>
+                         <h6 className="text-white-80 font-weight-normal">Flock 1 Lay Percent Day ({moment(Object.keys(dash.laying_day['0'])[0]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -258,30 +254,27 @@ function Dashboard(props) {
                                  <div className="d-flex align-items-center align-self-start">
                                      <h3 className="mb-0">{!done1 &&
                                          <CountUp
-                                             start={Math.abs(dash.laying.week[0]-10)}
-                                             end={dash.laying.week[0]}
+                                             start={Math.abs(Object.values(dash.laying_day['1'])[0]-10)}
+                                             end={Object.values(dash.laying_day['1'])[0]}
                                              duration={2.75}
                                              delay={1}
                                              onEnd={() => setDone1(true)}
-                                         />}{done1 && numeral(dash.laying.week[0]).format("0,0")}%</h3>
-                                     <p className={`text-${ dash.laying.week[1]
-                                     < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                                         {dash.laying.week[1] < 0
-                                             ? numeral(dash.laying.week[1]).format("0,0.0")
-                                             : '+'.concat(numeral(dash.laying.week[1]).format("0,0.0"))}%
+                                         />}{done1 && numeral(Object.values(dash.laying_day['1'])[0]).format("0,0")}%</h3>
+                                     <p className={`text-success ml-2 mb-0 font-weight-medium`}>
+                                         {'+'.concat(numeral().format("0,0.0"))}%
                                      </p>
                                  </div>
 
                              </div>
                              <div className="col-3">
                                  <div
-                                     className={`icon icon-box-${dash.laying.week[1] < 0 ? 'danger' : 'success'}`}>
+                                     className={`icon icon-box-success`}>
                       <span
-                          className={`mdi mdi-arrow-${dash.laying.week[1] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
+                          className={`mdi mdi-arrow-top-right icon-item`}/>
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-white-80 font-weight-normal">Lay Percent Week ({moment(dash.laying.week[2]*1000).format('MMM Do YY')})</h6>
+                         <h6 className="text-white-80 font-weight-normal">Flock 2 Lay Percent Day ({moment(Object.keys(dash.laying_day['1'])[0]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>
@@ -291,34 +284,7 @@ function Dashboard(props) {
                          <div className="row">
                              <div className="col-9">
                                  <div className="d-flex align-items-center align-self-start">
-                                     <h3 className="mb-0">KSh {numeral(dash.month_profit[0]).format("0,0")}</h3>
-                                     <p className={`text-${dash.month_profit[1]
-                                     < 0 ? 'danger' : 'success'} ml-2 mb-0 font-weight-medium`}>
-                                         {dash.month_profit[1] < 0
-                                             ? numeral(dash.month_profit[1]).format("0,0.0")
-                                             : '+'.concat(numeral(dash.month_profit[1]).format("0,0.0"))}%
-                                     </p>
-                                 </div>
-                             </div>
-                             <div className="col-3">
-                                 <div
-                                     className={`icon icon-box-${dash.month_profit[1] < 0 ? 'danger' : 'success'}`}>
-                      <span
-                          className={`mdi mdi-arrow-${dash.month_profit[1] < 0 ? 'bottom-left' : 'top-right'} icon-item`}/>
-                                 </div>
-                             </div>
-                         </div>
-                         <h6 className="text-white-80 font-weight-normal">Month Profit ({moment(dash.month_profit[2]*1000).format('MMM Do YY')})</h6>
-                     </div>
-                 </div>
-             </div>
-             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-                 <div className="card">
-                     <div className="card-body">
-                         <div className="row">
-                             <div className="col-9">
-                                 <div className="d-flex align-items-center align-self-start">
-                                     <h3 className="mb-0">{numeral(dash.birds.total).format("0,0")}</h3>
+                                     <h3 className="mb-0">{numeral(dash.bird_no.total).format("0,0")}</h3>
                                      <p className={`text-success ml-2 mb-0 font-weight-medium`}>
                                          {'+'.concat(numeral().format("0,0.0"))}%
                                      </p>
@@ -338,64 +304,12 @@ function Dashboard(props) {
              </div>
            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
                  <div className="card">
-                   <div className="card-body">
-                     <div className="row">
-                       <div className="col-9">
-                         <div className="d-flex align-items-center align-self-start">
-                           <h3 className="mb-0">
-                             {!done3 && <CountUp
-                                 start={Math.abs(parseInt(dash.trays_avail.split(',')[0]) - 10)}
-                                 end={parseInt(dash.trays_avail.split(',')[0])}
-                                 duration={2.75}
-                                 delay={1}
-                                 onEnd={() => setDone3(true)}
-                             />}{done3 && <div>
-                             {dash.trays_avail}
-                           </div>}
-                           </h3>
-                           <p className={`text-success ml-2 mb-0 font-weight-medium`}>
-                             {'+'.concat(numeral().format("0,0.0"))}%
-                           </p>
-                         </div>
-                       </div>
-                       <div className="col-3">
-                         <div className={`icon icon-box-success`}>
-                      <span className={`mdi mdi-arrow-top-right icon-item`}/>
-                         </div>
-                       </div>
-                     </div>
-                       <h6 className="text-white-80 font-weight-normal">Trays and Eggs in Store
-                           <br />
-                           ({moment(
-                               dash.last_trays_date*1000).format('MMM Do YY')})
-                           {
-                               dash.last_trays_date !== dash.last_ec &&
-                               <br/> &&
-                               <p className="font-weight-light">
-                               Last EC: {moment(
-                               dash.last_ec * 1000).format('MMM Do YY')}
-                               </p>
-                           }
-                       </h6>
-                   </div>
-                 </div>
-           </div>
-           <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
-                 <div className="card">
                      <div className="card-body">
                          <div className="row">
                              <div className="col-9">
                                  <div className="d-flex align-items-center align-self-start">
                                      <h3 className="mb-0">
-                                         {!done3 && <CountUp
-                                             start={parseInt(dash.bags_store)}
-                                             end={parseInt(dash.bags_store)}
-                                             duration={2.75}
-                                             delay={1}
-                                             onEnd={() => setDone3(true)}
-                                         />}{done3 && <div>
-                                         {dash.bags_store}
-                                     </div>}
+                                         {Object.values(dash.feeds_left['0'])[0]}
                                      </h3>
                                      <p className={`text-success ml-2 mb-0 font-weight-medium`}>
                                          {'+'.concat(numeral().format("0,0.0"))}%
@@ -408,7 +322,31 @@ function Dashboard(props) {
                                  </div>
                              </div>
                          </div>
-                         <h6 className="text-white-80 font-weight-normal">Bags of Feeds in Store <br /> ({moment(dash.last_ec*1000).format('MMM Do YY')})</h6>
+                         <h6 className="text-white-80 font-weight-normal">Flock 1 Feeds in Store <br /> ({moment(Object.keys(dash.feeds_left['0'])[0]*1000).format('MMM Do YY')})</h6>
+                     </div>
+                 </div>
+             </div>
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">
+                                         {Object.values(dash.feeds_left['1'])[0]}
+                                     </h3>
+                                     <p className={`text-success ml-2 mb-0 font-weight-medium`}>
+                                         {'+'.concat(numeral().format("0,0.0"))}%
+                                     </p>
+                                 </div>
+                             </div>
+                             <div className="col-3">
+                                 <div className={`icon icon-box-success`}>
+                                     <span className={`mdi mdi-arrow-top-right icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-white-80 font-weight-normal">Flock 2 Feeds in Store <br /> ({moment(Object.keys(dash.feeds_left['1'])[0]*1000).format('MMM Do YY')})</h6>
                      </div>
                  </div>
              </div>

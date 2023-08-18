@@ -17,44 +17,8 @@ function SpanningTable({ dash }) {
     const [startDate, setStartDate] = useState(0);
     const [rows, setRows] = useState([]);
 
-    useEffect(() => {
-        if (dash) {
-            const dboard = dash.dashboard;
-            const age = dboard.birds_age;
-            setStartDate(age.start_date.unix);
-            const createRow = (desc, qty) => {
-                return { desc, qty };
-            }
-            const tempRows = [];
-            tempRows.push(createRow('Birds Age in weeks', String(age.age.weeks)+' ('+age.age.months+' Months)'));
-            tempRows.push(createRow('True Net Profit', 'Ksh '+numeral(dboard.net_profit[1]).format('0,0')));
-            tempRows.push(createRow('Perceived Net Profit', 'Ksh '+numeral(dboard.net_profit[0]).format('0,0')));
-            tempRows.push(createRow('Soft loan(From Jeff)', 'Ksh '+numeral(dboard.soft_loan).format('0,0')));
-            tempRows.push(createRow('Sales Amount Not Settled', 'Ksh '+numeral(dboard.total_late_amt[0]).format('0,0')+' ('+numeral(dboard.total_late_trays).format('0,0')+' Trays)'));
-            tempRows.push(createRow('Purchases Amount Not Settled', 'Ksh '+numeral(dboard.total_late_amt[1]).format('0,0')));
-            tempRows.push(createRow('Total Sale Entries Pending Payment', numeral(dboard.total_late_orders[0]).format('0,0')));
-            tempRows.push(createRow('Total Purchase Entries Pending Payment', numeral(dboard.total_late_orders[1]).format('0,0')));
-            tempRows.push(createRow('Total Sales Completed', numeral(dboard.total_orders).format('0,0')));
-            tempRows.push(createRow('Total Trays sold(Including sales not paid)', numeral(dboard.total_trays_sold).format('0,0')));
-
-            tempRows.push(...Object.entries(dboard.aggr_late)
-                .map(item => createRow(`${item[0].endsWith('OTHER') 
-                    ? ((item[0][0] === 'S' && 'Other sales') 
-                        || (item[0][0] === 'P' && 'Other purchases')) 
-                    : item[0].charAt(0)+item[0].slice(1).toLowerCase()} not paid`, (item[0] !== 'FEEDS' && item[0] !== 'POTHER') ?
-                    'Ksh '+numeral(item[1][1]).format('0,0')+' ('+numeral(item[1][0]).format('0,0')+' Trays)' : 'Ksh '+numeral(item[1][1]).format('0,0'))));
-            tempRows.push(...Object.entries(dboard.last_paid_date)
-                .map(item => createRow(`${item[0].charAt(0)+item[0].slice(1).toLowerCase()} last paid month`,
-                    item[1].toLowerCase())));
-            tempRows.push(...Object.entries(dboard.other_debts)
-                .map(item => createRow(`Debt: ${item[0].split('OWE_')[1].split('_').join(' ').toLowerCase()}`,
-                    item[0].includes('JEFF') ? 'Ksh '+numeral(item[1] - dboard.owe.JEFF).format('0,0') : 'Ksh '+numeral(item[1]).format('0,0'))));
-            tempRows.push(...Object.entries(dboard.pair_bals)
-                .map(item => createRow(`Debt: ${item[0]}`,
-                    'Ksh '+numeral(parseInt(item[1])*-1).format('0,0'))));
-            setRows(tempRows);
-        }
-    }, [dash]);
+    if (true)
+        return <div />
 
     return (
         <TableContainer component={Paper}>

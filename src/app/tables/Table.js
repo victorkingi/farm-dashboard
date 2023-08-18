@@ -32,18 +32,11 @@ import CardContent from '@mui/material/CardContent';
 import { BrowserView, MobileView } from 'react-device-detect';
 import {firestore} from "../../services/api/fbConfig";
 
-const validVendors = [
-    'PEMBE',
-    'THIKA FARMERS',
-    'KINYANJUI'
-]
-
-function createData(name, date, subm, status, hash) {
+function createData(name, date, subm, hash) {
     return {
         name,
         date,
         subm,
-        status,
         hash,
     };
 }
@@ -268,7 +261,7 @@ EnhancedTableToolbar.propTypes = {
 
 const getFieldName = (to_use) => {
     if (to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Eggs Collected'
-    || to_use === 'Trades' || to_use === 'Dead or Sick') return ['type', `${(to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Trades') ? to_use.slice(0, to_use.length-1) : to_use}`]
+    || to_use === 'Trades' || to_use === 'Dead or Sick') return ['col', `${(to_use === 'sales' || to_use === 'purchases' || to_use === 'trades') ? to_use.slice(0, to_use.length-1) : to_use}`]
     if (to_use.startsWith('Submitted by ')) return ['by', `${to_use.slice(13, to_use.length).toUpperCase()}`];
     return ['data.section', `${to_use === 'Pay Purity' ? 'LABOUR' : to_use === 'Other Sales' ? 'SOTHER' : to_use === 'Other Purchases' ? 'POTHER' : to_use === 'Thika Farmers' ? 'THIKA FARMERS' : to_use.toUpperCase() }`]
 }
@@ -281,7 +274,7 @@ function EnhancedTable(props) {
     const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
     const [txWatch, setTxWatch] = useState([]);
-    const [orderBy, setOrderBy] = useState('date');
+    const [orderBy, setOrderBy] = useState('data.date.unix');
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [dense, setDense] = useState(false);
@@ -290,7 +283,7 @@ function EnhancedTable(props) {
     const [allDone, setAllDone] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [indexerChanged, setIndexerChanged] = useState(false);
-    const orderBy_ = `${(orderBy === 'type' || orderBy === 'date' || orderBy === 'status' || orderBy === 'hash') ? orderBy : orderBy === 'subm' ? 'submitted_on' : null}`;
+    const orderBy_ = `${(orderBy === 'data.date.unix' || orderBy === 'data.entry_hash') ? orderBy : orderBy === 'subm' ? 'data.submitted_on' : null}`;
 
     useMemo(() => {
         if (tx_ui) {
@@ -317,7 +310,7 @@ function EnhancedTable(props) {
             // get the data
             let dataDocs;
             if (is_valid_hash) {
-                dataDocs = await firestore.get({collection: 'tx_ui', where: ['hash', '==', hash]});
+                dataDocs = await firestore.get({collection: 'tx_ui', where: ['data.hash', '==', hash]});
             } else if (to_use === '') {
                 dataDocs = await firestore.get({collection: 'tx_ui', limit, orderBy: [orderBy_, order]});
             } else {
@@ -353,7 +346,7 @@ function EnhancedTable(props) {
 
         if (is_valid_hash && !allDone) {
             console.log("hash ok");
-            if (tx_ui.length === 1 && tx_ui[0].id === hash) {
+            if (tx_ui.length === 1 && tx_ui[0].data.entry_hash === hash) {
                 setAllDone(true);
                 setIsLoading(false);
                 return;
@@ -391,7 +384,7 @@ function EnhancedTable(props) {
     }, [rowsPerPage, rows, page, to_use, hash]);
 
     useEffect(() => {
-        if (orderBy === 'date' && order === 'desc') isRun = false;
+        if (orderBy === 'data.date.unix' && order === 'desc') isRun = false;
         // eslint-disable-next-line
     }, [order]);
 
@@ -401,8 +394,8 @@ function EnhancedTable(props) {
 
         // declare the async data fetching function
         const fetchData = async () => {
-            console.log("stopped", txWatch.length <= 6 && orderBy === 'date' && order === 'desc')
-            if (txWatch.length <= 6 && orderBy === 'date' && order === 'desc' && isRun) return;
+            console.log("stopped", txWatch.length <= 6 && orderBy === 'data.date.unix' && order === 'desc')
+            if (txWatch.length <= 6 && orderBy === 'data.date.unix' && order === 'desc' && isRun) return;
             isRun = true;
             const limit = txWatch.length;
 
@@ -461,12 +454,12 @@ function EnhancedTable(props) {
         let local_txs = {}
         let action;
         if (to_use === 'Sales') {
-            action = 'Sale';
+            action = 'sales';
         } else if (to_use === 'Trades') {
-            action = 'Trade';
+            action = 'trades';
 
         } else if (to_use === 'Purchases') {
-            action = 'Purchase';
+            action = 'purchases';
         } else {
             action = to_use
         }
@@ -476,48 +469,28 @@ function EnhancedTable(props) {
             tx = tx[1];
             local_txs = {
                 ...local_txs,
-                [tx.hash]: tx
+                [tx.data.entry_hash]: tx
             };
             if (is_valid_hash) {
-                if (tx.hash === hash) {
-                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                if (tx.data.entry_hash === hash) {
+                    temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
                     setPage(0);
                 }
             }
-            else if (tx.type !== 'Trade') {
+            else if (tx.col !== 'trades') {
                 if (action === '') {
-                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                    temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
                 }
-                else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                else if (action === tx.type) {
-                    temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                }
-                else if (action === 'Feeds') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'FEEDS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                }
-                else if (action === 'Pay Purity') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'LABOUR') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                }
-                else if (action === 'Thika Farmers') {
-                    if (tx.type === 'Sale'
-                        && tx.data.section === 'THIKA FARMERS') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                }
-                else if (action === 'Cakes') {
-                    if (tx.type === 'Sale' && tx.data.section === 'CAKES') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Duka') {
-                    if (tx.type === 'Sale' && tx.data.section === 'DUKA') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                }
-                else if (action === 'Other Sales') {
-                    if (tx.type === 'Sale' && tx.data.section === 'SOTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
-                } else if (action === 'Other Purchases') {
-                    if (tx.type === 'Purchase' && tx.data.section === 'POTHER') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+                else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                else if (action === tx.col) {
+                    temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
                 }
             }
-            else if (tx.type === 'Trade') {
-                if (tx.data.sale_hash === '' && tx.data.purchase_hash === '') temp.push(createData(tx.type, tx.date, tx.submitted_on, tx.status, tx.hash));
+            else if (tx.col === 'trades') {
+                if (JSON.stringify(tx.data.links) === '{}') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
             }
         }
         setTxs(local_txs);
@@ -635,7 +608,7 @@ function EnhancedTable(props) {
 
                                     let from;
                                     let to;
-                                    if (row.name === 'Trade') {
+                                    if (row.name === 'trades') {
                                         from = data.from.toLowerCase();
                                         to = data.to.toLowerCase();
                                         from = from.split('_');
@@ -647,12 +620,12 @@ function EnhancedTable(props) {
                                     }
 
                                     const by = data.by.toLowerCase();
-                                    const toPrint = row.name === 'Eggs Collected' ? `(${by}) trays ${data.trays_collected}`
-                                        : row.name === 'Dead or Sick'
+                                    const toPrint = row.name === 'eggs_collected' ? `(${by}) trays ${data.trays_collected}`
+                                        : row.name === 'dead_sick'
                                             ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()}`
-                                            : row.name === 'Sale' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.tray_no).format(',')}@${numeral(data.tray_price).format(',')}`
-                                                : row.name === 'Purchase' ? `(${by}) ${data.item_name.toLowerCase()}${validVendors.includes(data.extra_data.split(';')[2]) ? '('+data.extra_data.split(';')[2].toLowerCase()+')' : ''} ${numeral(data.item_no).format(',')}@${numeral(data.item_price).format(',')}`
-                                                    : row.name === 'Trade' ? `from ${from} to ${to}` : '';
+                                            : row.name === 'sales' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')}`
+                                                : row.name === 'purchases' ? `(${by}) ${data.item_name.toLowerCase()}${data.extra_data.vendor || ''} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')}`
+                                                    : row.name === 'trades' ? `from ${from} to ${to}` : '';
 
                                     return (
                                         <TableRow
@@ -679,7 +652,7 @@ function EnhancedTable(props) {
                                                 scope="row"
                                                 padding="none"
                                             >
-                                                {parseInt(row.status) !== 1 && <span className="text-danger">[{parseInt(row.status) - 1}/3] </span>}{row.name} {toPrint}
+                                                {row.name} {toPrint}
                                             </TableCell>
                                             <TableCell align="right">{moment.unix(row.date).format("ddd ll")}</TableCell>
                                             <TableCell align="right">{moment.unix(row.subm).format("ddd ll")}</TableCell>
@@ -729,10 +702,9 @@ function EnhancedTable(props) {
                 label="Dense padding"
             />
             {selected.map((item, index) => {
-                const type = txs[item].type;
-                const prevValues = txs[item].data.prev_values;
+                const type = txs[item].col;
 
-                if (type === 'Eggs Collected') {
+                if (type === 'eggs_collected') {
                     return (
                         <div key={index}>
                             <Card variant="outlined">
@@ -745,36 +717,8 @@ function EnhancedTable(props) {
                                             Collected {txs[item].data.trays_collected.split(',')[0]} tray(s) and {txs[item].data.trays_collected.split(',')[1]} egg(s)
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            A1: {txs[item].data.a1}
-                                            <br />
-                                            B1: {txs[item].data.b1}
-                                            <br />
-                                            C1: {txs[item].data.c1}
-                                            <br />
-                                            A2: {txs[item].data.a2}
-                                            <br />
-                                            B2: {txs[item].data.b2}
-                                            <br />
-                                            C2: {txs[item].data.c2}
-                                            <br />
-                                            A3: {txs[item].data.a3}
-                                            <br />
-                                            B3: {txs[item].data.b3}
-                                            <br />
-                                            C3: {txs[item].data.c3}
-                                            <br />
-                                            A4: {txs[item].data.a4}
-                                            <br />
-                                            B4: {txs[item].data.b4}
-                                            <br />
-                                            C4: {txs[item].data.c4}
-                                            <br />
+                                            {JSON.stringify(txs[item].data)}
                                             Broken: {txs[item].data.broken}
-                                            <br />
-                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
@@ -790,7 +734,7 @@ function EnhancedTable(props) {
                         </div>
                     )
                 }
-                else if (type === 'Trade') {
+                else if (type === 'trades') {
                     return (
                         <div key={index}>
                             <Card variant="outlined">
@@ -800,7 +744,7 @@ function EnhancedTable(props) {
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
-                                            {txs[item].data.sale_hash === '' &&  txs[item].data.purchase_hash === '' ? 'Physical Trade' : `Tied to the ${txs[item].data.sale_hash !== '' ? `sale at ${txs[item].data.sale_hash.slice(0, 5)}` : `purchase at ${txs[item].data.purchase_hash.slice(0, 5)}`}`}
+                                            {JSON.stringify(txs[item].data.links) === '{}' ? 'Physical Trade' : `Tied to the ${JSON.stringify(txs[item].data.links)}`}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             From: {txs[item].data.from.toLowerCase()}
@@ -809,10 +753,7 @@ function EnhancedTable(props) {
                                             <br />
                                             Amount traded: Ksh. {Number.isInteger(txs[item].data.amount) ? numeral(txs[item].data.amount).format("0,0") : numeral(txs[item].data.amount).format("0,0.00")}
                                             <br />
-                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                            {JSON.stringify(txs[item].data.extra_data)}
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
@@ -828,7 +769,7 @@ function EnhancedTable(props) {
                         </div>
                     )
                 }
-                else if (type === 'Sale') {
+                else if (type === 'sales') {
                     return (
                         <div key={index}>
                             <Card variant="outlined">
@@ -838,15 +779,10 @@ function EnhancedTable(props) {
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
-                                            {txs[item].data.section === txs[item].data.buyer ? txs[item].data.section.toLowerCase() : `${txs[item].data.section.toLowerCase() === 'sother' ? 'other' : txs[item].data.section.toLowerCase()}, ${txs[item].data.buyer.toLowerCase()}`}
+                                            {txs[item].data.buyer.toLowerCase()}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {numeral(txs[item].data.tray_no).format("0,0")} Tray(s) at Ksh. {numeral(txs[item].data.tray_price).format("0,0")}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
-                                            <br />
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                            {numeral(txs[item].data.units).format("0,0")} Tray(s) at Ksh. {numeral(txs[item].data.price).format("0,0")}
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
@@ -862,7 +798,7 @@ function EnhancedTable(props) {
                         </div>
                     )
                 }
-                else if (type === 'Purchase') {
+                else if (type === 'purchases') {
                     return (
                         <div key={index}>
                             <Card variant="outlined">
@@ -875,12 +811,9 @@ function EnhancedTable(props) {
                                             {`${txs[item].data.section.toLowerCase() === 'pother' ? 'other,' : txs[item].data.section.toLowerCase() === 'ppurity' ? 'Purity:' : txs[item].data.section.toLowerCase()+','} ${txs[item].data.item_name.toLowerCase()}`}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {numeral(txs[item].data.item_no).format("0,0")} Item(s) at Ksh. {numeral(txs[item].data.item_price).format("0,0")}
+                                            {numeral(txs[item].data.units).format("0,0")} Item(s) at Ksh. {numeral(txs[item].data.price).format("0,0")}
                                             <br />
-                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                            {JSON.stringify(txs[item].data.extra_data)}
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
@@ -896,7 +829,7 @@ function EnhancedTable(props) {
                         </div>
                     )
                 }
-                else if (type === 'Dead or Sick') {
+                else if (type === 'dead_sick') {
                     return (
                         <div key={index}>
                             <Card variant="outlined">
@@ -908,17 +841,14 @@ function EnhancedTable(props) {
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
-                                            {`${txs[item].data.state.toLowerCase()}, ${txs[item].data.location.toLowerCase()}`}
+                                            {`${txs[item].data.state.toLowerCase()}, ${txs[item].data.subgroups.toLowerCase()}`}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {numeral(txs[item].data.number).format("0,0")} {txs[item].data.state.toLowerCase()}
                                             <br />
                                             {txs[item].data.reason.toLowerCase()}
                                             <br />
-                                            {txs[item].data.extra_data.toLowerCase().split(';').join(', ')}
-                                        </Typography>
-                                        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                            {JSON.stringify(prevValues) !== '{}' && JSON.stringify(prevValues)}
+                                            {JSON.stringify(txs[item].data.extra_data)}
                                         </Typography>
                                         <Typography variant="body2">
                                             Submitted by {txs[item].data.by.toLowerCase()}
@@ -949,6 +879,6 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        { collection: 'tx_ui', orderBy: ['date.unix', 'desc'], limit: 6 }
+        { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'], limit: 6 }
     ])
 )(EnhancedTable);

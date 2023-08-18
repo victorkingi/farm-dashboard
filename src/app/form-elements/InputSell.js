@@ -12,11 +12,8 @@ import { Alert } from './InputEggs';
 import { getSectionAddr, inputSell } from '../../services/actions/salesAction';
 import { Offline, Online } from 'react-detect-offline';
 import { firebase } from '../../services/api/fbConfig';
-import Localbase from "localbase";
 import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
-
-const db = new Localbase('ver_data');
 
 function InputSell(props) {
   const { extraData, trayCheck } = props;
@@ -48,19 +45,6 @@ function InputSell(props) {
       setBuyerNames(extraData[0].buyer_names || []);
     }
   }, [extraData]);
-
-  useEffect(() => {
-    db.collection('hashes').doc('ver').get().then(document => {
-      let amount = parseInt(document.loss.amount);
-      if (amount !== 0) {
-        if (amount < 0) amount *= -1;
-        const price = Math.round(amount/parseInt(state.tray_no));
-        if (price > 300 || isNaN(price)) setState({...state, tray_price: `${isNaN(price) ? '350' : price > 1000 ? '350' : price}`})
-        else setState({...state, tray_price: '350'})
-      }
-    });
-          // eslint-disable-next-line
-  }, [state.tray_no]);
 
   const checkDate = (date) => {
     if (date.getTime() > new Date().getTime()) {
@@ -309,23 +293,6 @@ function InputSell(props) {
                   className="form-control text-white"
                   id='date'
                 />
-              </Form.Group>
-              <Form.Group>
-                <label htmlFor='section'>Section</label>
-                <DropdownButton
-                  alignRight
-                  title={state.section || 'Choose Section'}
-                  id='section'
-                  onSelect={handleSelect}
-                >
-                  {Array(...sectionNames).sort().map(x => {
-                    return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
-                  })}
-                  <Dropdown.Divider />
-                  <Dropdown.Item eventKey='Other Buyer'>
-                    Other Buyer
-                  </Dropdown.Item>
-                </DropdownButton>
               </Form.Group>
               <Form.Group>
                 <label htmlFor='buyer_name'>Buyer Name</label>
