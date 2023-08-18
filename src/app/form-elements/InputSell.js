@@ -9,7 +9,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Snackbar from '@material-ui/core/Snackbar';
 import { Alert } from './InputEggs';
-import { getSectionAddr, inputSell } from '../../services/actions/salesAction';
+import { inputSell } from '../../services/actions/salesAction';
 import { Offline, Online } from 'react-detect-offline';
 import { firebase } from '../../services/api/fbConfig';
 import {compose} from "redux";
@@ -21,7 +21,6 @@ function InputSell(props) {
   const [state, setState] = useState({
     category: 'sales',
     date: new Date(),
-    section: 'Choose Section',
     buyer_name: '',
     tray_price: '350',
     tray_no: '1',
@@ -32,7 +31,6 @@ function InputSell(props) {
   const [openError, setOpenError] = useState(false);
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
-  const [sectionNames, setSectionNames] = useState([]);
   const [buyer_names, setBuyerNames] = useState([]);
 
   let name = firebase.auth().currentUser?.displayName;
@@ -41,7 +39,6 @@ function InputSell(props) {
 
   useEffect(() => {
     if (extraData) {
-      setSectionNames(extraData[0].main_buyers || []);
       setBuyerNames(extraData[0].buyer_names || []);
     }
   }, [extraData]);
@@ -57,21 +54,15 @@ function InputSell(props) {
   };
 
   const parameterChecks = (values) => {
-    if (!values.section) {
-      setError('Section is empty!');
-      setOpenError(true);
-      return false;
-    }
     if (!values.name) {
       setError('User undefined');
       setOpenError(true);
       return false;
     }
     const stripBuyer = values.buyer_name.trim().toUpperCase();
-    const fixedSections = sectionNames.map(x => x.toUpperCase());
     const validNames = buyer_names.map(x => x.toUpperCase());
 
-    if (!validNames.includes(stripBuyer) && !fixedSections.includes(stripBuyer)) {
+    if (!validNames.includes(stripBuyer)) {
       setError('Buyer name does not exist');
       setOpenError(true);
       return false;
@@ -108,26 +99,6 @@ function InputSell(props) {
         setError('All Inputs should be filled');
         setOpenError(true);
         return;
-      }
-      if (arr[i][0] === 'section') {
-        if (arr[i][1] === 'Choose Section') {
-          setError('Section should be selected');
-          setOpenError(true);
-          return;
-        }
-        if (arr[i][1] !== 'Other Buyer') {
-          if (state.section !== state.buyer_name) {
-            setError('Section and buyer name should be the same');
-            setOpenError(true);
-            return;
-          }
-        } else {
-          if (state.section === state.buyer_name) {
-            setError('Section and buyer name should not be equal');
-            setOpenError(true);
-            return;
-          }
-        }
       }
       if (arr[i][0] === 'tray_no' || arr[i][0] === 'tray_price') {
         if (!trayRegex.test(arr[i][1])) {
@@ -167,7 +138,6 @@ function InputSell(props) {
     }
     if (!values.status) values.receiver = '';
     else values.receiver = `${values.receiver.toUpperCase()}:${parseInt(values.tray_no)*parseInt(values.tray_price)},`;
-    values.section = getSectionAddr(values.section);
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
     values.date = date;
@@ -224,7 +194,6 @@ function InputSell(props) {
     } else {
       setState({
         ...state,
-        section: e,
         buyer_name: e
       });
     }
