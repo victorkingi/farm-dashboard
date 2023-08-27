@@ -620,7 +620,7 @@ function EnhancedTable(props) {
                                     }
 
                                     const by = data.by.toLowerCase();
-                                    const toPrint = row.name === 'eggs_collected' ? `(${by}) trays ${data.trays_collected}`
+                                    const toPrint = row.name === 'eggs_collected' ? `flock: ${parseInt(data.subgroups.split('::')[0])+1} (${by}) trays ${data.trays_collected}`
                                         : row.name === 'dead_sick'
                                             ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()}`
                                             : row.name === 'sales' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')}`
@@ -652,7 +652,7 @@ function EnhancedTable(props) {
                                                 scope="row"
                                                 padding="none"
                                             >
-                                                {row.name} {toPrint}
+                                                {row.name.split('_').join(' ')} {toPrint}
                                             </TableCell>
                                             <TableCell align="right">{moment.unix(row.date).format("ddd ll")}</TableCell>
                                             <TableCell align="right">{moment.unix(row.subm).format("ddd ll")}</TableCell>
