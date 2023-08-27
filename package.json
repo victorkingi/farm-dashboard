@@ -48,6 +48,7 @@
     "redux-firestore": "^0.15.0",
     "redux-thunk": "^2.3.0",
     "slick-carousel": "^1.8.1",
+    "strftime": "^0.10.2",
     "variables": "^1.0.1",
     "web-vitals": "^0.2.4",
     "workbox-cacheable-response": "^5.1.3",

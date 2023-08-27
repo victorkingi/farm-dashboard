@@ -350,6 +350,32 @@ function Dashboard(props) {
                      </div>
                  </div>
              </div>
+             <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                 <div className="card">
+                     <div className="card-body">
+                         <div className="row">
+                             <div className="col-9">
+                                 <div className="d-flex align-items-center align-self-start">
+                                     <h3 className="mb-0">
+                                        {dash.trays_left['value']}</h3>
+                                     <p className={`text-success ml-2 mb-0 font-weight-medium`}>
+                                         {'+'.concat(numeral().format("0,0.0"))}%
+                                     </p>
+                                 </div>
+
+                             </div>
+                             <div className="col-3">
+                                 <div
+                                     className={`icon icon-box-success`}>
+                      <span
+                          className={`mdi mdi-arrow-top-right icon-item`}/>
+                                 </div>
+                             </div>
+                         </div>
+                         <h6 className="text-white-80 font-weight-normal">Trays in Store ({moment(dash.trays_left['date']['unix']*1000).format('MMM Do YY')})</h6>
+                     </div>
+                 </div>
+             </div>
          </div>
          <div className="row">
              <div className="col-12 grid-margin">

@@ -52,7 +52,7 @@ function ChartJs(props) {
     });
 
     useEffect(() => {
-        if (dashboard) {
+        if (false) {
             const dayData_ = dashboard[0].trays_collected_to_timestamp;
             const weekTray_ = dashboard[0].week_trays_and_exact;
             const monthTray_ = dashboard[0].month_trays_and_exact;

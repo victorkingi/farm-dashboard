@@ -200,19 +200,6 @@ class Sidebar extends Component {
                   </ul>
                 </div>
               </Collapse>
-              <Collapse in={ this.state.tablesMenuOpen }>
-                <div>
-                  <ul className="nav flex-column sub-menu">
-                    <li className="nav-item">
-                      <Link
-                          className={
-                            this.isPathActive('/tables/balances')
-                                ? 'nav-link active' : 'nav-link' }
-                          to="/tables/balances">
-                        All balances</Link></li>
-                  </ul>
-                </div>
-              </Collapse>
             </li>
             <li className={ this.isPathActive('/charts') ? 'nav-item menu-items active' : 'nav-item menu-items' }>
               <div className={ this.state.chartsMenuOpen ? 'nav-link menu-expanded' : 'nav-link' } onClick={ () => this.toggleMenuState('chartsMenuOpen') } data-toggle="collapse">

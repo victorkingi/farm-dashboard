@@ -33,47 +33,7 @@ function BasicTable({ pse_state, sales_state }) {
                 </ol>
               </nav>
           </div>
-          <div className="row">
-          <div className='col-xl grid-margin stretch-card'>
-              <div className='card'>
-                  <div className='card-body'>
-                      <h4 className='card-title'>Sort by</h4>
-                      <form className='forms-sample'>
-                          <Form.Group>
-                              <label htmlFor='section'>Options</label>
-                              <DropdownButton
-                                  alignRight
-                                  title={state || 'Choose sort option'}
-                                  id='dropdown-menu-align-right'
-                                  onSelect={handleSelect}
-                              >
-                                  {optionsSort.map(item => {
-                                      return item.label === 'Feeds' ? (
-                                          <div>
-                                              <Dropdown.Divider />
-                                              <Dropdown.Item eventKey={item.label}>{item.label}</Dropdown.Item>
-                                          </div>
-                                      ) : <Dropdown.Item eventKey={item.label}>{item.label}</Dropdown.Item>
-                                  })}
-                              </DropdownButton>
-                          </Form.Group>
-                          <Form.Group>
-                              <label htmlFor='hash'>Input specific id (64 digit code)</label>
-                              <Form.Control
-                                  type='text'
-                                  onChange={handleHashChange}
-                                  className='form-control text-white'
-                                  id='hash'
-                                  placeholder='Input id'
-                                  value={hash}
-                              />
-                          </Form.Group>
-                      </form>
-                  </div>
-              </div>
-          </div>
-          </div>
-            <EnhancedTable to_use={state} hash={hash} />
+        <EnhancedTable to_use={state} hash={hash} />
       </div>
     )
 }

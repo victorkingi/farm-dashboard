@@ -28,7 +28,6 @@ function DInvoice({ invoices, acc, late, extraData }) {
     const [state, setState] = useState({buyers: '', name: '', discount: 0, debtNames: '', purchases: ''});
     const [invoiceNum, setInvoiceNum] = useState(0);
     const [usersDebt, setUsersDebt] = useState([]);
-    const [purchases, setPurchases] = useState([]);
     const [sectionNames, setSectionNames] = useState([]);
     const [buyer_names, setBuyerNames] = useState([]);
     const [isClicked, setIsClicked] = useState(false);
@@ -39,23 +38,6 @@ function DInvoice({ invoices, acc, late, extraData }) {
             setBuyerNames(extraData[0].buyer_names || []);
         }
     }, [extraData]);
-
-
-    useEffect(() => {
-        if (late) {
-            let _purchases = [];
-            for (const x of late) {
-                _purchases.push({
-                    id: `${x.values.item_name}${x.values.vendor_name ? ' '+x.values.vendor_name : ''}`,
-                    amount: parseInt(x.values.item_price)
-                        * parseInt(x.values.item_no)});
-            }
-            _purchases = _purchases.map(x => {
-                return {id: x.id.charAt(0)+x.id.slice(1).toLowerCase(), amount: x.amount}
-            });
-            setPurchases(_purchases);
-        }
-    }, [late]);
 
     useEffect(() => {
         if (acc) {
@@ -135,12 +117,6 @@ function DInvoice({ invoices, acc, late, extraData }) {
             setOpenError(true);
             return 0;
         }
-        if (!debtName.test(state.purchases)) {
-            setError("purchases names format should be [name,name,] or empty");
-            setOpen(false);
-            setOpenError(true);
-            return 0;
-        }
         if (!debtName.test(state.buyers)) {
             setError("buyer names format should be [name,name,] or empty");
             setOpen(false);
@@ -150,10 +126,9 @@ function DInvoice({ invoices, acc, late, extraData }) {
         }
 
         const debtCheck = checkDebtIsValid(state.debtNames, usersDebt);
-        const debtPurchaseCheck = checkDebtIsValid(state.purchases, purchases);
 
-        if (debtCheck === -1 || debtPurchaseCheck === -1) {
-            setError("we do not owe some customers entered in purchases or customer debt, please remove them");
+        if (debtCheck === -1) {
+            setError("we do not owe some customers entered in customer debt, please remove them");
             setOpen(false);
             setOpenError(true);
 
@@ -197,7 +172,7 @@ function DInvoice({ invoices, acc, late, extraData }) {
             owe: debtCheck.toString(),
             purchases: state.purchases.slice(0, -1)
         });
-        console.log(raw)
+        console.log(raw);
 
         const requestOptions = {
             method: 'POST',
@@ -299,11 +274,6 @@ function DInvoice({ invoices, acc, late, extraData }) {
                                 <label htmlFor="buyers">Buyer Name(s) to include</label>
                                 <p className="text-primary">Valid names: {sectionNames.join(', ')+', '+buyer_names.join(', ')}</p>
                                 <Form.Control value={state.buyers} type="text" onChange={handleSelect} className="form-control text-white" id="buyers" placeholder="buyer names (comma separated)" />
-                            </Form.Group>
-                            <Form.Group>
-                                <label htmlFor="purchases">Purchases to include(optional)</label>
-                                <p className="text-primary">{purchases.length !== 0 ? purchases.map(v => `${v.id}: Ksh. ${numeral(v.amount).format('0,0')}`).join(', ') : 'We do not have any unpaid purchases'}</p>
-                                <Form.Control value={state.purchases} type="text" onChange={handleSelect} className="form-control text-white" id="purchases" placeholder="purchase name (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="debtNames">Customer debts to include(optional)</label>

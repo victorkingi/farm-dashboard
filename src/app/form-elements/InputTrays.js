@@ -9,6 +9,8 @@ import {firestore} from '../../services/api/fbConfig';
 import {compose} from "redux";
 import {connect} from "react-redux";
 import {firestoreConnect} from "react-redux-firebase";
+import "strftime";
+import strftime from 'strftime';
 
 
 let today = new Date();
@@ -16,7 +18,7 @@ today.setHours(0, 0, 0, 0);
 today = Math.floor(today.getTime() / 1000);
 const name = localStorage.getItem('name') || '';
 
-function InputTrays({ dashboard, pendEggs }) {
+function InputTrays() {
     const [open, setOpen] = useState(false);
     const [openM, setOpenM] = useState('Data Submitted');
     const [openError, setOpenError] = useState(false);
@@ -24,40 +26,6 @@ function InputTrays({ dashboard, pendEggs }) {
     const [error, setError] = useState('');
 
     const [state, setState] = useState('');
-    const [rewind, setRewind] = useState(false);
-    const [lastTraysDate, setLastTraysDate] = useState(0);
-
-    useEffect(() => {
-        if (pendEggs && pendEggs.length > 0) {
-            const date_ = pendEggs[0].date_;
-            if (date_) setLastTraysDate(date_);
-        } else {
-            if (dashboard) setLastTraysDate(dashboard[0].last_trays_date);
-        }
-    }, [dashboard, pendEggs]);
-
-    useEffect(() => {
-        if (rewind) {
-            if (new Date().getTimezoneOffset() !== -180  && localStorage.getItem('name') !== 'Victor') {
-                setOpen(false);
-                setError("Different Timezone detected. Cannot handle input");
-                setOpenError(true);
-		        return -1;
-            }
-            firestore.doc(`trays/exact`)
-                .update({
-                    [today]: -1
-                });
-	        firestore.doc(`trays/by`)
-                .update({
-                    [today]: name
-                });
-            setOpenError(false);
-            setOpenM('Value deleted');
-            setOpen(true);
-            setRewind(false);
-        }
-    }, [rewind]);
 
     const handleClick = (e) => {
         e.preventDefault();
@@ -70,20 +38,16 @@ function InputTrays({ dashboard, pendEggs }) {
                 setOpenError(true);
                 return -1;
             }
-            if (lastTraysDate !== today) {
-                setOpen(false);
-                setError("Enter eggs collected before trays in store");
-                setOpenError(true);
-                return -1;
-            }
-            firestore.doc(`trays/exact`)
-                .update({
-                    [today]: state
-                });
-            firestore.doc(`trays/by`)
-                .update({
-                    [today]: name
-                });
+            firestore.doc(`checkpoint/${today}`)
+                .set({
+                    by: name,
+                    trays_collected: state,
+                    date: {
+                        unix: today,
+                        locale: strftime(
+                            "%m/%d/%Y, %H:%M:%S", new Date(today*1000)) + ', Africa/Nairobi'
+                    }
+                }, {merge: true});
             setOpenError(false);
             setOpenM('Data Submitted');
             setOpen(true);
@@ -144,7 +108,6 @@ function InputTrays({ dashboard, pendEggs }) {
                                 <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="text" placeholder="Enter Trays and eggs" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleClick}>Submit</button>
-                            <button type="button" className="btn btn-dark" onClick={() => setRewind(true)}>Undo</button>
                         </form>
                     </div>
                 </div>

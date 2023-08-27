@@ -269,7 +269,7 @@ const getFieldName = (to_use) => {
 let isRun = false;
 
 function EnhancedTable(props) {
-    const { tx_ui, to_use, hash, firestore } = props;
+    const { tx_ui, to_use, hash, firestore, extra_data } = props;
 
     const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
@@ -830,6 +830,11 @@ function EnhancedTable(props) {
                     )
                 }
                 else if (type === 'dead_sick') {
+                    let val = '';
+                    if (extra_data) {
+                        val = extra_data[0].subgroups[txs[item].data.subgroups];
+                    }
+                    console.log(extra_data);
                     return (
                         <div key={index}>
                             <Card variant="outlined">
@@ -841,7 +846,7 @@ function EnhancedTable(props) {
                                             Date: {txs[item].data.date.locale.slice(0,20)}
                                         </Typography>
                                         <Typography variant="h5" component="div">
-                                            {`${txs[item].data.state.toLowerCase()}, ${txs[item].data.subgroups.toLowerCase()}`}
+                                            {`${txs[item].data.state.toLowerCase()}, ${val}`}
                                         </Typography>
                                         <Typography sx={{ mb: 1.5 }} color="text.secondary">
                                             {numeral(txs[item].data.number).format("0,0")} {txs[item].data.state.toLowerCase()}
@@ -872,13 +877,15 @@ function EnhancedTable(props) {
 
 const mapStateToProps = (state) => {
     return {
-        tx_ui: state.firestore.ordered.tx_ui
+        tx_ui: state.firestore.ordered.tx_ui,
+        extra_data: state.firestore.ordered.extra_data
     }
 }
 
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'], limit: 6 }
+        { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'], limit: 6 },
+        { collection: 'extra_data' }
     ])
 )(EnhancedTable);
