@@ -21,7 +21,7 @@ export const sendMoney = (values) => {
                             window.alert("You are not an admin");
                             return -1;
                         } else {
-                            firestore.collection("pending_transactions").add({
+                            firestore.collection("pending").add({
                                 values,
                                 hash: ''
                             });
@@ -31,7 +31,7 @@ export const sendMoney = (values) => {
                 }
             });
         } else {
-            firestore.collection("pending_transactions").add({
+            firestore.collection("pending").add({
                 values,
                 hash: ''
             });
@@ -73,7 +73,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
         let allRes = [];
 
         for (const key of allKeys) {
-            const res = firestore.collection("late_payment").doc(key)
+            const res = firestore.collection("ppending").doc(key)
                 .get().then((doc) => {
                 if (!doc.exists) {
                     console.log('late doc does not exist')
@@ -92,7 +92,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                         buyers,
                         items
                     };
-                    firestore.collection("pending_transactions").doc(key).set({ ...val });
+                    firestore.collection("pending").doc(key).set({ ...val });
                     dispatch({type: 'LATE_REPAID'});
                     doc.ref.delete();
 
@@ -123,7 +123,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
 
                         if (totalPaid === needed) {
                             console.log("total paid", totalPaid);
-                            firestore.collection("pending_transactions").doc(key).set({ ...val });
+                            firestore.collection("pending").doc(key).set({ ...val });
                             dispatch({type: 'LATE_REPAID'});
                             doc.ref.delete();
 
@@ -166,7 +166,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                             }
                             i++;
                         }
-                        firestore.collection("pending_transactions").doc(key).set({ ...val });
+                        firestore.collection("pending").doc(key).set({ ...val });
                         dispatch({type: 'LATE_REPAID'});
                         doc.ref.delete();
                     }

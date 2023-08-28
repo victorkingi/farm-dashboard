@@ -18,7 +18,7 @@ function saveBlob(blob, fileName) {
     a.dispatchEvent(new MouseEvent('click'));
 }
 
-function DInvoice({ invoices, acc, late, extraData }) {
+function DInvoice({ invoices, extraData }) {
 
     const [open, setOpen] = useState(false);
     const [openM, setOpenM] = useState('Data Submitted');
@@ -38,29 +38,6 @@ function DInvoice({ invoices, acc, late, extraData }) {
             setBuyerNames(extraData[0].buyer_names || []);
         }
     }, [extraData]);
-
-    useEffect(() => {
-        if (acc) {
-            let found = [];
-            for (const x of Object.keys(acc[0])) {
-                if ('id' === x) continue;
-                if (x.startsWith('OWE_')) {
-                    found.push({id: x, amount: acc[0][x]});
-                }
-            }
-            found = found.filter((value) => value.amount > 0);
-            found = found.map(x => {
-                return {id: x.id.split('OWE_')[1], amount: x.amount}
-            });
-            found = found.map(x => {
-                return {id: x.id.endsWith('_BANK') ? `${x.id.split('_BANK')[0]} from Bank` : x.id, amount: x.amount}
-            });
-            found = found.map(x => {
-                return {id: x.id.charAt(0).toUpperCase()+x.id.slice(1).toLowerCase(), amount: x.amount}
-            });
-            setUsersDebt(found);
-        }
-    }, [acc, state]);
 
     useEffect(() => {
         if (invoices) {
@@ -306,9 +283,7 @@ function DInvoice({ invoices, acc, late, extraData }) {
 const mapStateToProps = function(state) {
     return {
         invoices: state.firestore.ordered.invoices,
-        acc: state.firestore.ordered.accounts,
-        extraData: state.firestore.ordered.extra_data,
-        late: state.firestore.ordered.late_payment
+        extraData: state.firestore.ordered.extra_data
     }
 }
 
@@ -316,8 +291,6 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect([
         {collection: 'invoices', doc: 'count'},
-        {collection: 'accounts', doc: 'accounts'},
-        {collection: 'extra_data', doc: 'extra_data'},
-        {collection: 'late_payment', where: ['values.category', '==', 'purchases']}
+        {collection: 'extra_data', doc: 'extra_data'}
     ])
 )(DInvoice);

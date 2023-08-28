@@ -250,7 +250,7 @@ function Navbar(props) {
 
                     // delete local doc
                     db.collection('dead_sick').doc({file_name: key}).delete();
-                    firestore.set({ collection: 'pending_transactions', doc: to_del_id }, to_add);
+                    firestore.set({ collection: 'pending', doc: to_del_id }, to_add);
                     firestore.delete({ collection: 'pending_upload', doc: to_del_id });
 
                     setOpenError(false);

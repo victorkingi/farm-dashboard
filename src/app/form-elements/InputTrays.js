@@ -6,9 +6,6 @@ import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Offline, Online} from "react-detect-offline";
 import {firestore} from '../../services/api/fbConfig';
-import {compose} from "redux";
-import {connect} from "react-redux";
-import {firestoreConnect} from "react-redux-firebase";
 import "strftime";
 import strftime from 'strftime';
 
@@ -133,17 +130,4 @@ function InputTrays() {
     )
 }
 
-const mapStateToProps = function(state) {
-    return {
-        dashboard: state.firestore.ordered.dashboard_data,
-        pendEggs: state.firestore.ordered.pend_eggs_collected
-    }
-}
-
-export default compose(
-    connect(mapStateToProps),
-    firestoreConnect([
-        {collection: 'dashboard_data', doc: 'dashboard'},
-        {collection: 'pend_eggs_collected', orderBy: ['date_', 'desc']}
-    ])
-)(InputTrays);
+export default InputTrays;

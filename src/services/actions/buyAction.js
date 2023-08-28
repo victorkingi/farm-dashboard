@@ -20,14 +20,14 @@ export const inputPurchase = (values) => {
         console.log("hash to use", hash);
         
         if (JSON.parse(values.status)) {
-            firestore.collection('pending_transactions')
+            firestore.collection('pending')
                 .add({
                 values,
                 hash
             });
             dispatch({type: 'INPUT_BUYING', values});
         } else {
-            firestore.collection('late_payment').add({
+            firestore.collection('ppending').add({
                 values,
                 hash
             });

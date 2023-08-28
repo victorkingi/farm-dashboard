@@ -466,7 +466,7 @@ function LatePayment(props) {
 
 const mapStateToProps = function(state) {
     return {
-        late: state.firestore.ordered.late_payment,
+        late: state.firestore.ordered.ppending,
         extra: state.firestore.data.extra_data
     }
 }
@@ -480,7 +480,7 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-        {collection: 'late_payment'},
+        {collection: 'ppending'},
         {collection: 'extra_data', doc: 'extra_data'}
     ])
 )(LatePayment);

@@ -12,7 +12,7 @@ export const getSectionAddr = (section) => {
 }
 
 /**
- * if other sales exists in pending_transactions, query and get total
+ * if other sales exists in pending, query and get total
  * trays sold, - from current trays and use the result as value
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  * @param values
@@ -33,7 +33,7 @@ export const inputSell = (values) => {
     values.submitted_on = new Date();
 
     if (JSON.parse(values.status)) {
-      firestore.collection('pending_transactions')
+      firestore.collection('pending')
           .add({
             values,
             hash
@@ -44,7 +44,7 @@ export const inputSell = (values) => {
         });
 
       } else {
-        firestore.collection('late_payment')
+        firestore.collection('ppending')
             .add({
             values,
             hash

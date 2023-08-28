@@ -161,7 +161,7 @@ function sleep(ms) {
 }
 
 async function findCausedTray(needed) {
-    const query = await admin.firestore().collection('pending_transactions')
+    const query = await admin.firestore().collection('pending')
         .get();
     let docs = [];
     const trayId = new Map();
@@ -205,7 +205,7 @@ async function findCausedTray(needed) {
     if (!found) {
         if (maxTrays >= needed) {
             console.log("MARKED:", trayId.get(maxTrays));
-            await admin.firestore().doc(`pending_transactions/${trayId.get(maxTrays)}`).update({
+            await admin.firestore().doc(`pending/${trayId.get(maxTrays)}`).update({
                 rejected: true
             });
             largestMarked = true;
@@ -216,7 +216,7 @@ async function findCausedTray(needed) {
             mapTray.forEach((value, key) => {
                 if (isDone) return 0;
                 console.log("MARKED ALL:", value);
-                admin.firestore().doc(`pending_transactions/${value}`).update({
+                admin.firestore().doc(`pending/${value}`).update({
                     rejected: true
                 });
                 all += key;
@@ -239,7 +239,7 @@ async function findCausedTray(needed) {
     for (const x in ids) {
         if (!ids.hasOwnProperty(x)) continue;
         console.log("MARKED:", ids[x]);
-        await admin.firestore().doc(`pending_transactions/${ids[x]}`).update({
+        await admin.firestore().doc(`pending/${ids[x]}`).update({
             rejected: true
         });
     }

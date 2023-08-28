@@ -19,7 +19,7 @@ export function getRanColor() {
 }
 
 function Dashboard(props) {
-  const { dashboard, pend, firestore, pendEggs } = props;
+  const { dashboard, pend, firestore } = props;
 
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
@@ -52,16 +52,22 @@ function Dashboard(props) {
   }, [pendChecked, pend])
 
   useEffect(() => {
+    if (!pend) return 0;
+    const pendEggs = pend.filter(
+        x => x.values.category === 'eggs_collected');
         let total = 0;
         for (const [, value] of Object.entries(pendCheckedEggs)) {
             if (value) total += 1;
         }
         if (total === pendEggs?.length && total !== 0) setAllCheckedEggs(true);
         else setAllCheckedEggs(false);
-  }, [pendCheckedEggs, pendEggs])
+  }, [pendCheckedEggs, pend]);
 
   useEffect(() => {
-      if (pendEggs) {
+        if (!pend) return 0;
+        const pendEggs = pend.filter(
+            x => x.values.category === 'eggs_collected');
+
         if (pendEggs.length > 0) {
             let allDisable  = false;
             for (let k = 0; k < pendEggs.length; k++) {
@@ -72,9 +78,8 @@ function Dashboard(props) {
             }
             setDisableEggs(allDisable);
         }
-    }
 
-    }, [pendEggs, __user__]);
+    }, [pend, __user__]);
 
   useEffect(() => {
       if (pend?.length > 0) {
@@ -94,7 +99,7 @@ function Dashboard(props) {
   const rollBack = () => {
       for (const [key, value] of Object.entries(pendCheckedEggs)) {
           if (value) {
-              firestore.collection("pend_eggs_collected").doc(key).delete();
+              firestore.collection("pending").doc(key).delete();
               setError(false);
               setOpen(true);
               setAllCheckedEggs(false);
@@ -102,7 +107,7 @@ function Dashboard(props) {
       }
       for (const [key, value] of Object.entries(pendChecked)) {
           if (value) {
-              firestore.collection("pending_transactions").doc(key).delete();
+              firestore.collection("pending").doc(key).delete();
               setError(false);
               setOpen(true);
               setAllChecked(false);
@@ -171,7 +176,9 @@ function Dashboard(props) {
    }
 
   const addAllEntriesEggs = (all) => {
-      if (!pendEggs) return 0;
+      if (!pend) return 0;
+      const pendEggs = pend.filter(
+        x => x.values.category === 'eggs_collected');
       const allPend = {};
       for (let i = 0; i < pendEggs.length; i++) {
           allPend[pendEggs[i].id] = all;
@@ -382,7 +389,7 @@ function Dashboard(props) {
              <div className="card">
                <div className="card-body">
                  <h4 className="card-title">Pending Transactions</h4>
-                   { pendEggs && pendEggs?.length !== 0 &&
+                   { pend && pend?.length !== 0 &&
                        <div className="table-responsive">
                            <table className="table">
                            <thead>
@@ -417,7 +424,7 @@ function Dashboard(props) {
                            </tr>
                            </thead>
                            <tbody>
-                           {pendEggs && pendEggs.map((item) => {
+                           {pend && pend.filter((x) => x.values.category === 'eggs_collected').map((item) => {
                                const item_vals = item.values;
                                let disCheckBox = __user__ !== item_vals.submitted_by;
                                return (
@@ -493,7 +500,7 @@ function Dashboard(props) {
                      </tr>
                      </thead>
                      <tbody>
-                     {pend && pend.map((item) => {
+                     {pend && pend.filter(x => x.values.category !== 'eggs_collected').map((item) => {
                          let disCheckBox = __user__ !== item.values?.name;
                          disCheckBox = disCheckBox && "ANNE" !== item.values?.name;
                          disCheckBox = disCheckBox && "BANK" !== item.values?.name;
@@ -628,10 +635,7 @@ function Dashboard(props) {
 const mapStateToProps = function(state) {
   return {
       dashboard: state.firestore.ordered.dashboard_data,
-      acc: state.firestore.ordered.accounts,
-      pend: state.firestore.ordered.pending_transactions,
-      lateDuka: state.firestore.ordered.late_payment,
-      pendEggs: state.firestore.ordered.pend_eggs_collected
+      pend: state.firestore.ordered.pending,
   }
 }
 
@@ -639,9 +643,6 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect([
         {collection: 'dashboard_data', doc: 'dashboard'},
-        {collection: 'accounts', doc: 'accounts'},
-        {collection: 'late_payment', where: ['values.buyer_name', '==', 'DUKA']},
-        {collection: 'pending_transactions', orderBy: ['values.date', 'asc']},
-        {collection: 'pend_eggs_collected', orderBy: ['values.date', 'asc']}
+        {collection: 'pending', orderBy: ['values.date', 'asc']},
     ])
 )(Dashboard);
