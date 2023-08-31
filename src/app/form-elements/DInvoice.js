@@ -9,7 +9,6 @@ import {compose} from "redux";
 import {connect} from "react-redux";
 import {firestoreConnect} from "react-redux-firebase";
 import {firebase} from "../../services/api/fbConfig";
-import numeral from "numeral";
 
 function saveBlob(blob, fileName) {
     const a = document.createElement('a');
@@ -27,7 +26,6 @@ function DInvoice({ invoices, extraData }) {
     const [error, setError] = useState('');
     const [state, setState] = useState({buyers: '', name: '', discount: 0, debtNames: '', purchases: ''});
     const [invoiceNum, setInvoiceNum] = useState(0);
-    const [usersDebt, setUsersDebt] = useState([]);
     const [sectionNames, setSectionNames] = useState([]);
     const [buyer_names, setBuyerNames] = useState([]);
     const [isClicked, setIsClicked] = useState(false);
@@ -44,31 +42,6 @@ function DInvoice({ invoices, extraData }) {
             setInvoiceNum(invoices[0]?.num);
         }
     }, [invoices]);
-
-    const checkDebtIsValid = (debtKey, validNames) => {
-        if (debtKey === '') return 0;
-
-        let _names = debtKey.slice(0, -1).split(',');
-        for (const x of _names) {
-            let isFound = false;
-            for (const y of Object.values(validNames)) {
-                if (x.toUpperCase() === y.id.toUpperCase()) {
-                    isFound = true;
-                    break;
-                }
-            }
-            if (!isFound) {
-                return -1;
-            }
-        }
-        let temp = [];
-        for (const x of _names) {
-            let tempName = x.charAt(0).toUpperCase()+x.slice(1);
-            let filtered = validNames.filter(x => x.id === tempName);
-            temp.push(filtered[0].amount);
-        }
-        return temp.reduce((prev, cur) => prev + cur, 0);
-    }
 
     const handleClick = (e) => {
         e.preventDefault();
@@ -96,16 +69,6 @@ function DInvoice({ invoices, extraData }) {
         }
         if (!debtName.test(state.buyers)) {
             setError("buyer names format should be [name,name,] or empty");
-            setOpen(false);
-            setOpenError(true);
-
-            return 0;
-        }
-
-        const debtCheck = checkDebtIsValid(state.debtNames, usersDebt);
-
-        if (debtCheck === -1) {
-            setError("we do not owe some customers entered in customer debt, please remove them");
             setOpen(false);
             setOpenError(true);
 
@@ -146,7 +109,6 @@ function DInvoice({ invoices, extraData }) {
             buyers: buyers.toString(),
             cleanName: cleanName,
             discount: state.discount.toString(),
-            owe: debtCheck.toString(),
             purchases: state.purchases.slice(0, -1)
         });
         console.log(raw);
@@ -251,11 +213,6 @@ function DInvoice({ invoices, extraData }) {
                                 <label htmlFor="buyers">Buyer Name(s) to include</label>
                                 <p className="text-primary">Valid names: {sectionNames.join(', ')+', '+buyer_names.join(', ')}</p>
                                 <Form.Control value={state.buyers} type="text" onChange={handleSelect} className="form-control text-white" id="buyers" placeholder="buyer names (comma separated)" />
-                            </Form.Group>
-                            <Form.Group>
-                                <label htmlFor="debtNames">Customer debts to include(optional)</label>
-                                <p className="text-primary">{usersDebt.length !== 0 ? usersDebt.map(v => `${v.id}: Ksh. ${numeral(v.amount).format('0,0')}`).join(', ') : 'We do not owe any customer'}</p>
-                                <Form.Control value={state.debtNames} type="text" onChange={handleSelect} className="form-control text-white" id="debtNames" placeholder="customer names (comma separated)" />
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="buyers">Discount amount in KES(Optional)</label>

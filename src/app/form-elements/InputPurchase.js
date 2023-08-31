@@ -75,8 +75,6 @@ function InputPurchase(props) {
     }
 
     const parameterChecks = (values) => {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(x => x.toUpperCase());
-
         if (values.section === 'FEEDS') {
             const validVendors = feedsVendors.map(x => x.toUpperCase());
             const validFeeds = feedsType.map(x => x.toUpperCase());
@@ -99,50 +97,7 @@ function InputPurchase(props) {
                 return false;
             }
         }
-        if (values.section === "PPURITY") {
-            const regex = /^(([A-Z]|[a-z]){3},)+$/;
-            if (!regex.test(values.item_name)) {
-                setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
-                setOpenError(true);
-                return false;
-            } else {
-                const enteredMonths = values.item_name.slice(0, -1).split(',').map(x => x.toUpperCase());
-                const found = [];
-                for (let i = 0; i < enteredMonths.length; i++) {
-                    for (let p = 0; p < months.length; p++) {
-                        if (enteredMonths[i] === months[p]) {
-                            if (found.includes(months[p])) {
-                                setError("Duplicate months entered");
-                                setOpenError(true);
-                                return false;
-                            }
-                            if (found.length !== 0) {
-                                const lastEntered = found[found.length-1];
-                                const index = months.indexOf(lastEntered);
-                                if (months[(index+1)%12] !== enteredMonths[i]) {
-                                    setError("Inconsistent months, next should be "+months[(index+1)%12]);
-                                    setOpenError(true);
-                                    return false;
-                                }
-                            }
-                            found.push(enteredMonths[i]);
-                        }
-                    }
-                }
-                if (found.length !== enteredMonths.length || found.length === 0) {
-                    setError("Item name should be of this format [Month,Month] i.e. Jan,Feb");
-                    setOpenError(true);
-                    return false;
-                }
-                if (found.length !== parseInt(values.item_no)) {
-                    setError("Item name should be of this format [Month,Month] i.e. Jan,Feb and object number should be equal to number of months");
-                    setOpenError(true);
-                    return false;
-                }
-                values.section = 'LABOUR';
-                values.extra_data = 'PURITY';
-            }
-        } else if (!values.section || values.section === "CHOOSE_SECTION") {
+        if (!values.section || values.section === "CHOOSE_SECTION") {
             setError('Section cannot be empty');
             setOpenError(true);
             return false;
@@ -239,6 +194,9 @@ function InputPurchase(props) {
         }
 
         values.section = getSectionAddr(values.section);
+        values.item_no = parseInt(values.item_no);
+        values.item_price = parseInt(values.item_price);
+
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
         values.date = date;

@@ -134,6 +134,8 @@ function InputEggs(props) {
         temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
         delete temp.bags_store;
         delete temp.flock;
+        temp.broken = parseInt(temp.broken);
+
         if (!temp.subgroups) {
             setError('Flock not selected');
             setOpenError(true);

@@ -63,7 +63,7 @@ function InputSell(props) {
     const validNames = buyer_names.map(x => x.toUpperCase());
 
     if (!validNames.includes(stripBuyer)) {
-      setError('Buyer name does not exist');
+      setError('Buyer name does not exist.');
       setOpenError(true);
       return false;
     }
@@ -127,6 +127,9 @@ function InputSell(props) {
       name,
       status
     };
+    values.tray_no = parseInt(values.tray_no);
+    values.tray_price = parseInt(values.tray_price);
+  
     delete values.not_paid;
     delete values.paid;
     if (!values.flock) values.subgroups = "0::0;1::0";
