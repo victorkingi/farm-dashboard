@@ -16,7 +16,7 @@ import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
 function InputSell(props) {
-  const { extraData, trayCheck } = props;
+  const { extraData } = props;
 
   const [state, setState] = useState({
     category: 'sales',
@@ -69,16 +69,7 @@ function InputSell(props) {
     }
     values.buyer_name = stripBuyer;
 
-    let proceed = checkDate(values.date);
-    if (proceed) {
-      const epoch = values.date.getTime()/1000;
-      if (trayCheck) {
-        const allKeys = Object.keys(trayCheck[0]).filter(val => val !== 'id');
-        const trayInvalid = allKeys.includes(epoch.toString());
-        return !trayInvalid && !!values.buyer_name;
-      }
-    }
-    return false;
+    return checkDate(values.date);
   };
 
   const handleSubmit = async (e) => {
@@ -393,15 +384,13 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
   return {
-    extraData: state.firestore.ordered.extra_data,
-    trayCheck: state.firestore.ordered.trays
+    extraData: state.firestore.ordered.extra_data
   }
 }
 
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-      {collection: 'extra_data', doc: 'extra_data'},
-      {collection: 'trays', doc: 'exact'}
+      {collection: 'extra_data', doc: 'extra_data'}
     ])
 )(InputSell);

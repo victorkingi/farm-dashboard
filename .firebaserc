@@ -5,8 +5,8 @@
   "targets": {
     "poultry101-f1fa0": {
       "hosting": {
-        "poultryfarm1.web.app": [
-          "poultryfarm1"
+        "poultryfarm2.web.app": [
+          "poultryfarm2"
         ]
       }
     }
