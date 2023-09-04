@@ -451,7 +451,7 @@ function Dashboard(props) {
                                                : (item?.rejected === true && item?.signal === 1)
                                                    ? <div className="badge badge-outline-light">Rejected</div>
                                                    : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
-                                                       : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Failed</div>
+                                                       : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
                                                            : <div className="badge badge-outline-primary">Waiting</div>)}
                                        </td>
                                        <td> {moment(item_vals.date.toDate()).format("MMM Do YY")} </td>
@@ -530,7 +530,7 @@ function Dashboard(props) {
                                              : (item?.rejected === true && item?.signal === 1)
                                                  ? <div className="badge badge-outline-light">Rejected</div>
                                                  : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
-                                                     : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Failed</div>
+                                                     : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
                                                          : <div className="badge badge-outline-primary">Waiting</div>)}
                                      </td>
                                      <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
@@ -564,7 +564,7 @@ function Dashboard(props) {
                                        : (item?.rejected === true && item?.signal === 1)
                                            ? <div className="badge badge-outline-light">Rejected</div>
                                            : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
-                                               : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Failed</div>
+                                               : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
                                                    : <div className="badge badge-outline-primary">Waiting</div>)}
                                </td>
                                <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>

@@ -369,7 +369,7 @@ function LatePayment(props) {
                                                         : (item?.rejected === true && item?.signal === 1)
                                                             ? <div className="badge badge-outline-light">Rejected</div>
                                                             : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
-                                                                : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Failed</div>
+                                                                : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
                                                                 : <div className="badge badge-outline-primary">Waiting</div>)}
                                                 </td>
                                                 <td>{numeral(getAmountLeft(item.values)[1]).format('0,0')}</td>

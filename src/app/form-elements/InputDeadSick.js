@@ -109,8 +109,7 @@ function InputDeadSick(props) {
         let exactSubgrp = Object(extraData[0].subgroups);
         exactSubgrp = Object.keys(exactSubgrp)
             .find(key => exactSubgrp[key] === state.level);
-
-        if (exactSubgrp) {
+        if (exactSubgrp.split('::')[0] == state.subgroups.split('::')[0]) {
             state.subgroups = exactSubgrp;
             delete state.level;
         }
@@ -119,6 +118,7 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
+        state.num = parseInt(state.num);
 
         props.inputDeadSick(state, image);
        
