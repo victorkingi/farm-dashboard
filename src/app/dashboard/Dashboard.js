@@ -214,7 +214,7 @@ function Dashboard(props) {
           });
   }
 
-  if (!dash.id) {
+  if (!dash.laying_day) {
       return <div />
   }
 
@@ -389,7 +389,7 @@ function Dashboard(props) {
              <div className="card">
                <div className="card-body">
                  <h4 className="card-title">Pending Transactions</h4>
-                   { pend && pend?.length !== 0 &&
+                   { pend && pend.filter((x) => x.values.category === 'eggs_collected')?.length !== 0 &&
                        <div className="table-responsive">
                            <table className="table">
                            <thead>
