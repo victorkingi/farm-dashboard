@@ -832,7 +832,7 @@ function EnhancedTable(props) {
                     )
                 }
                 else if (type === 'dead_sick') {
-                    let val = extra_data[0].subgroups[txs[item].data.subgroups];
+                    let val = extra_data.extra_data.subgroups[txs[item].data.subgroups];
 
                     return (
                         <div key={index}>
@@ -877,7 +877,7 @@ function EnhancedTable(props) {
 const mapStateToProps = (state) => {
     return {
         tx_ui: state.firestore.ordered.tx_ui,
-        extra_data: state.firestore.ordered.extra_data
+        extra_data: state.firestore.data.extra_data
     }
 }
 
@@ -885,6 +885,6 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect([
         { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'], limit: 6 },
-        { collection: 'extra_data' }
+        { collection: 'extra_data', doc: 'extra_data' }
     ])
 )(EnhancedTable);
