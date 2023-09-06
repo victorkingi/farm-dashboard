@@ -13,7 +13,7 @@ export const inputPurchase = (values) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
-        let hash = `${values.subgroups}${values.item_name}${parseInt(values.date.getTime()/1000)}`.toUpperCase();
+        let hash = `${values.subgroups}${values.item_name}${parseInt(values.date.getTime()/1000)}`;
         console.log("hash", hash);
         hash = SHA256(hash).toString();
         values.submitted_on = new Date();
