@@ -578,6 +578,8 @@ function EnhancedTable(props) {
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
+    if (!extra_data) return <div />
+
     return (
         <Box sx={{ width: '100%' }}>
             <Paper sx={{ width: '100%', mb: 2 }}>
@@ -830,11 +832,8 @@ function EnhancedTable(props) {
                     )
                 }
                 else if (type === 'dead_sick') {
-                    let val = '';
-                    if (extra_data) {
-                        val = extra_data[0].subgroups[txs[item].data.subgroups];
-                    }
-                    console.log(extra_data);
+                    let val = extra_data[0].subgroups[txs[item].data.subgroups];
+
                     return (
                         <div key={index}>
                             <Card variant="outlined">
