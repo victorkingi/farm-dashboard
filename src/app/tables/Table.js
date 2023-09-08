@@ -626,7 +626,7 @@ function EnhancedTable(props) {
                                         : row.name === 'dead_sick'
                                             ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()}`
                                             : row.name === 'sales' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')}`
-                                                : row.name === 'purchases' ? `(${by}) ${data.item_name.toLowerCase()}${data.extra_data.vendor || ''} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')}`
+                                                : row.name === 'purchases' ? `(${by}) ${data.item_name.toLowerCase()} ${data.extra_data.bag_weight ? data.extra_data.bag_weight+' ' : ''}${data.extra_data.vendor?.toLowerCase() ? data.extra_data.vendor?.toLowerCase()+' ' : ''}${numeral(data.units).format(',')}@${numeral(data.price).format(',')}`
                                                     : row.name === 'trades' ? `from ${from} to ${to}` : '';
 
                                     return (
