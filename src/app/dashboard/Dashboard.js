@@ -568,7 +568,11 @@ function Dashboard(props) {
                                                    : <div className="badge badge-outline-primary">Waiting</div>)}
                                </td>
                                <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
-                               <td> {item_vals?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item_vals)} </td>
+                               <td> {item_vals?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item_vals) +` ${numeral(item.values?.tray_no 
+                                                                               || item.values?.item_no)
+                                                                               .format('0,0')}@${numeral(item.values?.tray_price 
+                                                                               || item.values?.item_price)
+                                                                               .format('0,0')}`} </td>
                                <td>{['purchases', 'sales'].includes(item_vals?.category) ? 'N/A' : (item_vals?.name !== 'BLACK_HOLE' ? cleanAddress(item_vals?.name) : 'N/A')}</td>
                                <td>{(item_vals?.receiver === 'BLACK_HOLE' ? 'N/A' : (item_vals?.receiver
                                && item_vals?.reason !== "WITHDRAW" ? (item_vals?.receiver
