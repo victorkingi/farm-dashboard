@@ -52,6 +52,7 @@ function DInvoice({ invoices, extraData }) {
             setError("invoice should be addressed to someone");
             setOpen(false);
             setOpenError(true);
+            setIsClicked(false);
             return 0;
         }
 
@@ -59,19 +60,21 @@ function DInvoice({ invoices, extraData }) {
             setError("discount applied should be a number");
             setOpen(false);
             setOpenError(true);
+            setIsClicked(false);
             return 0;
         }
         if (!debtName.test(state.debtNames)) {
             setError("debt names format should be [name,name,] or empty");
             setOpen(false);
             setOpenError(true);
+            setIsClicked(false);
             return 0;
         }
         if (!debtName.test(state.buyers)) {
             setError("buyer names format should be [name,name,] or empty");
             setOpen(false);
             setOpenError(true);
-
+            setIsClicked(false);
             return 0;
         }
 
@@ -84,7 +87,7 @@ function DInvoice({ invoices, extraData }) {
                 setError("invalid buyer name provided");
                 setOpen(false);
                 setOpenError(true);
-
+                setIsClicked(false);
                 return 0;
             }
         }
@@ -96,6 +99,7 @@ function DInvoice({ invoices, extraData }) {
             setError("you might be offline, go back online to proceed");
             setOpen(false);
             setOpenError(true);
+            setIsClicked(false);
             return 0;
         }
 
@@ -140,6 +144,7 @@ function DInvoice({ invoices, extraData }) {
                             file_name = file_name.split('%2F')[1];
 
                             saveBlob(blob, file_name);
+                            setIsClicked(false);
                         };
                         xhr.open('GET', url);
                         xhr.send();
@@ -148,6 +153,7 @@ function DInvoice({ invoices, extraData }) {
                         setError("invoice generation failed");
                         setOpen(false);
                         setOpenError(true);
+                        setIsClicked(false);
                         return 0;
                     });
             })
@@ -156,6 +162,7 @@ function DInvoice({ invoices, extraData }) {
                 setError("Error occurred");
                 setOpen(false);
                 setOpenError(true);
+                setIsClicked(false);
             });
     }
     const handleClose = (event, reason) => {
