@@ -110,7 +110,7 @@ function InputDeadSick(props) {
         exactSubgrp = Object.keys(exactSubgrp)
             .find(key => exactSubgrp[key] === state.level);
 
-        if (exactSubgrp?.split('::')[0] == state.subgroups.split('::')[0]) {
+        if (exactSubgrp?.split('::')[0] === state.subgroups.split('::')[0]) {
             state.subgroups = exactSubgrp;
             delete state.level;
         }
