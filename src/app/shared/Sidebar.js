@@ -247,7 +247,7 @@ class Sidebar extends Component {
                   <ul className="nav flex-column sub-menu">
                     <li className="nav-item">
                       <Link className={
-                        this.isPathActive('/downloads/invoice')
+                        this.isPathActive('/downloads/report')
                             ? 'nav-link active' : 'nav-link' }
                             to="/downloads/report">
                         Monthly Report</Link></li>

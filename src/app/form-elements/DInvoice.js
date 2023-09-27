@@ -9,13 +9,8 @@ import {compose} from "redux";
 import {connect} from "react-redux";
 import {firestoreConnect} from "react-redux-firebase";
 import {firebase} from "../../services/api/fbConfig";
+import { saveBlob } from './DReport';
 
-function saveBlob(blob, fileName) {
-    const a = document.createElement('a');
-    a.href = window.URL.createObjectURL(blob);
-    a.download = fileName;
-    a.dispatchEvent(new MouseEvent('click'));
-}
 
 function DInvoice({ invoices, extraData }) {
 

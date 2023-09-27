@@ -7,10 +7,13 @@ import {Alert} from "./InputEggs";
 import {Online} from "react-detect-offline";
 import {firebase} from "../../services/api/fbConfig";
 
-function saveBlob(blob, fileName) {
+export function saveBlob(blob, fileName) {
     const a = document.createElement('a');
     a.href = window.URL.createObjectURL(blob);
     a.download = fileName;
+    a.onload = () => {
+        window.URL.revokeObjectURL(a.href);
+    };
     a.dispatchEvent(new MouseEvent('click'));
 }
 
