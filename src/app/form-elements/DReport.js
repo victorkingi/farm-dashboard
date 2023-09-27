@@ -6,6 +6,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Online} from "react-detect-offline";
 import {firebase} from "../../services/api/fbConfig";
+import uniqid from 'uniqid';
 
 export function saveBlob(blob, fileName) {
     const a = document.createElement('a');
@@ -41,9 +42,11 @@ function DInvoice() {
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
         state.month = state.month.trim().toLowerCase();
+        const fname = uniqid(`${state.year}_${state.month}_report_`, `.pdf`);
         const raw = JSON.stringify({
             year: parseInt(state.year),
-            month: state.month
+            month: state.month,
+            fname
         });
         console.log(raw);
 
@@ -61,7 +64,7 @@ function DInvoice() {
                 //Create a reference with an initial file path and name
                 const storage = firebase.storage();
                 const storageRef = storage.ref('reports/');
-                storageRef.child(`${state.year}_${state.month}_report.pdf`).getDownloadURL()
+                storageRef.child(fname).getDownloadURL()
                     .then((url) => {
                         // `url` is the download URL for 'images/stars.jpg'
                         // This can be downloaded directly:
