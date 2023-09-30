@@ -638,7 +638,7 @@ function Dashboard(props) {
 
 const mapStateToProps = function(state) {
   return {
-      dashboard: state.firestore.ordered.dashboard_data,
+      dashboard: state.firestore.ordered.dashboard,
       pend: state.firestore.ordered.pending,
   }
 }
@@ -646,7 +646,7 @@ const mapStateToProps = function(state) {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'dashboard_data', doc: 'dashboard'},
+        {collection: 'dashboard', doc: 'dashboard'},
         {collection: 'pending', orderBy: ['values.date', 'asc']},
     ])
 )(Dashboard);

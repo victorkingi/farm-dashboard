@@ -35,7 +35,7 @@ function InputTrays() {
                 setOpenError(true);
                 return -1;
             }
-            firestore.doc(`checkpoint/${today}`)
+            firestore.doc(`checkpoints/${today}`)
                 .set({
                     by: name,
                     trays_collected: state,

@@ -195,7 +195,7 @@ const EnhancedTableToolbar = (props) => {
                             let foundUser = false;
 
                             for (const x of idsSelected) {
-                                const prevVal = await firestore.collection('tx_ui')
+                                const prevVal = await firestore.collection('txs')
                                     .doc(x).get();
 
                                 for (const val of Object.keys(wasEntered)) {
@@ -210,7 +210,7 @@ const EnhancedTableToolbar = (props) => {
                                         }
                                         const newVals = [...wasEntered[user]];
                                         newVals.push(x);
-                                        await firestore.collection('tx_ui')
+                                        await firestore.collection('txs')
                                             .doc(x).update({
                                                 status: parseInt(prevVal.data().status) + 1
                                             });
@@ -222,7 +222,7 @@ const EnhancedTableToolbar = (props) => {
                                 }
 
                                 if (!foundUser) {
-                                    await firestore.collection('tx_ui')
+                                    await firestore.collection('txs')
                                         .doc(x).update({
                                             status: parseInt(prevVal.data().status) + 1
                                         });
@@ -310,22 +310,22 @@ function EnhancedTable(props) {
             // get the data
             let dataDocs;
             if (is_valid_hash) {
-                dataDocs = await firestore.get({collection: 'tx_ui', where: ['data.hash', '==', hash]});
+                dataDocs = await firestore.get({collection: 'txs', where: ['data.hash', '==', hash]});
             } else if (to_use === '') {
-                dataDocs = await firestore.get({collection: 'tx_ui', limit, orderBy: [orderBy_, order]});
+                dataDocs = await firestore.get({collection: 'txs', limit, orderBy: [orderBy_, order]});
             } else {
                 const field = getFieldName(to_use)[0];
                 if (field === orderBy_) {
                     console.log('same rows', field);
                     dataDocs = await firestore.get({
-                        collection: 'tx_ui',
+                        collection: 'txs',
                         limit,
                         where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]]
                     });
                 } else {
                     console.log('not same rows', field, orderBy_);
                     dataDocs = await firestore.get({
-                        collection: 'tx_ui',
+                        collection: 'txs',
                         limit,
                         where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
                         orderBy: [orderBy_, order]
@@ -401,20 +401,20 @@ function EnhancedTable(props) {
 
             // get the data
             let dataDocs;
-            if (to_use === '') dataDocs = await firestore.get({ collection: 'tx_ui', limit, orderBy: [orderBy_, order] });
+            if (to_use === '') dataDocs = await firestore.get({ collection: 'txs', limit, orderBy: [orderBy_, order] });
             else {
                 const field = getFieldName(to_use)[0];
                 if (field === orderBy_) {
                     console.log('same', field);
                     dataDocs = await firestore.get({
-                        collection: 'tx_ui',
+                        collection: 'txs',
                         limit,
                         orderBy: [orderBy_, order]
                     });
                 } else {
                     console.log('not same', field, orderBy_);
                     dataDocs = await firestore.get({
-                        collection: 'tx_ui',
+                        collection: 'txs',
                         limit,
                         where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
                         orderBy: [orderBy_, order]
@@ -876,7 +876,7 @@ function EnhancedTable(props) {
 
 const mapStateToProps = (state) => {
     return {
-        tx_ui: state.firestore.ordered.tx_ui,
+        tx_ui: state.firestore.ordered.txs,
         extra_data: state.firestore.data.extra_data
     }
 }
@@ -884,7 +884,7 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        { collection: 'tx_ui', orderBy: ['data.date.unix', 'desc'], limit: 6 },
+        { collection: 'txs', orderBy: ['data.date.unix', 'desc'], limit: 6 },
         { collection: 'extra_data', doc: 'extra_data' }
     ])
 )(EnhancedTable);

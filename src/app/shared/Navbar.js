@@ -17,7 +17,7 @@ const db = new Localbase('ver_data');
 let lock = false;
 
 function Navbar(props) {
-  const { pending_upload, firestore, firebase, verify } = props;
+  const { pending_upload, firestore, firebase } = props;
   const [state, setState] = useState({
     color: new Map(),
     percent: new Map()
@@ -34,51 +34,6 @@ function Navbar(props) {
     setOpen(false);
     setOpenError(false);
   };
-
-  useMemo(() => {
-    let isSubscribed = true;
-
-    const writeToDb = async () => {
-      if (lock) {
-        console.log("lock held");
-        return Promise.reject(1);
-      }
-      lock = true;
-      console.log("Writing to DB...");
-      let verDoc = await firestore.get({ collection: 'verification_data', doc: 'verification' });
-      verDoc = verDoc.data();
-      let verHashes = verDoc?.hashes || [];
-      const hashes = new Array(...verHashes).sort();
-      const loss = verDoc.loss;
-      const birdsNo = verDoc.birds_no;
-      await db.collection('hashes').doc('ver').set({
-          hashes,
-          loss,
-          root: verify.root.root,
-          birdsNo
-        });
-      console.log("lock done");
-      lock = false;
-      return Promise.resolve(0);
-    }
-
-    if (isSubscribed && verify?.root) {
-      db.collection('hashes').doc('ver')
-          .get().then((doc) => {
-            if (doc !== null) {
-              if (doc.root === verify.root.root) {
-                console.log("root hashes match no update needed");
-                return Promise.resolve(1);
-              }
-            }
-            return writeToDb();
-      });
-    }
-
-    return () => isSubscribed = false;
-
-    //eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [verify]);
 
   useMemo(() => {
     let mounted = true;
@@ -421,8 +376,7 @@ function Navbar(props) {
 
 const mapStateToProps = function(state) {
   return {
-    pending_upload: state.firestore.ordered.pending_upload,
-    verify: state.firestore.data.verification_data
+    pending_upload: state.firestore.ordered.pending_upload
   }
 }
 
@@ -435,6 +389,5 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-      {collection: 'pending_upload', orderBy: ['values.submitted_on', 'asc']},
-      {collection: 'verification_data', doc: 'root'}
+      {collection: 'pending_upload', orderBy: ['values.submitted_on', 'asc']}
     ]))(Navbar);

@@ -550,6 +550,6 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        {collection: 'dashboard_data', doc: 'dashboard'}
+        {collection: 'dashboard', doc: 'dashboard'}
     ])
 )(ChartJs);
