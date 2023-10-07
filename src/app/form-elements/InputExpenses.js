@@ -9,14 +9,14 @@ import {Redirect} from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
-import {inputPurchase} from "../../services/actions/buyAction";
+import {inputExpense} from "../../services/actions/buyAction";
 import {Offline, Online} from "react-detect-offline";
 import {getSectionAddr} from "../../services/actions/salesAction";
 import {firebase} from '../../services/api/fbConfig';
 import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
-function InputPurchase(props) {
+function InputExpense(props) {
     const { extraData } = props;
 
     const [state, setState] = useState({
@@ -26,7 +26,7 @@ function InputPurchase(props) {
         item_price: '',
         item_name: '',
         vendor_name: '',
-        category: 'purchases',
+        category: 'expenses',
         paid_by: '',
         extra_data: ''
     });
@@ -203,7 +203,7 @@ function InputPurchase(props) {
         let proceed = parameterChecks(values);
         if (proceed) {
             values.item_name = values.item_name.toUpperCase();
-            props.inputPurchase(values);
+            props.inputExpense(values);
             setOpenError(false);
             setOpen(true);
             const newState = {
@@ -328,22 +328,22 @@ function InputPurchase(props) {
     return (
         <div>
             <div className="page-header">
-                <h3 className="page-title">Input Purchase</h3>
+                <h3 className="page-title">Input Expense</h3>
                 <nav aria-label="breadcrumb">
                     <ol className="breadcrumb">
                         <li className="breadcrumb-item"><a style={{textDecoration: 'none'}} href="!#" onClick={event => {
                             event.preventDefault();
                             setRedirect(true);
                         }}>Home</a></li>
-                        <li className="breadcrumb-item active" aria-current="page">Input Purchase</li>
+                        <li className="breadcrumb-item active" aria-current="page">Input Expense</li>
                     </ol>
                 </nav>
             </div>
             <div className="col-xl grid-margin stretch-card">
                 <div className="card">
                     <div className="card-body">
-                        <h4 className="card-title">Input Purchase</h4>
-                        <p className="card-description"> Enter purchase made </p>
+                        <h4 className="card-title">Input Expense</h4>
+                        <p className="card-description"> Enter expense </p>
                         <form className="forms-sample">
                             <label htmlFor="date">Date</label>
                             <Form.Group>
@@ -377,7 +377,7 @@ function InputPurchase(props) {
                                 >
                                     <Dropdown.Item eventKey="Feeds">Feeds</Dropdown.Item>
                                     <Dropdown.Item eventKey="Drugs">Drugs</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Other Purchase">Other Purchase</Dropdown.Item>
+                                    <Dropdown.Item eventKey="Other Expenses">Other Expenses</Dropdown.Item>
                                     <Dropdown.Divider />
                                     {employeeNames.map(x => {
                                         return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
@@ -508,7 +508,7 @@ function InputPurchase(props) {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        inputPurchase: (buy) => dispatch(inputPurchase(buy))
+        inputExpense: (buy) => dispatch(inputExpense(buy))
     }
 }
 
@@ -523,4 +523,4 @@ export default compose(
     firestoreConnect([
         {collection: 'extra_data', doc: 'extra_data'}
     ])
-)(InputPurchase);
+)(InputExpense);

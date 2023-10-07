@@ -17,6 +17,7 @@ export function getRanColor() {
   const ranB = Math.floor((Math.random()*255)+1).toString(16);
   return ("#"+ranR+ranG+ranB).length === 6 ? "#0"+ranR+ranG+ranB : "#"+ranR+ranG+ranB;
 }
+const col_mapping = {1: 'Sales', 2: 'Expenses', 3: 'Dead/Sick', 4: 'Eggs Collected', 5: 'Trades'};
 
 function Dashboard(props) {
   const { dashboard, pend, firestore } = props;
@@ -446,9 +447,9 @@ function Dashboard(props) {
                                            </div>
                                        </td>
                                        <td>
-                                           {(item?.rejected === true && item?.signal !== 1)
+                                           {(item?.rejected === true && item?.signal === 1)
                                                ? <div className="badge badge-outline-danger">Rejected</div>
-                                               : (item?.rejected === true && item?.signal === 1)
+                                               : (item?.rejected === true && item?.signal === 2)
                                                    ? <div className="badge badge-outline-light">Rejected</div>
                                                    : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                        : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
@@ -525,9 +526,9 @@ function Dashboard(props) {
                                          </div>
                                      </td>
                                      <td>
-                                         {(item?.rejected === true && item?.signal !== 1)
+                                         {(item?.rejected === true && item?.signal === 1)
                                              ? <div className="badge badge-outline-danger">Rejected</div>
-                                             : (item?.rejected === true && item?.signal === 1)
+                                             : (item?.rejected === true && item?.signal === 2)
                                                  ? <div className="badge badge-outline-light">Rejected</div>
                                                  : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                      : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
@@ -535,6 +536,43 @@ function Dashboard(props) {
                                      </td>
                                      <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
                                      <td>{item_vals.section} Chicken(s)</td>
+                                     <td>N/A</td>
+                                     <td>N/A</td>
+                                     <td>N/A</td>
+                                 </tr>
+                             )
+                         }
+
+                         if (!item_vals.category) {
+                            // A delete
+                            disCheckBox = __user__ !== item_vals.submitted_by;
+                            return (
+                                 <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
+                                     <td>
+                                         <div className="form-check form-check-muted m-0">
+                                             <label className="form-check-label">
+                                                 <input disabled={disCheckBox} type="checkbox"
+                                                        className="form-check-input" defaultValue={0}
+                                                        checked={pendChecked[item.id]}
+                                                        onChange={() => setPendChecked({...pendChecked,
+                                                            [item.id]: !pendChecked[item.id]})}
+                                                        id={item.id} name={item.id}
+                                                 />
+                                                 <i className="input-helper"/>
+                                             </label>
+                                         </div>
+                                     </td>
+                                     <td>
+                                         {(item?.rejected === true && item?.signal === 1)
+                                             ? <div className="badge badge-outline-danger">Rejected</div>
+                                             : (item?.rejected === true && item?.signal === 2)
+                                                 ? <div className="badge badge-outline-light">Rejected</div>
+                                                 : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
+                                                     : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
+                                                         : <div className="badge badge-outline-primary">Waiting</div>)}
+                                     </td>
+                                     <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
+                                     <td>Delete {item.hash.slice(0, 5)} from {col_mapping[item_vals.col_id]}</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
@@ -559,9 +597,9 @@ function Dashboard(props) {
                                </div>
                              </td>
                                <td>
-                                   {(item?.rejected === true && item?.signal !== 1)
+                                   {(item?.rejected === true && item?.signal === 1)
                                        ? <div className="badge badge-outline-danger">Rejected</div>
-                                       : (item?.rejected === true && item?.signal === 1)
+                                       : (item?.rejected === true && item?.signal === 2)
                                            ? <div className="badge badge-outline-light">Rejected</div>
                                            : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
@@ -573,7 +611,7 @@ function Dashboard(props) {
                                                                                .format('0,0')}@${numeral(item.values?.tray_price 
                                                                                || item.values?.item_price)
                                                                                .format('0,0')}`} </td>
-                               <td>{['purchases', 'sales'].includes(item_vals?.category) ? 'N/A' : (item_vals?.name !== 'BLACK_HOLE' ? cleanAddress(item_vals?.name) : 'N/A')}</td>
+                               <td>{['expenses', 'sales'].includes(item_vals?.category) ? 'N/A' : (item_vals?.name !== 'BLACK_HOLE' ? cleanAddress(item_vals?.name) : 'N/A')}</td>
                                <td>{(item_vals?.receiver === 'BLACK_HOLE' ? 'N/A' : (item_vals?.receiver
                                && item_vals?.reason !== "WITHDRAW" ? (item_vals?.receiver
                                    && item_vals?.receiver.charAt(0)+item_vals?.receiver.slice(1).toLowerCase())

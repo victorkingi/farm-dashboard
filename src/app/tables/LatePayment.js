@@ -364,9 +364,9 @@ function LatePayment(props) {
                                                 <td className="text-success">{item.values?.category === 'purchases' ? 'P' : 'S'}</td>
                                                 <td>({moment(item.values?.date?.toDate()).format("MMM Do YY")})<br/>{sanitize_string(item.values)} {`${numeral(item.values?.tray_no || item.values?.item_no).format('0,0')}@${numeral(item.values?.tray_price || item.values?.item_price).format('0,0')}`}</td>
                                                 <td>
-                                                    {(item?.rejected === true && item?.signal !== 1)
+                                                    {(item?.rejected === true && item?.signal === 1)
                                                         ? <div className="badge badge-outline-danger">Rejected</div>
-                                                        : (item?.rejected === true && item?.signal === 1)
+                                                        : (item?.rejected === true && item?.signal === 2)
                                                             ? <div className="badge badge-outline-light">Rejected</div>
                                                             : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
                                                                 : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>

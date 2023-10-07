@@ -122,9 +122,9 @@ class Sidebar extends Component {
                     <li className="nav-item">
                       <Link
                           className={
-                            this.isPathActive('/inputs/purchase') ? 'nav-link active' : 'nav-link' }
-                          to="/inputs/purchase">
-                        Purchases</Link></li>
+                            this.isPathActive('/inputs/expenses') ? 'nav-link active' : 'nav-link' }
+                          to="/inputs/expenses">
+                        Expenses</Link></li>
                   </ul>
                   <ul className="nav flex-column sub-menu">
                     <li className="nav-item">

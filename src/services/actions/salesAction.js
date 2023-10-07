@@ -8,7 +8,7 @@ export const getSectionAddr = (section) => {
   if (section === 'Feeds') return 'FEEDS';
   if (section === 'Drugs') return 'DRUGS';
   if (section === 'Pay Purity') return 'PPURITY';
-  if (section === 'Other Purchase') return 'POTHER';
+  if (section === 'Other Expenses') return 'POTHER';
 }
 
 /**

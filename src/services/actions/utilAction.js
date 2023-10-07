@@ -4,7 +4,7 @@ export const sanitize_string = (values) => {
         const description = values.buyer_name.toLowerCase();
         return description.charAt(0).toUpperCase()+description.slice(1);
     }
-    if (values.category === 'purchases') {
+    if (values.category === 'expenses') {
         let description = values.item_name?.toLowerCase();
         let vendor = values.vendor_name?.toLowerCase();
         if (typeof values.item_name !== 'string') description = '';

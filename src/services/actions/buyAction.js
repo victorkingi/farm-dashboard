@@ -5,7 +5,7 @@ import SHA256 from "crypto-js/sha256";
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  * @param values
  */
-export const inputPurchase = (values) => {
+export const inputExpense = (values) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
         console.log(values);

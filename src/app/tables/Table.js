@@ -30,10 +30,15 @@ import { visuallyHidden } from '@mui/utils';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import { BrowserView, MobileView } from 'react-device-detect';
-import {firestore} from "../../services/api/fbConfig";
+import {firestore} from '../../services/api/fbConfig';
 
-function createData(name, date, subm, hash) {
+
+let __user__ = localStorage.getItem('name');
+__user__ = __user__ !== null ? __user__.toUpperCase() : '';
+
+function createData(col_id, name, date, subm, hash) {
     return {
+        col_id,
         name,
         date,
         subm,
@@ -93,7 +98,7 @@ const headCells = [
 ];
 
 function EnhancedTableHead(props) {
-    const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =
+    const { order, orderBy, onRequestSort } =
         props;
     const createSortHandler = (property) => (event) => {
         onRequestSort(event, property);
@@ -102,17 +107,7 @@ function EnhancedTableHead(props) {
     return (
         <TableHead>
             <TableRow>
-                <TableCell padding="checkbox">
-                    <Checkbox
-                        color="primary"
-                        indeterminate={numSelected > 0 && numSelected < rowCount}
-                        checked={rowCount > 0 && numSelected === rowCount}
-                        onChange={onSelectAllClick}
-                        inputProps={{
-                            'aria-label': 'select all entries',
-                        }}
-                    />
-                </TableCell>
+                <TableCell />
                 {headCells.map((headCell) => (
                     <TableCell
                         key={headCell.id}
@@ -142,7 +137,6 @@ function EnhancedTableHead(props) {
 EnhancedTableHead.propTypes = {
     numSelected: PropTypes.number.isRequired,
     onRequestSort: PropTypes.func.isRequired,
-    onSelectAllClick: PropTypes.func.isRequired,
     order: PropTypes.oneOf(['asc', 'desc']).isRequired,
     orderBy: PropTypes.string.isRequired,
     rowCount: PropTypes.number.isRequired,
@@ -150,7 +144,6 @@ EnhancedTableHead.propTypes = {
 
 const EnhancedTableToolbar = (props) => {
     const { numSelected, idsSelected } = props;
-    const [disable, setDisable] = useState(false);
 
     return (
         <Toolbar
@@ -185,58 +178,21 @@ const EnhancedTableToolbar = (props) => {
 
             {numSelected > 0 ? (
                 <Tooltip title="Delete">
-                    <IconButton disabled={disable}  onClick={() => {
-                        setDisable(true);
-                        let user = localStorage.getItem('name');
-
+                    <IconButton onClick={() => {
                         const pushDelete = async () => {
-                            let wasEntered  = await firestore.collection('to_delete').doc('to_delete').get();
-                            wasEntered = wasEntered.data();
-                            let foundUser = false;
-
+                            console.log("NUM:", idsSelected.length);
                             for (const x of idsSelected) {
-                                const prevVal = await firestore.collection('txs')
-                                    .doc(x).get();
-
-                                for (const val of Object.keys(wasEntered)) {
-                                    if (val === user) {
-                                        foundUser = true;
-                                        for (const sel of wasEntered[user]) {
-                                            if (sel === x) {
-                                                window.alert(`You have already marked selected entry`);
-                                                console.log(sel, 'remarked');
-                                                return;
-                                            }
-                                        }
-                                        const newVals = [...wasEntered[user]];
-                                        newVals.push(x);
-                                        await firestore.collection('txs')
-                                            .doc(x).update({
-                                                status: parseInt(prevVal.data().status) + 1
-                                            });
-                                        await firestore.collection('to_delete').doc('to_delete')
-                                            .update({
-                                                [user]: newVals
-                                            });
+                                const x_split = x.split('::');
+                                await firestore.collection('pending').add({
+                                    hash: x_split[1],
+                                    values: {
+                                        date: new Date(),
+                                        submitted_by: __user__,
+                                        col_id: parseInt(x_split[0])
                                     }
-                                }
-
-                                if (!foundUser) {
-                                    await firestore.collection('txs')
-                                        .doc(x).update({
-                                            status: parseInt(prevVal.data().status) + 1
-                                        });
-                                }
+                                });
                             }
-
-                            if (!foundUser) {
-                                await firestore.collection('to_delete').doc('to_delete')
-                                    .update({
-                                        [user]: idsSelected
-                                    });
-                            }
-                            window.alert(`${numSelected} entries have been marked for deletion. Will be deleted when at least 3 users mark the same`);
-                            window.location.reload();
+                            window.alert(`Selected entr${idsSelected.length === 1 ? 'y' : 'ies'} will be deleted`);
                         }
                         pushDelete();
                     }}>
@@ -473,24 +429,24 @@ function EnhancedTable(props) {
             };
             if (is_valid_hash) {
                 if (tx.data.entry_hash === hash) {
-                    temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                    temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
                     setPage(0);
                 }
             }
             else if (tx.col !== 'trades') {
                 if (action === '') {
-                    temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                    temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
                 }
-                else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
                 else if (action === tx.col) {
-                    temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                    temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
                 }
             }
             else if (tx.col === 'trades') {
-                if (JSON.stringify(tx.data.links) === '{}') temp.push(createData(tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                if (JSON.stringify(tx.data.links) === '{}') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
             }
         }
         setTxs(local_txs);
@@ -523,16 +479,9 @@ function EnhancedTable(props) {
         setOrderBy(property);
     };
 
-    const handleSelectAllClick = (event) => {
-        if (event.target.checked) {
-            const newSelecteds = rows.map((n) => n.hash);
-            setSelected(newSelecteds);
-            return;
-        }
-        setSelected([]);
-    };
+    const handleClick = (event, row_) => {
+        const name = `${row_.col_id}::${row_.hash}`;
 
-    const handleClick = (event, name) => {
         const selectedIndex = selected.indexOf(name);
         let newSelected = [];
 
@@ -594,7 +543,6 @@ function EnhancedTable(props) {
                             numSelected={selected.length}
                             order={order}
                             orderBy={orderBy}
-                            onSelectAllClick={handleSelectAllClick}
                             onRequestSort={handleRequestSort}
                             rowCount={rows.length}
                         />
@@ -604,7 +552,7 @@ function EnhancedTable(props) {
                             {stableSort(rows, getComparator(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {
-                                    const isItemSelected = isSelected(row.hash);
+                                    const isItemSelected = isSelected(`${row.col_id}::${row.hash}`);
                                     const labelId = `enhanced-table-checkbox-${index}`;
                                     const data = txs[row.hash]?.data;
 
@@ -632,7 +580,7 @@ function EnhancedTable(props) {
                                     return (
                                         <TableRow
                                             hover
-                                            onClick={(event) => handleClick(event, row.hash)}
+                                            onClick={(event) => handleClick(event, row)}
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             tabIndex={-1}
@@ -703,7 +651,8 @@ function EnhancedTable(props) {
                 control={<Switch checked={dense} onChange={handleChangeDense} />}
                 label="Dense padding"
             />
-            {selected.map((item, index) => {
+            {selected.map((item_, index) => {
+                const item = item_.split('::')[1]
                 const type = txs[item].col;
 
                 if (type === 'eggs_collected') {
