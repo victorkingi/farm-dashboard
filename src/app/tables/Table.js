@@ -144,6 +144,7 @@ EnhancedTableHead.propTypes = {
 
 const EnhancedTableToolbar = (props) => {
     const { numSelected, idsSelected } = props;
+    const [disable, setDisable] = useState(false);
 
     return (
         <Toolbar
@@ -178,7 +179,8 @@ const EnhancedTableToolbar = (props) => {
 
             {numSelected > 0 ? (
                 <Tooltip title="Delete">
-                    <IconButton onClick={() => {
+                    <IconButton disabled={disable} onClick={() => {
+                        setDisable(true);
                         const pushDelete = async () => {
                             console.log("NUM:", idsSelected.length);
                             for (const x of idsSelected) {
@@ -186,13 +188,14 @@ const EnhancedTableToolbar = (props) => {
                                 await firestore.collection('pending').add({
                                     hash: x_split[1],
                                     values: {
-                                        date: new Date(),
+                                        date: new Date(0),
                                         submitted_by: __user__,
                                         col_id: parseInt(x_split[0])
                                     }
                                 });
                             }
                             window.alert(`Selected entr${idsSelected.length === 1 ? 'y' : 'ies'} will be deleted`);
+                            setDisable(false);
                         }
                         pushDelete();
                     }}>
@@ -570,12 +573,12 @@ function EnhancedTable(props) {
                                     }
 
                                     const by = data.by.toLowerCase();
-                                    const toPrint = row.name === 'eggs_collected' ? `flock: ${parseInt(data.subgroups.split('::')[0])+1} (${by}) trays ${data.trays_collected}`
+                                    const toPrint = row.name === 'eggs_collected' ? `flock: ${parseInt(data.subgroups.split('::')[0])+1} (${by}) trays ${data.trays_collected} [${row.hash.slice(0, 4)}]`
                                         : row.name === 'dead_sick'
-                                            ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()}`
-                                            : row.name === 'sales' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')}`
-                                                : row.name === 'purchases' ? `(${by}) ${data.item_name.toLowerCase()} ${data.extra_data.bag_weight ? data.extra_data.bag_weight+' ' : ''}${data.extra_data.vendor?.toLowerCase() ? data.extra_data.vendor?.toLowerCase()+' ' : ''}${numeral(data.units).format(',')}@${numeral(data.price).format(',')}`
-                                                    : row.name === 'trades' ? `from ${from} to ${to}` : '';
+                                            ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()} [${row.hash.slice(0, 4)}]`
+                                            : row.name === 'sales' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')} [${row.hash.slice(0, 4)}]`
+                                                : row.name === 'purchases' ? `(${by}) ${data.item_name.toLowerCase()} ${data.extra_data.bag_weight ? data.extra_data.bag_weight+' ' : ''}${data.extra_data.vendor?.toLowerCase() ? data.extra_data.vendor?.toLowerCase()+' ' : ''}${numeral(data.units).format(',')}@${numeral(data.price).format(',')} [${row.hash.slice(0, 4)}]`
+                                                    : row.name === 'trades' ? `from ${from} to ${to} [${row.hash.slice(0, 4)}]` : '';
 
                                     return (
                                         <TableRow

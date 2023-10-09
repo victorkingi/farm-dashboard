@@ -571,8 +571,8 @@ function Dashboard(props) {
                                                      : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
                                                          : <div className="badge badge-outline-primary">Waiting</div>)}
                                      </td>
-                                     <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
-                                     <td>Delete {item.hash.slice(0, 5)} from {col_mapping[item_vals.col_id]}</td>
+                                     <td> ---- </td>
+                                     <td>Delete {item.hash.slice(0, 4)} from {col_mapping[item_vals.col_id]}</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
