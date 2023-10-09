@@ -187,34 +187,6 @@ function Dashboard(props) {
       setPendCheckedEggs(allPend);
   }
 
-  const callFunc = (e) => {
-       e.preventDefault();
-       window.alert("Calling write function...");
-       const run = document.getElementById('run');
-       run.disabled = true;
-
-      const myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      const raw = JSON.stringify({});
-      const requestOptions = {
-          method: 'POST',
-          headers: myHeaders,
-          body: raw,
-          redirect: 'follow'
-      };
-
-      fetch("https://us-central1-poultry101-f1fa0.cloudfunctions.net/write-entries", requestOptions)
-          .then(response => response.text())
-          .then(result => {
-              console.log(result);
-              window.alert("Success call");
-          })
-          .catch(error => {
-              console.log('error', error)
-              window.alert("Error", error);
-          });
-  }
-
   if (!dash.laying_day) {
       return <div />
   }
@@ -633,13 +605,6 @@ function Dashboard(props) {
                     <button type="button" disabled={false} className="btn btn-primary" onClick={display} id='rewind'>
                         Rewind
                     </button>
-                 </div>
-                 <div>
-                     {__user__ === 'VICTOR' &&
-                         <button type="button" disabled={false} className="btn btn-primary" onClick={callFunc} id='run'>
-                             Run
-                         </button>
-                     }
                  </div>
              </div>
              <Online>
