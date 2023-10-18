@@ -577,7 +577,7 @@ function EnhancedTable(props) {
                                         : row.name === 'dead_sick'
                                             ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()} [${row.hash.slice(0, 4)}]`
                                             : row.name === 'sales' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')} [${row.hash.slice(0, 4)}]`
-                                                : row.name === 'purchases' ? `(${by}) ${data.item_name.toLowerCase()} ${data.extra_data.bag_weight ? data.extra_data.bag_weight+' ' : ''}${data.extra_data.vendor?.toLowerCase() ? data.extra_data.vendor?.toLowerCase()+' ' : ''}${numeral(data.units).format(',')}@${numeral(data.price).format(',')} [${row.hash.slice(0, 4)}]`
+                                                : (row.name === 'purchases' || row.name === 'expenses') ? `(${by}) ${data.item_name.toLowerCase()} ${data.extra_data.bag_weight ? data.extra_data.bag_weight+' ' : ''}${data.extra_data.vendor?.toLowerCase() ? data.extra_data.vendor?.toLowerCase()+' ' : ''}${numeral(data.units).format(',')}@${numeral(data.price).format(',')} [${row.hash.slice(0, 4)}]`
                                                     : row.name === 'trades' ? `from ${from} to ${to} [${row.hash.slice(0, 4)}]` : '';
 
                                     return (
@@ -752,7 +752,7 @@ function EnhancedTable(props) {
                         </div>
                     )
                 }
-                else if (type === 'purchases') {
+                else if (type === 'purchases' || type === 'expenses') {
                     return (
                         <div key={index}>
                             <Card variant="outlined">
