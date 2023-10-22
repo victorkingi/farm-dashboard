@@ -605,10 +605,7 @@ function EnhancedTable(props) {
                                                 scope="row"
                                                 padding="none"
                                             >
-                                                <Typography>
-                                                    <Box sx={{ fontWeight: 'bold' }}>{row.name.split('_').join(' ')}</Box>
-                                                    <Box sx={{ fontWeight: 'light' }}>{toPrint}</Box>
-                                                </Typography>
+                                                {row.name.split('_').join(' ')} {toPrint}
                                             </TableCell>
                                             <TableCell align="right">{moment.unix(row.date).format("ddd ll")}</TableCell>
                                             <TableCell align="right">{moment.unix(row.subm).format("ddd ll")}</TableCell>
