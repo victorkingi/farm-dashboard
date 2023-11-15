@@ -53,11 +53,12 @@ function InputExpense(props) {
             groups = Object.keys(groups).filter(
                 key => key.split('::')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
-
-            setGroups(Object.values(groups) || []);
+            
+            const val_groups = Object.values(groups);
+            val_groups.push('all');
+            setGroups(val_groups || []);
         }
     }, [extraData]);
-
 
     useEffect(() => {
         if (state.section === "Feeds") setIsFeeds(true);
@@ -303,6 +304,14 @@ function InputExpense(props) {
         if (extraData) {
           const object = extraData[0].subgroups;
           let g = Object.keys(object).find(key => object[key] === e);
+          if (e === 'all') {
+            const all_groups = ['flock 1', 'flock 2'];
+            g = [];
+            for (const elem of all_groups) {
+                g.push(Object.keys(object).find(key => object[key] === elem));
+            }
+            g = g.join(';');
+          }
           setState({
             ...state,
             subgroups: g,
