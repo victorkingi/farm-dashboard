@@ -228,7 +228,7 @@ const getFieldName = (to_use) => {
 let isRun = false;
 
 function EnhancedTable(props) {
-    const { tx_ui, to_use, hash, firestore, extra_data } = props;
+    const { tx_ui, to_use, hash, extra_data } = props;
 
     const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
@@ -242,7 +242,6 @@ function EnhancedTable(props) {
     const [allDone, setAllDone] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [indexerChanged, setIndexerChanged] = useState(false);
-    const orderBy_ = `${(orderBy === 'data.date.unix' || orderBy === 'data.entry_hash') ? orderBy : orderBy === 'subm' ? 'data.submitted_on' : null}`;
 
     useMemo(() => {
         if (tx_ui) {
@@ -255,182 +254,9 @@ function EnhancedTable(props) {
                 data.push(tx);
             }
             setTxWatch(data);
+            setIsLoading(false);
         }
     }, [tx_ui]);
-
-    useEffect(() => {
-        let isSubscribed = true;
-        const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
-
-        // declare the async data fetching function
-        const fetchData = async (num) => {
-            const limit = num+txWatch.length;
-
-            // get the data
-            let dataDocs;
-            if (to_use === '') {
-                dataDocs = await firestore.get({
-                    collection: 'farms',
-                        doc: '0',
-                        subcollections: [{
-                            collection: 'txs', limit, orderBy: [orderBy_, order]
-                        }]
-                });
-            } else {
-                const field = getFieldName(to_use)[0];
-                if (field === orderBy_) {
-                    console.log('same rows', field);
-                    dataDocs = await firestore.get({
-                        collection: 'farms',
-                        doc: '0',
-                        subcollections: [{
-                            collection: 'txs',
-                            limit,
-                            where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]]
-                        }]
-                    });
-                } else {
-                    console.log('not same rows', field, orderBy_);
-                    dataDocs = await firestore.get({
-                        collection: 'farms',
-                        doc: '0',
-                        subcollections: [{
-                            collection: 'txs',
-                            limit,
-                            where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
-                            orderBy: [orderBy_, order]
-                        }]
-                    });
-                }
-            }
-
-            // set state with the result if `isSubscribed` is true
-            if(isSubscribed) {
-                console.log("check1", dataDocs.size, limit);
-                if (is_valid_hash) setAllDone(true);
-                else if (dataDocs.size < limit) setAllDone(true);
-            }
-        }
-
-        // call the function
-        //console.log("diff", rows.length, rowsPerPage)
-
-        if (is_valid_hash && !allDone) {
-            console.log("hash ok");
-            if (tx_ui.length === 1 && tx_ui[0].data.entry_hash === hash) {
-                setAllDone(true);
-                setIsLoading(false);
-                return;
-            }
-            setIsLoading(true);
-            fetchData()
-                .catch(console.error);
-
-        } else if ((rows.length <= rowsPerPage && !allDone) || indexerChanged) {
-            console.log('row change');
-            setIsLoading(true);
-            setIndexerChanged(false);
-            fetchData((rowsPerPage-rows.length)+1)
-                .catch(console.error);
-
-        } else if (rows.length <= ((page+1)*rowsPerPage) && !allDone) {
-            console.log('page change');
-            setIsLoading(true);
-            fetchData(((page+1)*rowsPerPage-rows.length)+1)
-                .catch(console.error);
-
-        } else if (allDone) {
-            console.log("ALL DATA RETRIEVED", txWatch.length);
-            setIsLoading(false);
-
-        } else {
-            //console.log("OK");
-            setIsLoading(false);
-        }
-
-        // cancel any future `setData`
-        return () => isSubscribed = false;
-
-        // eslint-disable-next-line
-    }, [rowsPerPage, rows, page, to_use, hash]);
-
-    useEffect(() => {
-        if (orderBy === 'data.date.unix' && order === 'desc') isRun = false;
-        // eslint-disable-next-line
-    }, [order]);
-
-    useEffect(() => {
-        let isSubscribed = true;
-        const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
-
-        // declare the async data fetching function
-        const fetchData = async () => {
-            console.log("stopped", txWatch.length <= 6 && orderBy === 'data.date.unix' && order === 'desc')
-            if (txWatch.length <= 6 && orderBy === 'data.date.unix' && order === 'desc' && isRun) return;
-            isRun = true;
-            const limit = txWatch.length;
-
-            // get the data
-            let dataDocs;
-            if (to_use === '') dataDocs = await firestore.get({
-                collection: 'farms',
-                doc: '0',
-                subcollections: [{collection: 'txs', limit, orderBy: [orderBy_, order]}] 
-                });
-            else {
-                const field = getFieldName(to_use)[0];
-                if (field === orderBy_) {
-                    console.log('same', field);
-                    dataDocs = await firestore.get({
-                        collection: 'farms',
-                        doc: '0',
-                        subcollections: [{
-                            collection: 'txs',
-                            limit,
-                            orderBy: [orderBy_, order]
-                        }]
-                    });
-                } else {
-                    console.log('not same', field, orderBy_);
-                    dataDocs = await firestore.get({
-                        collection: 'farms',
-                        doc: '0',
-                        subcollections: [{
-                            collection: 'txs',
-                            limit,
-                            where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
-                            orderBy: [orderBy_, order]
-                        }]
-                    });
-                }
-            }
-
-            if (isSubscribed) {
-                console.log("CHECK2", dataDocs.size, limit);
-                if (dataDocs.size < limit) setAllDone(true);
-            }
-        }
-
-        // call the function
-        if (is_valid_hash) {
-            console.log("order while hash is true");
-            setIsLoading(false);
-            return;
-        } else if (!allDone) {
-            setIsLoading(true);
-            fetchData()
-                // make sure to catch any error
-                .catch(console.error);
-        } else {
-            console.log("ALL DATA RETRIEVED", txWatch.length);
-            setIsLoading(false);
-        }
-
-        // cancel any future `setData`
-        return () => isSubscribed = false;
-
-        // eslint-disable-next-line
-    }, [order, orderBy]);
 
     useMemo(() => {
         const temp = []
@@ -653,6 +479,7 @@ function EnhancedTable(props) {
                         rowsPerPageOptions={[5, 15, 25]}
                         component="div"
                         showFirstButton={true}
+                        showLastButton={true}
                         count={rows.length}
                         rowsPerPage={rowsPerPage}
                         page={page}
@@ -808,7 +635,7 @@ function EnhancedTable(props) {
                     )
                 }
                 else if (type === 'dead_sick') {
-                    let val = extra_data.extra_data.subgroups[txs[item].data.subgroups];
+                    let val = extra_data.subgroups[txs[item].data.subgroups];
 
                     return (
                         <div key={index}>
