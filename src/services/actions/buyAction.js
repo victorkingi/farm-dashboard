@@ -26,7 +26,7 @@ export const inputExpense = (values) => {
                 hash
             });
             firestore.collection('farms').doc('0').update({
-                listener: firestore.FieldValue.increment(1)
+                waiting: true
             });
             dispatch({type: 'INPUT_BUYING', values});
         } else {
@@ -36,7 +36,7 @@ export const inputExpense = (values) => {
                 hash
             });
             firestore.collection('farms').doc('0').update({
-                listener: firestore.FieldValue.increment(1)
+                waiting: true
             });
             dispatch({
                 type: 'INPUT_BUYING',

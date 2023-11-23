@@ -40,7 +40,7 @@ export const inputSell = (values) => {
         });
 
         firestore.collection('farms').doc('0').update({
-            listener: firestore.FieldValue.increment(1)
+            waiting: true
         });
 
         dispatch({
@@ -56,7 +56,7 @@ export const inputSell = (values) => {
         });
 
         firestore.collection('farms').doc('0').update({
-            listener: firestore.FieldValue.increment(1)
+            waiting: true
         });
 
         dispatch({

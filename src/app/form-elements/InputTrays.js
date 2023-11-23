@@ -46,7 +46,7 @@ function InputTrays() {
                     }
                 }, {merge: true});
             firestore.collection('farms').doc('0').update({
-                listener: firebase.firestore.FieldValue.increment(1)
+                waiting: true
             });
             setOpenError(false);
             setOpenM('Data Submitted');

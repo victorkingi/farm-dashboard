@@ -105,7 +105,7 @@ function Dashboard(props) {
           if (value) {
               firestore.collection("farms/0/pending").doc(key).delete();
               firestore.collection('farms').doc('0').update({
-                listener: firestore.FieldValue.increment(1)
+                waiting: true
               });
               setError(false);
               setOpen(true);
@@ -116,7 +116,7 @@ function Dashboard(props) {
           if (value) {
               firestore.collection("farms/0/pending").doc(key).delete();
               firestore.collection('farms').doc('0').update({
-                listener: firestore.FieldValue.increment(1)
+                waiting: true
               });
               setError(false);
               setOpen(true);

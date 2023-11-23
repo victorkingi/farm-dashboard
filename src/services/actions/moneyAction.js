@@ -27,7 +27,7 @@ export const sendMoney = (values) => {
                                 hash: ''
                             });
                             firestore.collection('farms').doc('0').update({
-                                listener: firestore.FieldValue.increment(1)
+                                waiting: true
                             });
                             dispatch({type: 'MONEY_SENT', values});
                         }
@@ -41,7 +41,7 @@ export const sendMoney = (values) => {
                 hash: ''
             });
             firestore.collection('farms').doc('0').update({
-                listener: firestore.FieldValue.increment(1)
+                waiting: true
             });
             dispatch({type: 'MONEY_SENT', values});
         }
@@ -104,7 +104,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                     .doc(key).set({ ...val });
 
                     firestore.collection('farms').doc('0').update({
-                        listener: firestore.FieldValue.increment(1)
+                        waiting: true
                     });
                     dispatch({type: 'LATE_REPAID'});
                     doc.ref.delete();
@@ -140,7 +140,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                             .doc(key).set({ ...val });
 
                             firestore.collection('farms').doc('0').update({
-                                listener: firestore.FieldValue.increment(1)
+                                waiting: true
                             });
                             dispatch({type: 'LATE_REPAID'});
                             doc.ref.delete();
@@ -156,7 +156,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
 
                             doc.ref.update({...val});
                             firestore.collection('farms').doc('0').update({
-                                listener: firestore.FieldValue.increment(1)
+                                waiting: true
                             });
                         }
                     } else {
@@ -192,7 +192,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                         .doc(key).set({ ...val });
 
                         firestore.collection('farms').doc('0').update({
-                            listener: firestore.FieldValue.increment(1)
+                            waiting: true
                         });
 
                         dispatch({type: 'LATE_REPAID'});
