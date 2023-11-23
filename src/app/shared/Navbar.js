@@ -95,7 +95,7 @@ function Navbar(props) {
           }
 
           const uploadFile = () => {
-            const uploadImagesRef = storageRef.child(`dead_sick_batch_2/${key}`);
+            const uploadImagesRef = storageRef.child(`0/dead_sick_batch_2/${key}`);
             const metadata = {
               contentType: `image/${getExt(key.substring(5))}`
             }
@@ -169,7 +169,13 @@ function Navbar(props) {
                 async () => {
                   const url = await uploadTask.snapshot.ref.getDownloadURL();
                   console.log('done', url);
-                  const query = await firestore.get({ collection: 'pending_upload', where: ['values.file_name', '==', key] });
+                  const query = await firestore.get({
+                      collection: 'farms',
+                      doc: '0',
+                      subcollections: [
+                        {collection: 'pending_upload', where: ['values.file_name', '==', key]}
+                      ]
+                    });
                   if (query.size === 0) {
                     setOpen(false);
                     setError("Uploaded file doesn't have a reference");
@@ -205,8 +211,19 @@ function Navbar(props) {
 
                     // delete local doc
                     db.collection('dead_sick').doc({file_name: key}).delete();
-                    firestore.set({ collection: 'pending', doc: to_del_id }, to_add);
-                    firestore.delete({ collection: 'pending_upload', doc: to_del_id });
+                    firestore.set({
+                      collection: 'farms',
+                      doc: '0',
+                      subcollections: [{collection: 'pending', doc: to_del_id}]
+                    }, to_add);
+                    firestore.collection('farms').doc('0').update({
+                      listener: firestore.FieldValue.increment(1)
+                    });
+                    firestore.delete({
+                      collection: 'farms',
+                      doc: '0',
+                      subcollections: [{collection: 'pending_upload', doc: to_del_id}] 
+                    });
 
                     setOpenError(false);
                     let imageName = key;
@@ -389,5 +406,15 @@ const mapDispatchToProps = (dispatch) => {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-      {collection: 'pending_upload', orderBy: ['values.submitted_on', 'asc']}
+      {
+        collection: 'farms',
+        doc: '0',
+        subcollections: [
+          {
+            collection: 'pending_upload',
+            orderBy: ['values.submitted_on', 'asc']
+          }
+        ],
+        storeAs: "pending_upload"
+      }
     ]))(Navbar);

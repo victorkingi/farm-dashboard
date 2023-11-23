@@ -5,7 +5,7 @@ import {Redirect} from "react-router-dom";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Offline, Online} from "react-detect-offline";
-import {firestore} from '../../services/api/fbConfig';
+import {firestore, firebase} from '../../services/api/fbConfig';
 import "strftime";
 import strftime from 'strftime';
 
@@ -35,7 +35,7 @@ function InputTrays() {
                 setOpenError(true);
                 return -1;
             }
-            firestore.doc(`checkpoints/${today}`)
+            firestore.doc(`farms/0/checkpoints/${today}`)
                 .set({
                     by: name,
                     trays_collected: state,
@@ -45,6 +45,9 @@ function InputTrays() {
                             "%m/%d/%Y, %H:%M:%S", new Date(today*1000)) + ', Africa/Nairobi'
                     }
                 }, {merge: true});
+            firestore.collection('farms').doc('0').update({
+                listener: firebase.firestore.FieldValue.increment(1)
+            });
             setOpenError(false);
             setOpenM('Data Submitted');
             setOpen(true);

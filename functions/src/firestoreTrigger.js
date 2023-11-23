@@ -24,7 +24,7 @@ function callConverter(sending) {
 }
 
 exports.convertToCode = functions.firestore
-    .document('users/{userId}')
+    .doc('users/{userId}')
     .onCreate((snap, context) => {
         // Get an object representing the document
         // e.g. {'name': 'Marie', 'age': 66}

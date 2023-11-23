@@ -390,7 +390,14 @@ const mapStateToProps = function(state) {
 
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
-    firestoreConnect([
-      {collection: 'extra_data', doc: 'extra_data'}
+    firestoreConnect(() => [
+      {
+        collection: 'farms',
+        doc: '0',
+        subcollections: [
+            {collection: 'extra_data', doc: 'extra_data'}
+        ],
+        storeAs: 'extra_data'
+      }
     ])
 )(InputSell);

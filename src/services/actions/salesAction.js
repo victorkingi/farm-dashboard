@@ -33,22 +33,32 @@ export const inputSell = (values) => {
     values.submitted_on = new Date();
 
     if (JSON.parse(values.status)) {
-      firestore.collection('pending')
-          .add({
-            values,
-            hash
-          });
+        firestore.collection("farms").doc("0").collection("pending")
+        .add({
+          values,
+          hash
+        });
+
+        firestore.collection('farms').doc('0').update({
+            listener: firestore.FieldValue.increment(1)
+        });
+
         dispatch({
           type: 'INPUT_SALES',
           values
         });
 
       } else {
-        firestore.collection('ppending')
-            .add({
-            values,
-            hash
-          });
+        firestore.collection('farms').doc('0').collection('ppending')
+        .add({
+          values,
+          hash
+        });
+
+        firestore.collection('farms').doc('0').update({
+            listener: firestore.FieldValue.increment(1)
+        });
+
         dispatch({
           type: 'INPUT_SALES',
           values

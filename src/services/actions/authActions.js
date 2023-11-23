@@ -13,23 +13,6 @@ export const signIn = (user, err) => {
     }
 }
 
-export const checkClaims = () => {
-    return function(dispatch, getState, {getFirebase}) {
-        const firebase = getFirebase();
-        firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                user.getIdTokenResult().then(function(idToken) {
-                    if (idToken.claims.admin) dispatch({type: 'ADMIN_ACCESS'})
-                    else if (idToken.claims.changer) dispatch({type: 'CHANGER_ACCESS'})
-                }).catch(function(err){
-                    dispatch({type: 'ADMIN_ERROR', err})
-                })
-            }
-        });
-    }
-}
-
-
 export const signOut = function(){
     return (dispatch, getState, {getFirebase}) => {
         const firebase = getFirebase();

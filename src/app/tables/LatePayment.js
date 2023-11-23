@@ -58,9 +58,9 @@ function LatePayment(props) {
 
     useEffect(() => {
         if (extra) {
-            setBpresets(extra.extra_data.balance_out);
-            let employees = extra.extra_data.pay_employees.map(x => x.slice(4));
-            employees.push(...extra.extra_data.sholders);
+            setBpresets(extra.balance_out);
+            let employees = extra.pay_employees.map(x => x.slice(4));
+            employees.push(...extra.sholders);
             employees.push('BANK');
             employees = employees.map(x => x.toUpperCase());
             setUsers(employees);
@@ -479,8 +479,22 @@ const mapDispatchToProps = (dispatch) => {
 
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
-    firestoreConnect([
-        {collection: 'ppending'},
-        {collection: 'extra_data', doc: 'extra_data'}
+    firestoreConnect(() => [
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'ppending'}
+            ],
+            storeAs: 'ppending'
+        },
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'extra_data', doc: 'extra_data'}
+            ],
+            storeAs: 'extra_data'
+        }
     ])
 )(LatePayment);

@@ -268,26 +268,38 @@ function EnhancedTable(props) {
 
             // get the data
             let dataDocs;
-            if (is_valid_hash) {
-                dataDocs = await firestore.get({collection: 'txs', where: ['data.hash', '==', hash]});
-            } else if (to_use === '') {
-                dataDocs = await firestore.get({collection: 'txs', limit, orderBy: [orderBy_, order]});
+            if (to_use === '') {
+                dataDocs = await firestore.get({
+                    collection: 'farms',
+                        doc: '0',
+                        subcollections: [{
+                            collection: 'txs', limit, orderBy: [orderBy_, order]
+                        }]
+                });
             } else {
                 const field = getFieldName(to_use)[0];
                 if (field === orderBy_) {
                     console.log('same rows', field);
                     dataDocs = await firestore.get({
-                        collection: 'txs',
-                        limit,
-                        where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]]
+                        collection: 'farms',
+                        doc: '0',
+                        subcollections: [{
+                            collection: 'txs',
+                            limit,
+                            where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]]
+                        }]
                     });
                 } else {
                     console.log('not same rows', field, orderBy_);
                     dataDocs = await firestore.get({
-                        collection: 'txs',
-                        limit,
-                        where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
-                        orderBy: [orderBy_, order]
+                        collection: 'farms',
+                        doc: '0',
+                        subcollections: [{
+                            collection: 'txs',
+                            limit,
+                            where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
+                            orderBy: [orderBy_, order]
+                        }]
                     });
                 }
             }
@@ -360,23 +372,35 @@ function EnhancedTable(props) {
 
             // get the data
             let dataDocs;
-            if (to_use === '') dataDocs = await firestore.get({ collection: 'txs', limit, orderBy: [orderBy_, order] });
+            if (to_use === '') dataDocs = await firestore.get({
+                collection: 'farms',
+                doc: '0',
+                subcollections: [{collection: 'txs', limit, orderBy: [orderBy_, order]}] 
+                });
             else {
                 const field = getFieldName(to_use)[0];
                 if (field === orderBy_) {
                     console.log('same', field);
                     dataDocs = await firestore.get({
-                        collection: 'txs',
-                        limit,
-                        orderBy: [orderBy_, order]
+                        collection: 'farms',
+                        doc: '0',
+                        subcollections: [{
+                            collection: 'txs',
+                            limit,
+                            orderBy: [orderBy_, order]
+                        }]
                     });
                 } else {
                     console.log('not same', field, orderBy_);
                     dataDocs = await firestore.get({
-                        collection: 'txs',
-                        limit,
-                        where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
-                        orderBy: [orderBy_, order]
+                        collection: 'farms',
+                        doc: '0',
+                        subcollections: [{
+                            collection: 'txs',
+                            limit,
+                            where: [getFieldName(to_use)[0], '==', getFieldName(to_use)[1]],
+                            orderBy: [orderBy_, order]
+                        }]
                     });
                 }
             }
@@ -836,7 +860,21 @@ const mapStateToProps = (state) => {
 export default compose(
     connect(mapStateToProps),
     firestoreConnect([
-        { collection: 'txs', orderBy: ['data.date.unix', 'desc'], limit: 6 },
-        { collection: 'extra_data', doc: 'extra_data' }
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                { collection: 'txs', orderBy: ['data.date.unix', 'desc'] }
+            ],
+            storeAs: 'txs'
+        },
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'extra_data', doc: 'extra_data'}
+            ],
+            storeAs: 'extra_data'
+        }
     ])
 )(EnhancedTable);

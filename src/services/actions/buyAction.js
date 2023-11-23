@@ -20,16 +20,23 @@ export const inputExpense = (values) => {
         console.log("hash to use", hash);
         
         if (JSON.parse(values.status)) {
-            firestore.collection('pending')
+            firestore.collection('farms').doc('0').collection('pending')
                 .add({
                 values,
                 hash
             });
+            firestore.collection('farms').doc('0').update({
+                listener: firestore.FieldValue.increment(1)
+            });
             dispatch({type: 'INPUT_BUYING', values});
         } else {
-            firestore.collection('ppending').add({
+            firestore.collection('farms').doc('0').collection('ppending')
+                .add({
                 values,
                 hash
+            });
+            firestore.collection('farms').doc('0').update({
+                listener: firestore.FieldValue.increment(1)
             });
             dispatch({
                 type: 'INPUT_BUYING',

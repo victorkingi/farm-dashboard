@@ -9,7 +9,6 @@ import AppRoutes from './AppRoutes';
 import Navbar from './app/shared/Navbar';
 import Sidebar from './app/shared/Sidebar';
 import {firebase, messaging} from "./services/api/fbConfig";
-import {checkClaims} from "./services/actions/authActions";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Snackbar from '@material-ui/core/Snackbar';
@@ -143,7 +142,6 @@ function App(props) {
 
   let navbarComponent = !state_?.isFullPageLayout ? <Navbar/> : '';
   let sidebarComponent = !state_?.isFullPageLayout ? <Sidebar/> : '';
-  props.checkClaims();
 
   const componentDidUpdate = useCallback((prevProps) => {
     if (props.location !== prevProps.location) {
@@ -252,10 +250,4 @@ function App(props) {
   );
 }
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    checkClaims: () => dispatch(checkClaims())
-  }
-}
-
-export default compose(connect(null, mapDispatchToProps))(withRouter(App));
+export default withRouter(App);

@@ -21,9 +21,13 @@ export const sendMoney = (values) => {
                             window.alert("You are not an admin");
                             return -1;
                         } else {
-                            firestore.collection("pending").add({
+                            firestore.collection('farms').doc('0').collection('pending')
+                            .add({
                                 values,
                                 hash: ''
+                            });
+                            firestore.collection('farms').doc('0').update({
+                                listener: firestore.FieldValue.increment(1)
                             });
                             dispatch({type: 'MONEY_SENT', values});
                         }
@@ -31,9 +35,13 @@ export const sendMoney = (values) => {
                 }
             });
         } else {
-            firestore.collection("pending").add({
+            firestore.collection('farms').doc('0').collection('pending')
+            .add({
                 values,
                 hash: ''
+            });
+            firestore.collection('farms').doc('0').update({
+                listener: firestore.FieldValue.increment(1)
             });
             dispatch({type: 'MONEY_SENT', values});
         }
@@ -73,7 +81,7 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
         let allRes = [];
 
         for (const key of allKeys) {
-            const res = firestore.collection("ppending").doc(key)
+            const res = firestore.collection('farms').doc('0').collection("ppending").doc(key)
                 .get().then((doc) => {
                 if (!doc.exists) {
                     console.log('late doc does not exist')
@@ -92,7 +100,12 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                         buyers,
                         items
                     };
-                    firestore.collection("pending").doc(key).set({ ...val });
+                    firestore.collection('farms').doc('0').collection('pending')
+                    .doc(key).set({ ...val });
+
+                    firestore.collection('farms').doc('0').update({
+                        listener: firestore.FieldValue.increment(1)
+                    });
                     dispatch({type: 'LATE_REPAID'});
                     doc.ref.delete();
 
@@ -123,7 +136,12 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
 
                         if (totalPaid === needed) {
                             console.log("total paid", totalPaid);
-                            firestore.collection("pending").doc(key).set({ ...val });
+                            firestore.collection('farms').doc('0').collection('pending')
+                            .doc(key).set({ ...val });
+
+                            firestore.collection('farms').doc('0').update({
+                                listener: firestore.FieldValue.increment(1)
+                            });
                             dispatch({type: 'LATE_REPAID'});
                             doc.ref.delete();
 
@@ -137,6 +155,9 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                             dispatch({type: 'LATE_REPAID'});
 
                             doc.ref.update({...val});
+                            firestore.collection('farms').doc('0').update({
+                                listener: firestore.FieldValue.increment(1)
+                            });
                         }
                     } else {
                         val.values[keyField] = '';
@@ -166,7 +187,14 @@ export const hasPaidLate = (allKeys, isOne, isDebt, buyers, items, payers) => {
                             }
                             i++;
                         }
-                        firestore.collection("pending").doc(key).set({ ...val });
+
+                        firestore.collection('farms').doc('0').collection('pending')
+                        .doc(key).set({ ...val });
+
+                        firestore.collection('farms').doc('0').update({
+                            listener: firestore.FieldValue.increment(1)
+                        });
+
                         dispatch({type: 'LATE_REPAID'});
                         doc.ref.delete();
                     }

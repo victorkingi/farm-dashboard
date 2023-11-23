@@ -10,6 +10,8 @@ import {sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
+import { firebase } from '../../services/api/fbConfig';
+
 
 export function getRanColor() {
   const ranR = Math.floor((Math.random()*255)+1).toString(16);
@@ -21,6 +23,7 @@ const col_mapping = {1: 'Sales', 2: 'Expenses', 3: 'Dead/Sick', 4: 'Eggs Collect
 
 function Dashboard(props) {
   const { dashboard, pend, firestore } = props;
+  
 
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
@@ -100,7 +103,10 @@ function Dashboard(props) {
   const rollBack = () => {
       for (const [key, value] of Object.entries(pendCheckedEggs)) {
           if (value) {
-              firestore.collection("pending").doc(key).delete();
+              firestore.collection("farms/0/pending").doc(key).delete();
+              firestore.collection('farms').doc('0').update({
+                listener: firestore.FieldValue.increment(1)
+              });
               setError(false);
               setOpen(true);
               setAllCheckedEggs(false);
@@ -108,7 +114,10 @@ function Dashboard(props) {
       }
       for (const [key, value] of Object.entries(pendChecked)) {
           if (value) {
-              firestore.collection("pending").doc(key).delete();
+              firestore.collection("farms/0/pending").doc(key).delete();
+              firestore.collection('farms').doc('0').update({
+                listener: firestore.FieldValue.increment(1)
+              });
               setError(false);
               setOpen(true);
               setAllChecked(false);
@@ -640,16 +649,30 @@ function Dashboard(props) {
 }
 
 const mapStateToProps = function(state) {
-  return {
-      dashboard: state.firestore.ordered.dashboard,
-      pend: state.firestore.ordered.pending,
-  }
+    return {
+        dashboard: state.firestore.ordered.my_dash,
+        pend: state.firestore.ordered.my_pend,
+    }
 }
 
 export default compose(
     connect(mapStateToProps),
-    firestoreConnect([
-        {collection: 'dashboard', doc: 'dashboard'},
-        {collection: 'pending', orderBy: ['values.date', 'asc']},
+    firestoreConnect(() => [
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'dashboard', doc: 'dashboard'}
+            ],
+            storeAs: 'my_dash'
+        },
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'pending', orderBy: ['values.date', 'asc']}
+            ],
+            storeAs: 'my_pend'
+        }
     ])
 )(Dashboard);

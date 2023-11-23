@@ -1,8 +1,6 @@
 export const initState = {
     authError: null,
-    admin: false,
-    moderator: false,
-    changer: false
+    farm_id: -1,
 }
 
 
@@ -22,21 +20,13 @@ const authReducer = function(state = initState, action) {
             } catch (e) {
                 console.log(e)
             }
+            console.log("USER", action._user);
             return {
                 ...state,
+                farm_id: action._user.farm_id,
                 authError: null
             }
 
-        case 'ADMIN_ACCESS':
-            return {
-                ...state,
-                admin: true
-            }
-        case 'CHANGER_ACCESS':
-            return {
-                ...state,
-                changer: true
-            }
 
         case 'ADMIN_ERROR':
             console.log('admin error', action.err.message);

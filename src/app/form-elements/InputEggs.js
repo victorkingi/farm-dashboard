@@ -202,7 +202,6 @@ function InputEggs(props) {
           });
         }
     }
-    console.log(state.flock);
 
     const componentDidMount = () => {
         bsCustomFileInput.init()
@@ -337,6 +336,13 @@ const mapStateToProps = function(state) {
 export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
-      {collection: 'extra_data', doc: 'extra_data'}
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'extra_data', doc: 'extra_data'}
+            ],
+            storeAs: 'extra_data'
+        },
     ])
 )(InputEggs);
