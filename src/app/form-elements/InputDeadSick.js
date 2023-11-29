@@ -15,7 +15,7 @@ import {firestoreConnect} from "react-redux-firebase";
 
 
 function InputDeadSick(props) {
-    const { extraData } = props;
+    const { extraData, dash } = props;
 
     const [state, setState] = useState({
         date: new Date(),
@@ -28,6 +28,7 @@ function InputDeadSick(props) {
     const [error, setError] = useState('');
     const [image, setImage] = useState(null);
     const [groups, setGroups] = useState([]);
+    const [parentNode, setParentNode] = useState('');
 
     useEffect(() => {
         if (extraData) {
@@ -38,7 +39,10 @@ function InputDeadSick(props) {
 
             setGroups(Object.values(groups) || []);
         }
-      }, [extraData]);
+        if (dash) {
+            setParentNode(dash[0].raw?.parent || '');
+        }
+      }, [extraData, dash]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -120,7 +124,7 @@ function InputDeadSick(props) {
             return;
         }
         state.num = parseInt(state.num);
-
+        state.parent = parentNode;
         props.inputDeadSick(state, image);
        
         setOpenError(false);
@@ -309,7 +313,8 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
     return {
-      extraData: state.firestore.ordered.extra_data
+      extraData: state.firestore.ordered.extra_data,
+      dash: state.firestore.ordered.dash
     }
 }
 
@@ -323,6 +328,14 @@ export default compose(
                 {collection: 'extra_data', doc: 'extra_data'}
             ],
             storeAs: 'extra_data'
+        },
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'dashboard', doc: 'dashboard'}
+            ],
+            storeAs: 'dash'
         }
     ])
 )(InputDeadSick);

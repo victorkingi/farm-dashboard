@@ -27,8 +27,9 @@ export const inputSell = (values) => {
     newDate.setHours(0, 0, 0, 0);
     values.date = newDate;
 
-    let hash = `${values.subgroups}${values.buyer_name}${parseInt(values.date.getTime()/1000)}`;
+    let hash = `${values.parent}1${values.subgroups}${values.buyer_name}${parseInt(values.date.getTime()/1000)}`;
     console.log("hash", hash);
+    delete values.parent;
     hash = SHA256(hash).toString();
     values.submitted_on = new Date();
 

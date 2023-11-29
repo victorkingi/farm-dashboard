@@ -23,7 +23,6 @@
     "eslint-config-react-app": "^7.0.1",
     "firebase": "^8.7.0",
     "localbase": "^0.7.5",
-    "merkletreejs": "^0.2.32",
     "moment": "^2.29.1",
     "node-sass": "^7.0.1",
     "numeral": "^2.0.6",

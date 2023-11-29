@@ -20,8 +20,9 @@ export const inputDeadSick = (deadSick, image) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
-        let hash = `${values.subgroups}${parseInt(values.date.getTime()/1000)}${values.section}`;
+        let hash = `${values.parent}3${values.subgroups}${parseInt(values.date.getTime()/1000)}${values.section}`;
         console.log("hash", hash);
+        delete values.parent;
         hash = SHA256(hash).toString();
         console.log("hash to use", hash);
 

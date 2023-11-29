@@ -1,3 +1,5 @@
+import SHA256 from "crypto-js/sha256";
+
 /**
  * will be affected only if amount > balance
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
@@ -12,6 +14,12 @@ export const sendMoney = (values) => {
         values.date = newDate;
 
         values.submitted_on = new Date();
+
+        let hash = `${values.parent}50::0;1::0${parseInt(values.date.getTime()/1000)}${parseInt(values.submitted_on.getTime()/1000)}`;
+        console.log("hash", hash);
+        delete values.parent;
+        hash = SHA256(hash).toString();
+        console.log("hash to use", hash);
 
         if (values.receiver.startsWith("WITHDRAW")) {
             firebase.auth().onAuthStateChanged(user => {

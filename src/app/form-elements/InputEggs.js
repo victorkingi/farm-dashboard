@@ -29,7 +29,7 @@ const getEggsDiff = (temp) => {
 
 //
 function InputEggs(props) {
-    const { extraData } = props;
+    const { extraData, dash } = props;
 
     const [state, setState] = useState({
         date_: new Date(),
@@ -43,6 +43,7 @@ function InputEggs(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
     const [groups, setGroups] = useState([]);
+    const [parentNode, setParentNode] = useState('');
 
     useEffect(() => {
         if (extraData) {
@@ -53,7 +54,10 @@ function InputEggs(props) {
 
             setGroups(Object.values(groups) || []);
         }
-      }, [extraData]);
+        if (dash) {
+            setParentNode(dash[0].raw?.parent || '');
+        }
+      }, [extraData, dash]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -142,7 +146,8 @@ function InputEggs(props) {
             return;
         }
         const offBy = getEggsDiff(temp);
-        
+        temp.parent = parentNode;
+    
         props.inputTray(temp);
 
         if (offBy !== 0) {
@@ -329,7 +334,8 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
     return {
-      extraData: state.firestore.ordered.extra_data
+      extraData: state.firestore.ordered.extra_data,
+      dash: state.firestore.ordered.dash
     }
 }
 
@@ -344,5 +350,13 @@ export default compose(
             ],
             storeAs: 'extra_data'
         },
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'dashboard', doc: 'dashboard'}
+            ],
+            storeAs: 'dash'
+        }
     ])
 )(InputEggs);

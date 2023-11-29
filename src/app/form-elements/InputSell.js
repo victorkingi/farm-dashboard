@@ -16,7 +16,7 @@ import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
 function InputSell(props) {
-  const { extraData } = props;
+  const { extraData, dash } = props;
 
   const [state, setState] = useState({
     category: 'sales',
@@ -32,6 +32,7 @@ function InputSell(props) {
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [buyer_names, setBuyerNames] = useState([]);
+  const [parentNode, setParentNode] = useState('');
 
   let name = firebase.auth().currentUser?.displayName;
   name = name ? name.substring(0, name.lastIndexOf(' '))
@@ -41,7 +42,10 @@ function InputSell(props) {
     if (extraData) {
       setBuyerNames(extraData[0].buyer_names || []);
     }
-  }, [extraData]);
+    if (dash) {
+      setParentNode(dash[0].raw?.parent || '');
+  }
+  }, [extraData, dash]);
 
   const checkDate = (date) => {
     if (date.getTime() > new Date().getTime()) {
@@ -135,6 +139,7 @@ function InputSell(props) {
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
     values.date = date;
+    values.parent = parentNode;
     let proceed = parameterChecks(values);
     if (proceed) {
         props.inputSell(values);
@@ -384,7 +389,8 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
   return {
-    extraData: state.firestore.ordered.extra_data
+    extraData: state.firestore.ordered.extra_data,
+    dash: state.firestore.ordered.dash
   }
 }
 
@@ -398,6 +404,14 @@ export default compose(
             {collection: 'extra_data', doc: 'extra_data'}
         ],
         storeAs: 'extra_data'
-      }
+      },
+      {
+        collection: 'farms',
+        doc: '0',
+        subcollections: [
+            {collection: 'dashboard', doc: 'dashboard'}
+        ],
+        storeAs: 'dash'
+    }
     ])
 )(InputSell);

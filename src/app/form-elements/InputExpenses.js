@@ -17,7 +17,7 @@ import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
 function InputExpense(props) {
-    const { extraData } = props;
+    const { extraData, dash } = props;
 
     const [state, setState] = useState({
         date: new Date(),
@@ -39,6 +39,7 @@ function InputExpense(props) {
     const [feedsVendors, setFeedsVendors] = useState([]);
     const [feedsType, setFeedsType] = useState([]);
     const [groups, setGroups] = useState([]);
+    const [parentNode, setParentNode] = useState('');
 
     let name = firebase.auth().currentUser?.displayName || '';
     name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
@@ -58,7 +59,10 @@ function InputExpense(props) {
             val_groups.push('all');
             setGroups(val_groups || []);
         }
-    }, [extraData]);
+        if (dash) {
+            setParentNode(dash[0].raw?.parent || '');
+        }
+    }, [extraData, dash]);
 
     useEffect(() => {
         if (state.section === "Feeds") setIsFeeds(true);
@@ -197,6 +201,7 @@ function InputExpense(props) {
         values.section = getSectionAddr(values.section);
         values.item_no = parseInt(values.item_no);
         values.item_price = parseInt(values.item_price);
+        values.parent = parentNode;
 
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
@@ -523,7 +528,8 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
     return {
-        extraData: state.firestore.ordered.extra_data
+        extraData: state.firestore.ordered.extra_data,
+        dash: state.firestore.ordered.dash
     }
 }
 
@@ -538,5 +544,13 @@ export default compose(
             ],
             storeAs: 'extra_data'
         },
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'dashboard', doc: 'dashboard'}
+            ],
+            storeAs: 'dash'
+        }
     ])
 )(InputExpense);

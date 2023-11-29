@@ -24,7 +24,7 @@ const cleanSendReceive = (str, name) => {
 }
 
 function InputMoney(props) {
-    const { extraData } = props;
+    const { extraData, dash } = props;
 
     const [state, setState] = useState({
         from: 'From',
@@ -38,12 +38,16 @@ function InputMoney(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
     const [groups, setGroups] = useState([]);
+    const [parentNode, setParentNode] = useState('');
 
     useEffect(() => {
         if (extraData) {
           setGroups(Object.values(extraData[0].groups || {}) || []);
         }
-      }, [extraData]);
+        if (dash) {
+            setParentNode(dash[0].raw?.parent || '');
+        }
+      }, [extraData, dash]);
 
     const parameterSendingChecks = (values) => {
         if (values.name === values.receiver) {
@@ -127,6 +131,7 @@ function InputMoney(props) {
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
         values.date = date;
+        values.parent = parentNode;
         console.log(values);
         let proceed = parameterSendingChecks(values);
         if (proceed) {
@@ -241,19 +246,6 @@ function InputMoney(props) {
                                         id='date'
                                     />
                                 </Form.Group>
-                                <Form.Group>
-                                    <label htmlFor='flock'>Flock</label>
-                                    <DropdownButton
-                                        alignRight
-                                        title={state.flock || 'Choose Flock'}
-                                        id='flock'
-                                        onSelect={handleFlock}
-                                    >
-                                        {Array(...groups).sort().map(x => {
-                                            return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
-                                        })}
-                                    </DropdownButton>
-                                </Form.Group>
                                 <DropdownButton
                                     alignRight
                                     title={state.from}
@@ -322,7 +314,8 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
     return {
-      extraData: state.firestore.ordered.extra_data
+      extraData: state.firestore.ordered.extra_data,
+      dash: state.firestore.ordered.dash
     }
 }
 
@@ -337,5 +330,13 @@ export default compose(
             ],
             storeAs: 'extra_data'
         },
+        {
+            collection: 'farms',
+            doc: '0',
+            subcollections: [
+                {collection: 'dashboard', doc: 'dashboard'}
+            ],
+            storeAs: 'dash'
+        }
     ])
 )(InputMoney);
