@@ -172,7 +172,11 @@ function InputExpense(props) {
             return;
         }
 
-        if (state.not_paid === true) status = false;
+        values.parent = parentNode;
+        if (state.not_paid === true) {
+            status = false;
+            values.parent = '-1';
+        }
         if (status) state.paid_by = `${state.paid_by.toUpperCase()}:${parseInt(state.item_no) * parseInt(state.item_price)},`;
         else state.paid_by = '';
 
@@ -201,7 +205,6 @@ function InputExpense(props) {
         values.section = getSectionAddr(values.section);
         values.item_no = parseInt(values.item_no);
         values.item_price = parseInt(values.item_price);
-        values.parent = parentNode;
 
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
