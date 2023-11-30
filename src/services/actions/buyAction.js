@@ -15,7 +15,6 @@ export const inputExpense = (values) => {
 
         let hash = `${values.parent}2${values.subgroups}${parseInt(values.date.getTime()/1000)}${values.item_name}`;
         console.log("hash", hash);
-        delete values.parent;
         hash = SHA256(hash).toString();
         values.submitted_on = new Date();
         console.log("hash to use", hash);
