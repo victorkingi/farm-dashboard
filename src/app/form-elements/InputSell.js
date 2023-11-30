@@ -114,8 +114,10 @@ function InputSell(props) {
       }
     }
     let status = true;
+    values.parent = parentNode;
     if (state.not_paid) {
       status = false;
+      values.parent = '-1';
     }
     const values = {
       ...state,
@@ -139,7 +141,6 @@ function InputSell(props) {
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
     values.date = date;
-    values.parent = parentNode;
     let proceed = parameterChecks(values);
     if (proceed) {
         props.inputSell(values);
