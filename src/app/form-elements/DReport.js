@@ -5,7 +5,7 @@ import {Redirect} from "react-router-dom";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Online} from "react-detect-offline";
-import {firebase} from "../../services/api/fbConfig";
+import {storage} from "../../services/api/firebaseConfig";
 import uniqid from 'uniqid';
 
 export function saveBlob(blob, fileName) {
@@ -62,7 +62,6 @@ function DInvoice() {
             .then(result => {
                 console.log(result);
                 //Create a reference with an initial file path and name
-                const storage = firebase.storage();
                 const storageRef = storage.ref('reports/');
                 storageRef.child(fname).getDownloadURL()
                     .then((url) => {

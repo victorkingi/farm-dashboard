@@ -9,7 +9,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {sendMoney} from "../../services/actions/moneyAction";
 import {Offline, Online} from "react-detect-offline";
-import {firebase} from '../../services/api/fbConfig';
+import {auth} from '../../services/api/firebaseConfig';
 import DatePicker from "react-datepicker";
 import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
@@ -37,13 +37,9 @@ function InputMoney(props) {
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
-    const [groups, setGroups] = useState([]);
     const [parentNode, setParentNode] = useState('');
 
     useEffect(() => {
-        if (extraData) {
-          setGroups(Object.values(extraData[0].groups || {}) || []);
-        }
         if (dash) {
             setParentNode(dash[0].raw?.parent || '');
         }
@@ -113,7 +109,7 @@ function InputMoney(props) {
                 return;
             }
         }
-        let name = firebase.auth().currentUser.displayName;
+        let name = auth.currentUser.displayName;
         name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
         let values = {
             ...state,
@@ -185,18 +181,6 @@ function InputMoney(props) {
             return true;
         }
     }
-
-    const handleFlock = (e) => {
-        if (extraData) {
-          const object = extraData[0].groups;
-          let g = Object.keys(object).find(key => object[key] === e);
-          setState({
-            ...state,
-            group: g,
-            flock: e
-          });
-        }
-      }
 
     const handleDate = (date) => {
         setState({

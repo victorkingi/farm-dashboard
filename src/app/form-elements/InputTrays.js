@@ -5,7 +5,7 @@ import {Redirect} from "react-router-dom";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "./InputEggs";
 import {Offline, Online} from "react-detect-offline";
-import {firestore, firebase} from '../../services/api/fbConfig';
+import {firestore} from '../../services/api/firebaseConfig';
 import "strftime";
 import strftime from 'strftime';
 

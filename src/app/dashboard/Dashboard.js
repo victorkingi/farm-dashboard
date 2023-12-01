@@ -10,7 +10,6 @@ import {sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {Offline, Online} from "react-detect-offline";
 import CountUp from 'react-countup';
-import { firebase } from '../../services/api/fbConfig';
 
 
 export function getRanColor() {

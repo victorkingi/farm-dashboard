@@ -2,7 +2,7 @@ import React, {useState, useMemo} from 'react';
 import {Link, Redirect} from 'react-router-dom';
 import {Button, Form, Spinner } from 'react-bootstrap';
 import {connect} from 'react-redux';
-import {firebase, firestore, functions, messaging} from '../../services/api/fbConfig';
+import {firebase, auth} from '../../services/api/firebaseConfig';
 import {signIn} from "../../services/actions/authActions";
 import Snackbar from "@material-ui/core/Snackbar";
 import {Alert} from "../form-elements/InputEggs";
@@ -26,101 +26,6 @@ function Login(props) {
     setOpenError(false);
   };
 
-  const sendTokenToServer = (token) => {
-      const batch = firestore.batch();
-      const fullName = firebase.auth().currentUser.displayName;
-      const name = fullName.substring(0, fullName.lastIndexOf(" ")).toUpperCase();
-      const email = firebase.auth().currentUser.email;
-
-      if (name) {
-        const docRef = firestore.collection("notify_token").doc(name);
-        const tokenRef = docRef.collection("tokens").doc(token);
-        const checkCount = docRef.collection("tokens").doc("count");
-        checkCount.get().then((doc) => {
-          if (!doc.exists) {
-            batch.set(checkCount, {
-              total: 0,
-              submitted_on: new Date()
-            });
-          }
-          batch.set(docRef, {
-            submitted_on: new Date()
-          });
-          batch.set(tokenRef, {
-            token,
-            email,
-            submitted_on: new Date()
-          });
-
-          batch.commit().then(() => {
-            setOpenError(false);
-            setOpenMess(`Token generated, sending to server...`);
-            setOpen(true);
-            const firstNotification = functions.httpsCallable('util-enabledNotify');
-            firstNotification({token}).then(() => {
-              window.location.reload();
-            }).catch((err) => {
-              setOpen(false);
-              setError(`${err.message || 'Unknown error occurred. Probably internet connection'}`);
-              setOpenError(true);
-              submit.style.display = 'block';
-              load.style.display = 'none';
-            });
-          }).catch((err) => {
-            setOpen(false);
-            setError(`${err.message}`);
-            setOpenError(true);
-            submit.style.display = 'block';
-            load.style.display = 'none';
-          });
-        }).catch((err) => {
-          setOpen(false);
-          setError(`${err.message}. Failed to subscribe`);
-          setOpenError(true);
-          submit.style.display = 'block';
-          load.style.display = 'none';
-        });
-      }
-  }
-
-  const handleToken = (sendTokenToServer_) => {
-    const load = document.getElementById("loading");
-    const submit = document.getElementById("login");
-
-    if (messaging !== null) {
-      messaging.requestPermission()
-          .then(async function () {
-            const token = await messaging.getToken();
-            sendTokenToServer_(token);
-          })
-          .catch(function (err) {
-            setOpen(false);
-            setError("Unable to get permission to notify."+err);
-            setOpenError(true);
-            submit.style.display = 'block';
-            load.style.display = 'none';
-          });
-      messaging.onTokenRefresh(() => {
-        messaging.getToken().then((refreshedToken) => {
-          console.log('Token refreshed.');
-          sendTokenToServer_(refreshedToken);
-        }).catch((err) => {
-          setOpen(false);
-          setError(`Unable to retrieve messaging token ${err.message} uncheck box to continue`);
-          setOpenError(true);
-          submit.style.display = 'block';
-          load.style.display = 'none';
-        });
-      });
-    } else {
-      setOpen(false);
-      setError('This browser does not support push notifications, please uncheck the box');
-      setOpenError(true);
-      submit.style.display = 'block';
-      load.style.display = 'none';
-    }
-  }
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
@@ -140,9 +45,9 @@ function Login(props) {
       submit.style.display = 'none';
       load.style.display = 'block';
 
-      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
           .then(() => {
-            return firebase.auth().signInWithEmailAndPassword(
+            return auth.signInWithEmailAndPassword(
                 state.email,
                 state.password
             ).then((prof) => {
@@ -150,11 +55,7 @@ function Login(props) {
               setOpenError(false);
               setOpenMess('Logged in');
               setOpen(true);
-              if (state.notify) {
-                handleToken(sendTokenToServer);
-              } else {
-                window.location.reload();
-              }
+              window.location.reload();
             });
           })
           .catch((err) => {
@@ -211,7 +112,7 @@ function Login(props) {
     e.preventDefault();
     submit.style.display = 'none';
     load.style.display = 'block';
-    const auth = firebase.auth();
+
     if (emailRegex.test(state.email)) {
       auth.sendPasswordResetEmail(state.email).then(function () {
         setOpenError(false);
@@ -272,13 +173,6 @@ function Login(props) {
                     </Button>
                   </div>
                   <div className="my-2 d-flex justify-content-between align-items-center">
-                    <div className="form-check">
-                      <label htmlFor="notify" className="form-check-label text-muted">
-                        <input type="checkbox" onChange={handleChange} className="form-check-input" id="notify" name="notify" defaultValue={0} />
-                        <i className="input-helper"/>
-                        I want to receive notifications
-                      </label>
-                    </div>
                     <a href="!#" onClick={handleForgotPass} className="auth-link text-muted">Forgot password?</a>
                   </div>
                   <div className="text-center mt-4 font-weight-light">

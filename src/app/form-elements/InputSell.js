@@ -11,7 +11,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import { Alert } from './InputEggs';
 import { inputSell } from '../../services/actions/salesAction';
 import { Offline, Online } from 'react-detect-offline';
-import { firebase } from '../../services/api/fbConfig';
+import { auth } from '../../services/api/firebaseConfig';
 import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
@@ -34,7 +34,7 @@ function InputSell(props) {
   const [buyer_names, setBuyerNames] = useState([]);
   const [parentNode, setParentNode] = useState('');
 
-  let name = firebase.auth().currentUser?.displayName;
+  let name = auth.currentUser?.displayName;
   name = name ? name.substring(0, name.lastIndexOf(' '))
       .toUpperCase() : '';
 
@@ -114,15 +114,16 @@ function InputSell(props) {
       }
     }
     let status = true;
-    values.parent = parentNode;
+    let parent = parentNode;
     if (state.not_paid) {
       status = false;
-      values.parent = '-1';
+      parent = '-1';
     }
     const values = {
       ...state,
       name,
-      status
+      status,
+      parent
     };
     values.tray_no = parseInt(values.tray_no);
     values.tray_price = parseInt(values.tray_price);

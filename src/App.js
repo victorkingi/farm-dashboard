@@ -1,15 +1,13 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { Button } from "@material-ui/core";
-import {connect} from 'react-redux';
-import {compose} from 'redux';
 import {withRouter} from 'react-router-dom';
 import './App.scss';
 import AppRoutes from './AppRoutes';
 import Navbar from './app/shared/Navbar';
 import Sidebar from './app/shared/Sidebar';
-import {firebase, messaging} from "./services/api/fbConfig";
-import { ToastContainer, toast } from 'react-toastify';
+import {auth} from "./services/api/firebaseConfig";
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
@@ -17,43 +15,6 @@ import CloseIcon from '@material-ui/icons/Close';
 import Slide from '@material-ui/core/Slide';
 import {Offline, Online} from 'react-detect-offline';
 
-
-function componentDidMount_() {
-  navigator.serviceWorker.addEventListener("message", (message) => {
-    const customId = "myToast";
-    if (message?.data) {
-      const _data = `${message.data['firebase-messaging-msg-data'].data?.title}`;
-      const _notification = `${message.data['firebase-messaging-msg-data']
-          .notification?.title}: ${message.data['firebase-messaging-msg-data']
-          .notification?.body}`;
-
-      if (_data === 'undefined') {
-        toast.info(_notification, {
-          toastId: customId,
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      } else {
-        toast.info(_data, {
-          toastId: customId,
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    }
-
-  });
-}
 
 function TransitionUp(props) {
   return <Slide {...props} direction="up" />;
@@ -152,7 +113,7 @@ function App(props) {
   useEffect(() => {
     const wait = (ms) => new Promise((res) => setTimeout(res, ms));
     const checkAuthState = () => {
-      firebase.auth().onAuthStateChanged(async (user) => {
+      auth.onAuthStateChanged(async (user) => {
         if (user) {
           await wait(10000);
         } else {
@@ -184,12 +145,6 @@ function App(props) {
     }
 
   }, [props.location, componentDidUpdate, props, onRouteChanged]);
-
-  useEffect(() => {
-    if (messaging !== null) {
-      componentDidMount_();
-    }
-  }, []);
 
   return (
       <div>

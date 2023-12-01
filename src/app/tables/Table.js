@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -30,7 +30,7 @@ import { visuallyHidden } from '@mui/utils';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import { BrowserView, MobileView } from 'react-device-detect';
-import {firestore} from '../../services/api/fbConfig';
+import {firestore} from '../../services/api/firebaseConfig';
 
 
 let __user__ = localStorage.getItem('name');
@@ -218,17 +218,8 @@ EnhancedTableToolbar.propTypes = {
     idsSelected: PropTypes.array.isRequired
 };
 
-const getFieldName = (to_use) => {
-    if (to_use === 'Sales' || to_use === 'Purchases' || to_use === 'Eggs Collected'
-    || to_use === 'Trades' || to_use === 'Dead or Sick') return ['col', `${(to_use === 'sales' || to_use === 'purchases' || to_use === 'trades') ? to_use.slice(0, to_use.length-1) : to_use}`]
-    if (to_use.startsWith('Submitted by ')) return ['by', `${to_use.slice(13, to_use.length).toUpperCase()}`];
-    return ['data.section', `${to_use === 'Pay Purity' ? 'LABOUR' : to_use === 'Other Sales' ? 'SOTHER' : to_use === 'Other Purchases' ? 'POTHER' : to_use === 'Thika Farmers' ? 'THIKA FARMERS' : to_use.toUpperCase() }`]
-}
-
-let isRun = false;
-
 function EnhancedTable(props) {
-    const { tx_ui, to_use, hash, extra_data } = props;
+    const { tx_ui, extra_data } = props;
 
     const [order, setOrder] = useState('desc');
     const [txs, setTxs] = useState({});
@@ -239,9 +230,7 @@ function EnhancedTable(props) {
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(15);
     const [rows, setRows] = useState([]);
-    const [allDone, setAllDone] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [indexerChanged, setIndexerChanged] = useState(false);
 
     useMemo(() => {
         if (tx_ui) {
@@ -261,18 +250,6 @@ function EnhancedTable(props) {
     useMemo(() => {
         const temp = []
         let local_txs = {}
-        let action;
-        if (to_use === 'Sales') {
-            action = 'sales';
-        } else if (to_use === 'Trades') {
-            action = 'trades';
-
-        } else if (to_use === 'Purchases') {
-            action = 'purchases';
-        } else {
-            action = to_use
-        }
-        const is_valid_hash = /^[a-f0-9]{64}$/.test(hash);
 
         for(let tx of Object.entries(txWatch)) {
             tx = tx[1];
@@ -280,23 +257,8 @@ function EnhancedTable(props) {
                 ...local_txs,
                 [tx.data.entry_hash]: tx
             };
-            if (is_valid_hash) {
-                if (tx.data.entry_hash === hash) {
-                    temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                    setPage(0);
-                }
-            }
-            else if (tx.col !== 'trades') {
-                if (action === '') {
-                    temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                }
-                else if (action === 'Submitted by Victor' && tx.data.by === 'VICTOR') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                else if (action === 'Submitted by Jeff' && tx.data.by === 'JEFF') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                else if (action === 'Submitted by Purity' && tx.data.by === 'PURITY') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                else if (action === 'Submitted by Babra' && tx.data.by === 'BABRA') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                else if (action === tx.col) {
-                    temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
-                }
+            if (tx.col !== 'trades') {
+                temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
             }
             else if (tx.col === 'trades') {
                 if (JSON.stringify(tx.data.links) === '{}') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
@@ -305,20 +267,7 @@ function EnhancedTable(props) {
         setTxs(local_txs);
         setRows(temp);
 
-    }, [to_use, hash, txWatch]);
-
-    useMemo(() => {
-        setAllDone(false);
-        setIndexerChanged(true);
-
-        // eslint-disable-next-line
-    }, [to_use]);
-
-    useMemo(() => {
-        setAllDone(false);
-
-        // eslint-disable-next-line
-    }, [hash]);
+    }, [txWatch]);
 
     useMemo(() => {
         setPage(Math.floor(rows.length / rowsPerPage) < page ? Math.floor(rows.length / rowsPerPage) : page);

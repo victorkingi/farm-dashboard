@@ -12,7 +12,7 @@ import {Alert} from "./InputEggs";
 import {inputExpense} from "../../services/actions/buyAction";
 import {Offline, Online} from "react-detect-offline";
 import {getSectionAddr} from "../../services/actions/salesAction";
-import {firebase} from '../../services/api/fbConfig';
+import {auth} from '../../services/api/firebaseConfig';
 import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
@@ -41,7 +41,7 @@ function InputExpense(props) {
     const [groups, setGroups] = useState([]);
     const [parentNode, setParentNode] = useState('');
 
-    let name = firebase.auth().currentUser?.displayName || '';
+    let name = auth.currentUser?.displayName || '';
     name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
 
     useEffect(() => {
@@ -172,10 +172,10 @@ function InputExpense(props) {
             return;
         }
 
-        values.parent = parentNode;
+        let parent = parentNode;
         if (state.not_paid === true) {
             status = false;
-            values.parent = '-1';
+            parent = '-1';
         }
         if (status) state.paid_by = `${state.paid_by.toUpperCase()}:${parseInt(state.item_no) * parseInt(state.item_price)},`;
         else state.paid_by = '';
@@ -184,6 +184,7 @@ function InputExpense(props) {
             ...state,
             status,
             name,
+            parent
         };
 
         delete values.not_paid;

@@ -17,7 +17,6 @@ const DReport = lazy(() => import('./app/form-elements/DReport'));
 
 const LatePayment = lazy(() => import('./app/tables/LatePayment'));
 const BasicTable = lazy(() => import('./app/tables/BasicTable'));
-const Summary = lazy(() => import('./app/tables/Summary'));
 
 const ChartJs = lazy(() => import('./app/charts/ChartJs'));
 
@@ -45,7 +44,6 @@ function AppRoutes() {
 
           <Route path="/tables/late" component={ LatePayment } />
           <Route path="/tables/entries" component={ BasicTable } />
-          <Route path="/tables/sum" component={ Summary }/>
 
           <Route path="/charts/chart-js" component={ ChartJs } />
 

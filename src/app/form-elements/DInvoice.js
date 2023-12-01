@@ -8,7 +8,7 @@ import {Online} from "react-detect-offline";
 import {compose} from "redux";
 import {connect} from "react-redux";
 import {firestoreConnect} from "react-redux-firebase";
-import {firebase} from "../../services/api/fbConfig";
+import {storage} from "../../services/api/firebaseConfig";
 import { saveBlob } from './DReport';
 
 
@@ -124,7 +124,6 @@ function DInvoice({ invoices, extraData }) {
             .then(result => {
                 console.log(result);
                 //Create a reference with an initial file path and name
-                const storage = firebase.storage();
                 const storageRef = storage.ref('invoices/');
                 storageRef.child(`${invoiceNum}_${cleanName}_invoice.pdf`).getDownloadURL()
                     .then((url) => {

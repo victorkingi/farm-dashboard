@@ -7,14 +7,13 @@ import {signOut} from "../../services/actions/authActions";
 import {firestoreConnect} from "react-redux-firebase";
 import { Line } from 'rc-progress';
 import moment from "moment";
+import { storage} from "../../services/api/firebaseConfig";
 import {getRanColor} from "../dashboard/Dashboard";
 import {Alert} from "../form-elements/InputEggs";
 import Snackbar from "@material-ui/core/Snackbar";
 import Localbase from "localbase";
 
 const uploadLock = [];
-const db = new Localbase('ver_data');
-let lock = false;
 
 function Navbar(props) {
   const { pending_upload, firestore, firebase } = props;
@@ -40,7 +39,6 @@ function Navbar(props) {
 
     const finaliseUpload = async () => {
       if (mounted && pending_upload) {
-        const storage = firebase.storage();
         const db = new Localbase('imageUpload');
         const storageRef = storage.ref();
         const docs = await db.collection('dead_sick').get();
