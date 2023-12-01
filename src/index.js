@@ -7,7 +7,7 @@ import thunk from 'redux-thunk';
 import {createFirestoreInstance, getFirestore, reduxFirestore} from 'redux-firestore';
 import {getFirebase, ReactReduxFirebaseProvider} from 'react-redux-firebase';
 import rootReducer from "./services/reducers/rootReducer";
-import {firebase} from "./services/api/fbConfig";
+import {firebase} from "./services/api/firebaseConfig";
 import { BrowserRouter } from 'react-router-dom';
 import reportWebVitals from "./reportWebVitals";
 import './index.css';
