@@ -16,6 +16,7 @@ export const sendMoney = (values) => {
         values.submitted_on = new Date();
         values.subgroups = '0::0;1::0'
         let hash = `${values.parent}5${values.subgroups}${parseInt(values.date.getTime()/1000)}${parseInt(values.submitted_on.getTime()/1000)}`;
+        hash = hash.toUpperCase();
         console.log("hash", hash);
         hash = SHA256(hash).toString();
         console.log("hash to use", hash);
@@ -31,7 +32,7 @@ export const sendMoney = (values) => {
                             firestore.collection('farms').doc('0').collection('pending')
                             .add({
                                 values,
-                                hash: ''
+                                hash
                             });
                             firestore.collection('farms').doc('0').update({
                                 waiting: true
@@ -45,7 +46,7 @@ export const sendMoney = (values) => {
             firestore.collection('farms').doc('0').collection('pending')
             .add({
                 values,
-                hash: ''
+                hash
             });
             firestore.collection('farms').doc('0').update({
                 waiting: true

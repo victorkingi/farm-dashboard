@@ -21,6 +21,7 @@ export const inputTray = (eggs) => {
         delete values.date_;
 
         let hash = `${values.parent}4${values.subgroups}${parseInt(values.date.getTime()/1000)}`;
+        hash = hash.toUpperCase();
         console.log("hash", hash);
         hash = SHA256(hash).toString();
         console.log("hash to use", hash);

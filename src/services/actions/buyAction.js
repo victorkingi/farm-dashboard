@@ -14,6 +14,7 @@ export const inputExpense = (values) => {
         values.date = newDate;
 
         let hash = `${values.parent}2${values.subgroups}${parseInt(values.date.getTime()/1000)}${values.item_name}`;
+        hash = hash.toUpperCase();
         console.log("hash", hash);
         hash = SHA256(hash).toString();
         values.submitted_on = new Date();

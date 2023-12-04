@@ -21,6 +21,7 @@ export const inputDeadSick = (deadSick, image) => {
         values.date = newDate;
 
         let hash = `${values.parent}3${values.subgroups}${parseInt(values.date.getTime()/1000)}${values.section}`;
+        hash = hash.toUpperCase();
         console.log("hash", hash);
         hash = SHA256(hash).toString();
         console.log("hash to use", hash);
