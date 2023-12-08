@@ -185,13 +185,16 @@ const EnhancedTableToolbar = (props) => {
                             console.log("NUM:", idsSelected.length);
                             for (const x of idsSelected) {
                                 const x_split = x.split('::');
-                                await firestore.collection('pending').add({
+                                await firestore.collection('farms').doc('0').collection('pending').add({
                                     hash: x_split[1],
                                     values: {
                                         date: new Date(0),
                                         submitted_by: __user__,
                                         col_id: parseInt(x_split[0])
                                     }
+                                });
+                                await firestore.collection('farms').doc('0').update({
+                                    waiting: true
                                 });
                             }
                             window.alert(`Selected entr${idsSelected.length === 1 ? 'y' : 'ies'} will be deleted`);
