@@ -49,7 +49,7 @@ function Navbar(props) {
           for (let tx of pending_upload) {
             tx = tx.values;
 
-            if (p === tx.submitted_by) {
+            if (p === tx.by) {
               setOpen(false);
               setError("Found cloud document that does not have corresponding local");
               setOpenError(true);
@@ -60,7 +60,7 @@ function Navbar(props) {
 
         for (let tx of pending_upload) {
           tx = tx.values;
-          if (!(docs.map(x => x.file_name).includes(tx.file_name)) && p === tx.submitted_by) {
+          if (!(docs.map(x => x.file_name).includes(tx.file_name)) && p === tx.by) {
             setOpen(false);
             setError("Cloud document "+tx.file_name.slice(0, 10)+" does not exist locally");
             setOpenError(true);
@@ -171,7 +171,7 @@ function Navbar(props) {
                       collection: 'farms',
                       doc: '0',
                       subcollections: [
-                        {collection: 'pending_upload', where: ['values.file_name', '==', key]}
+                        {collection: 'pending_upload', where: ['values.image_id', '==', key]}
                       ]
                     });
                   if (query.size === 0) {
@@ -204,8 +204,7 @@ function Navbar(props) {
                     let to_add = doc.data();
                     let to_del_id = doc.id;
                     console.log("to be deleted", to_del_id);
-                    delete to_add.values.photo;
-                    to_add.values.url = url;
+                    to_add.values.image_url = url;
 
                     // delete local doc
                     db.collection('dead_sick').doc({file_name: key}).delete();
@@ -309,20 +308,20 @@ function Navbar(props) {
                             onClick={evt =>evt.preventDefault()}>
                           <div className="preview-thumbnail">
                             <div className="preview-icon bg-dark rounded-circle">
-                              {(state.percent.get(item.file_name) === 0 || state.percent.get(item.file_name) === undefined) && <i className={`mdi mdi-cloud-upload text-warning`}/>}
-                              {state.percent.get(item.file_name) === 100 && <i className={`mdi mdi-cloud-upload text-success`}/>}
-                              {state.percent.get(item.file_name) < 100 && state.percent.get(item.file_name) > 0 && <i className={`mdi mdi-cloud-upload text-info`}/>}
+                              {(state.percent.get(item.image_id) === 0 || state.percent.get(item.image_id) === undefined) && <i className={`mdi mdi-cloud-upload text-warning`}/>}
+                              {state.percent.get(item.image_id) === 100 && <i className={`mdi mdi-cloud-upload text-success`}/>}
+                              {state.percent.get(item.image_id) < 100 && state.percent.get(item.image_id) > 0 && <i className={`mdi mdi-cloud-upload text-info`}/>}
                             </div>
                           </div>
                           <div className="preview-item-content">
-                            <p className="preview-subject mb-1">Uploading {item.submitted_by.toLowerCase()} entry {moment(item.submitted_on.toDate()).fromNow()}</p>
+                            <p className="preview-subject mb-1">Uploading {item.by.toLowerCase()} entry {moment(item.submitted_on.toDate()).fromNow()}</p>
                             <p className="text-muted ellipsis mb-0">
                                 <Line
-                                      percent={state.percent.get(item.file_name)} strokeWidth="4" strokeColor={state.color.get(item.file_name)} />
+                                      percent={state.percent.get(item.image_id)} strokeWidth="4" strokeColor={state.color.get(item.image_id)} />
                                 <Line
-                                    percent={[state.percent.get(item.file_name) / 2, state.percent.get(item.file_name) / 2]}
+                                    percent={[state.percent.get(item.image_id) / 2, state.percent.get(item.image_id) / 2]}
                                     strokeWidth="4"
-                                    strokeColor={[state.color.get(item.file_name), '#CCC']}
+                                    strokeColor={[state.color.get(item.image_id), '#CCC']}
                                 />
                             </p>
                           </div>

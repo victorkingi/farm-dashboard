@@ -146,16 +146,6 @@ function Dashboard(props) {
     setOpen(false);
   };
 
-  const getAmount = (item) => {
-     if (item.tray_no)
-       return parseInt(item.tray_no)
-           * parseInt(item.tray_price);
-     else if (item.item_no)
-       return  parseInt(item.item_no)
-           * parseInt(item.item_price);
-     else if (item.amount) return item.amount;
-   }
-
   const display = (e) => {
      e.preventDefault();
      const submit = document.getElementById(`rewind`);
@@ -574,13 +564,11 @@ function Dashboard(props) {
                                                    : <div className="badge badge-outline-primary">Waiting</div>)}
                                </td>
                                <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
-                               <td> {item_vals?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item_vals) +` ${numeral(item.values?.tray_no 
-                                                                               || item.values?.item_no)
-                                                                               .format('0,0')}@${numeral(item.values?.tray_price 
-                                                                               || item.values?.item_price)
+                               <td> {item_vals?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item_vals) +` ${numeral(item.values?.units)
+                                                                               .format('0,0')}@${numeral(item.values?.price)
                                                                                .format('0,0')}`} </td>
                                <td>{item_vals?.by}</td>
-                               <td> {numeral(parseInt(getAmount(item_vals))).format("0,0")} </td>
+                               <td> {numeral(parseInt(item_vals.price) * parseInt(item_vals.units)).format("0,0")} </td>
                            </tr>
                          )
                      })}

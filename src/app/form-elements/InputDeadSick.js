@@ -120,7 +120,7 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        state.extra_data.info = state.info;
+        if (state.info) state.extra_data.info = state.info;
         delete state.info;
         delete state.photo;
         state.number = parseInt(state.number);
@@ -178,7 +178,7 @@ function InputDeadSick(props) {
             if (e.trim() === "Dead" || e.trim() === "Sick") {
                 setState({
                     ...state,
-                    section: e
+                    state: e
                 });
             } else {
                 setState({
@@ -243,10 +243,10 @@ function InputDeadSick(props) {
                                         })}
                                     </DropdownButton>
                                 </Form.Group>
-                                <label htmlFor="section">Section</label>
+                                <label htmlFor="state">Section</label>
                                 <DropdownButton
                                     alignRight
-                                    title={state.section || ''}
+                                    title={state.state || ''}
                                     id="location"
                                     onSelect={handleSelect}
                                 >
