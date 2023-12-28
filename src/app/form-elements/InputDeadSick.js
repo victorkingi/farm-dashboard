@@ -15,12 +15,13 @@ import {firestoreConnect} from "react-redux-firebase";
 
 
 function InputDeadSick(props) {
-    const { extraData, dash } = props;
+    const { extraData } = props;
 
     const [state, setState] = useState({
         date: new Date(),
-        category: 'dead_sick',
-        extra_data: ''
+        col_id: 3,
+        extra_data: {info: ''},
+        by: localStorage.getItem('name')
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -28,7 +29,6 @@ function InputDeadSick(props) {
     const [error, setError] = useState('');
     const [image, setImage] = useState(null);
     const [groups, setGroups] = useState([]);
-    const [parentNode, setParentNode] = useState('');
 
     useEffect(() => {
         if (extraData) {
@@ -39,10 +39,7 @@ function InputDeadSick(props) {
 
             setGroups(Object.values(groups) || []);
         }
-        if (dash) {
-            setParentNode(dash[0].raw?.parent || '');
-        }
-      }, [extraData, dash]);
+      }, [extraData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -54,7 +51,7 @@ function InputDeadSick(props) {
         const arr = Object.entries(state);
 
         for (let i = 0; i < arr.length; i++) {
-            if (arr[i][0] === "num") {
+            if (arr[i][0] === "number") {
                 if (!numberRegex.test(arr[i][1])) {
                     setError('Chicken number cannot be negative or not a number');
                     setOpenError(true);
@@ -63,7 +60,7 @@ function InputDeadSick(props) {
                 break;
             }
 
-            if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+            if (arr[i][0] === 'info' && !alphaNumRegex.test(arr[i][1])) {
                 setError('Extra info should only be letters/numbers or left empty');
                 setOpenError(true);
                 return;
@@ -89,7 +86,7 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        if (!numberRegex.test(state.num)) {
+        if (!numberRegex.test(state.number)) {
             setError('Chicken number cannot be negative, 0 or not a number');
             setOpenError(true);
             return;
@@ -123,15 +120,16 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        state.num = parseInt(state.num);
-        state.parent = parentNode;
+        state.extra_data.info = state.info;
+        delete state.info;
+        state.number = parseInt(state.number);
         props.inputDeadSick(state, image);
        
         setOpenError(false);
         setOpen(true);
         setState({
             ...state,
-            extra_data: ''
+            extra_data: {info: ''}
         });
     };
 
@@ -261,8 +259,8 @@ function InputDeadSick(props) {
                                     <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="level" placeholder="row name" />
                                 </Form.Group>
                                 <Form.Group>
-                                    <label htmlFor="num">Number of Chickens</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="num" placeholder="Number of Chickens" />
+                                    <label htmlFor="number">Number of Chickens</label>
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="number" placeholder="Number of Chickens" />
                                 </Form.Group>
                                 <Form.Group>
                                     <label htmlFor="reason">Reason (and Treatment Given)</label>
@@ -276,8 +274,8 @@ function InputDeadSick(props) {
                                     </div>
                                 </Form.Group>
                                 <Form.Group>
-                                    <label htmlFor="extra_data">Extra info (optional)</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
+                                    <label htmlFor="info">Extra info (optional)</label>
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="info" placeholder="Any extra information" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>
@@ -313,8 +311,7 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
     return {
-      extraData: state.firestore.ordered.extra_data,
-      dash: state.firestore.ordered.dash
+      extraData: state.firestore.ordered.extra_data
     }
 }
 

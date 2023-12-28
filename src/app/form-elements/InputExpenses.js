@@ -22,13 +22,12 @@ function InputExpense(props) {
     const [state, setState] = useState({
         date: new Date(),
         section: 'Choose Section',
-        item_no: '',
-        item_price: '',
+        units: '',
+        price: '',
         item_name: '',
-        vendor_name: '',
-        category: 'expenses',
-        paid_by: '',
-        extra_data: ''
+        col_id: 2,
+        extra_data: {info: ''},
+        by: localStorage.getItem('name')
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
@@ -39,7 +38,6 @@ function InputExpense(props) {
     const [feedsVendors, setFeedsVendors] = useState([]);
     const [feedsType, setFeedsType] = useState([]);
     const [groups, setGroups] = useState([]);
-    const [parentNode, setParentNode] = useState('');
 
     let name = auth.currentUser?.displayName || '';
     name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
@@ -59,10 +57,7 @@ function InputExpense(props) {
             val_groups.push('all');
             setGroups(val_groups || []);
         }
-        if (dash) {
-            setParentNode(dash[0].raw?.parent || '');
-        }
-    }, [extraData, dash]);
+    }, [extraData]);
 
     useEffect(() => {
         if (state.section === "Feeds") setIsFeeds(true);
@@ -83,14 +78,14 @@ function InputExpense(props) {
         if (values.section === 'FEEDS') {
             const validVendors = feedsVendors.map(x => x.toUpperCase());
             const validFeeds = feedsType.map(x => x.toUpperCase());
-            if (!values.vendor_name) {
+            if (!values.extra_data.vendor) {
                 console.log("Vendor name cannot be empty");
                 setError("Vendor name cannot be empty");
                 setOpenError(true);
                 return false;
             }
-            values.vendor_name = values.vendor_name.toUpperCase();
-            if (!validVendors.includes(values.vendor_name)) {
+            values.extra_data.vendor = values.extra_data.vendor.toUpperCase();
+            if (!validVendors.includes(values.extra_data.vendor)) {
                 console.log("invalid vendor name");
                 setError("invalid vendor name");
                 setOpenError(true);
@@ -107,11 +102,7 @@ function InputExpense(props) {
             setOpenError(true);
             return false;
         }
-        if (!values.name) {
-            setError('User undefined');
-            setOpenError(true);
-            return false;
-        }
+
         return checkDate(values.date);
     }
 
@@ -119,7 +110,7 @@ function InputExpense(props) {
         e.preventDefault();
 
         const priceAmountRegex = /^([\d]+)$/;
-        const bSizeRegex = /^[0-9]+$/.test(state.bag_size);
+        const bSizeRegex = /^[0-9]+$/.test(state.bag_weight);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const arr = Object.entries(state);
 
@@ -128,65 +119,42 @@ function InputExpense(props) {
             setOpenError(true);
             return;
         }
-
-        if(state.paid_by === '' && state.not_paid !== true) {
-            setError('paid by should be selected if paid');
-            setOpenError(true);
-            return;
-        }
-
         if (arr.length < 6) {
             setError('All Inputs should be filled');
             setOpenError(true);
             return;
         }
         for (let i = 0; i < arr.length; i++) {
-            if (arr[i][0] === "item_no" || arr[i][0] === "item_price") {
+            if (arr[i][0] === "units" || arr[i][0] === "price") {
                 if (!priceAmountRegex.test(arr[i][1])) {
                     setError('Object price and amount cannot be negative, zero or not a number');
                     setOpenError(true);
                     return;
                 }
             }
-            if (arr[i][1] === "" && arr[i][0] === "vendor_name" && state.section === "Feeds") {
+            if (arr[i][1] === "" && arr[i][0] === "vendor" && state.section === "Feeds") {
                 setError('All Inputs should be filled');
                 setOpenError(true);
                 return;
             }
-            if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+            if (arr[i][0] === 'info' && !alphaNumRegex.test(arr[i][1])) {
                 setError('Extra info should only be letters/numbers or left empty');
                 setOpenError(true);
                 return;
             }
         }
         let status = true;
-        if (state.paid === true && state.paid_by === '') {
-            setError('Paid by should not be empty if was paid');
-            setOpenError(true);
-            return;
-        }
-
-        if (state.not_paid === true && state.paid_by !== '') {
-            setError('Paid by should be empty if not paid');
-            setOpenError(true);
-            return;
-        }
-
-        let parent = parentNode;
         if (state.not_paid === true) {
             status = false;
-            parent = '-1';
         }
-        if (status) state.paid_by = `${state.paid_by.toUpperCase()}:${parseInt(state.item_no) * parseInt(state.item_price)},`;
-        else state.paid_by = '';
 
         let values = {
-            ...state,
-            status,
-            name,
-            parent
+            ...state
         };
 
+        if (values.info) values.extra_data.info = values.info;
+
+        delete values.info;
         delete values.not_paid;
         delete values.paid;
         delete values.flock;
@@ -197,15 +165,20 @@ function InputExpense(props) {
         }
 
         if (values.section !== "Feeds") {
-            delete values.vendor_name;
-            delete values.bag_size;
+            delete values.vendor;
+            delete values.bag_weight;
         } else {
-            values.bag_size += 'kg';
+            values.bag_weight += 'kg';
+            values.extra_data.bag_weight = values.bag_weight;
+            values.extra_data.vendor = values.vendor;
+
+            delete values.vendor;
+            delete values.bag_weight;
         }
 
         values.section = getSectionAddr(values.section);
-        values.item_no = parseInt(values.item_no);
-        values.item_price = parseInt(values.item_price);
+        values.units = parseInt(values.units);
+        values.price = parseInt(values.price);
 
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
@@ -213,22 +186,21 @@ function InputExpense(props) {
         let proceed = parameterChecks(values);
         if (proceed) {
             values.item_name = values.item_name.toUpperCase();
-            props.inputExpense(values);
+            props.inputExpense(values, status);
             setOpenError(false);
             setOpen(true);
             const newState = {
                 ...state,
-                paid_by: '',
-                extra_data: ''
+                extra_data: {info: ''}
             }
-            delete state.bag_size;
-            delete newState.bag_size;
-            delete newState.vendor_name;
+            delete state.bag_weight;
+            delete newState.bag_weight;
+            delete newState.vendor;
             setState(newState);
         } else {
             setState({
                 ...state,
-                paid_by: ''
+                extra_data: {info: ''}
             });
             setOpen(false);
         }
@@ -252,7 +224,7 @@ function InputExpense(props) {
     const handleVendor = (e) => {
         setState({
             ...state,
-            vendor_name: e
+            vendor: e
         });
     }
 
@@ -301,13 +273,6 @@ function InputExpense(props) {
         }
         // eslint-disable-next-line
     }, [state.item_name]);
-
-    const handlePaidBy = (e) => {
-        setState({
-            ...state,
-            paid_by: e.trim()
-        });
-    }
 
     const handleFlock = (e) => {
         if (extraData) {
@@ -407,8 +372,8 @@ function InputExpense(props) {
                                     <label htmlFor="vendor">Vendor Name</label>
                                     <DropdownButton
                                         alignRight
-                                        title={state.vendor_name || 'Choose Feeds vendor'}
-                                        id="vendor_name"
+                                        title={state.vendor || 'Choose Feeds vendor'}
+                                        id="vendor"
                                         onSelect={handleVendor}
                                     >
                                         {feedsVendors.map(x => {
@@ -419,11 +384,11 @@ function InputExpense(props) {
                             }
                             {isFeeds &&
                                 <Form.Group>
-                                    <label htmlFor="bag_size">Bag size(kg)</label>
+                                    <label htmlFor="bag_weight">Bag size(kg)</label>
                                     <div className="input-group">
                                         <Form.Control type="text"
                                                       onChange={handleSelect}
-                                                      className="form-control text-white" value={state.bag_size} id="bag_size" placeholder="Size of bag of feeds in kg" />
+                                                      className="form-control text-white" value={state.bag_size} id="bag_weight" placeholder="Size of bag of feeds in kg" />
                                         <div className="input-group-append">
                                             <span className="input-group-text">kg</span>
                                         </div>
@@ -438,31 +403,13 @@ function InputExpense(props) {
                                               className="form-control text-white" id="item_name" placeholder="Name of Item" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="item_no">Number of Objects</label>
-                                <Form.Control value={state.item_no} type="text" onChange={handleSelect} className="form-control text-white" id="item_no" placeholder="Number of Objects" />
+                                <label htmlFor="units">Number of Objects</label>
+                                <Form.Control value={state.item_no} type="text" onChange={handleSelect} className="form-control text-white" id="units" placeholder="Number of Objects" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="item_price">Price per Object</label>
-                                <Form.Control value={state.item_price} type="text" onChange={handleSelect} className="form-control text-white" id="item_price" placeholder="Price per Object" />
+                                <label htmlFor="price">Price per Object</label>
+                                <Form.Control value={state.price} type="text" onChange={handleSelect} className="form-control text-white" id="price" placeholder="Price per Object" />
                             </Form.Group>
-                            {!state.not_paid && <Form.Group>
-                                <label htmlFor='receiver'>Paid by</label>
-                                <DropdownButton
-                                    alignRight
-                                    title={state.paid_by}
-                                    id='paid_by'
-                                    onSelect={handlePaidBy}
-                                >
-                                    <Dropdown.Item eventKey="">None</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
-                                    <Dropdown.Divider/>
-                                    <Dropdown.Item eventKey="Victor">Victor</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Anne">Anne</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Jeff">Jeff</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Babra">Babra</Dropdown.Item>
-                                    <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
-                                </DropdownButton>
-                            </Form.Group>}
                             <Form.Group>
                                 <div className='form-check'>
                                     <label htmlFor='1' className='form-check-label'>
@@ -495,8 +442,8 @@ function InputExpense(props) {
                                 </div>
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="extra_data">Extra info (optional)</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
+                                <label htmlFor="info">Extra info (optional)</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="info" placeholder="Any extra information" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                         </form>
@@ -526,7 +473,7 @@ function InputExpense(props) {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        inputExpense: (buy) => dispatch(inputExpense(buy))
+        inputExpense: (buy, status) => dispatch(inputExpense(buy, status))
     }
 }
 

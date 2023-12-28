@@ -13,7 +13,7 @@ export const inputExpense = (values, isPending) => {
         newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
         values.submitted_on = new Date();
-        
+
         if (isPending) {
             firestore.collection('farms').doc('0').collection('pending')
                 .add({

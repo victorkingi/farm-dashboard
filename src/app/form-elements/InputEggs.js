@@ -33,8 +33,9 @@ function InputEggs(props) {
 
     const [state, setState] = useState({
         date_: new Date(),
-        category: 'eggs_collected',
-        extra_data: ''
+        col_id: 4,
+        extra_data: {info: ''},
+        by: localStorage.getItem('name')
     });
     const [open, setOpen] = useState(false);
     const [openM, setOpenM] = useState('Data Submitted');
@@ -43,7 +44,6 @@ function InputEggs(props) {
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
     const [groups, setGroups] = useState([]);
-    const [parentNode, setParentNode] = useState('');
 
     useEffect(() => {
         if (extraData) {
@@ -54,10 +54,7 @@ function InputEggs(props) {
 
             setGroups(Object.values(groups) || []);
         }
-        if (dash) {
-            setParentNode(dash[0].raw?.parent || '');
-        }
-      }, [extraData, dash]);
+      }, [extraData]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -106,7 +103,7 @@ function InputEggs(props) {
                 console.log("some inputs empty");
                 return;
             }
-            if (arr[i][0] === "trays_store") {
+            if (arr[i][0] === "trays_collected") {
                 if (!trayStoreRegex.test(arr[i][1])) {
                     setError('Trays in store should be of this format [Trays,eggs] & eggs are always less than 29');
                     setOpenError(true);
@@ -115,7 +112,7 @@ function InputEggs(props) {
                 }
                 break;
             }
-            if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+            if (arr[i][0] === 'info' && !alphaNumRegex.test(arr[i][1])) {
                 setError('Extra info should only be letters/numbers or left empty');
                 setOpenError(true);
                 console.log("extra info wrong");
@@ -134,9 +131,8 @@ function InputEggs(props) {
             setOpenError(true);
             return;
         }
-
-        temp.extra_data = temp.extra_data + ';;' + temp.bags_store;
-        delete temp.bags_store;
+        temp.extra_data.info = temp.info;
+        delete temp.info;
         delete temp.flock;
         temp.broken = parseInt(temp.broken);
 
@@ -146,7 +142,6 @@ function InputEggs(props) {
             return;
         }
         const offBy = getEggsDiff(temp);
-        temp.parent = parentNode;
     
         props.inputTray(temp);
 
@@ -167,7 +162,7 @@ function InputEggs(props) {
         setOpen(true);
         setState({
             ...state,
-            extra_data: ''
+            extra_data: {info: ''}
         });
     };
 
@@ -290,15 +285,15 @@ function InputEggs(props) {
                             </Form.Group>
                             <Form.Group>
                                 <label htmlFor="trays_store">Total Trays</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="trays_store" placeholder="Total Trays And Extra Eggs Collected" />
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="trays_collected" placeholder="Total Trays And Extra Eggs Collected" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="bags_store">Bags in Store</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="bags_store" placeholder="Unopened bags of feeds in store" />
+                                <label htmlFor="bags">Bags in Store</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="bags" placeholder="Unopened bags of feeds in store" />
                             </Form.Group>
                             <Form.Group>
-                                <label htmlFor="extra_data">Extra info (optional)</label>
-                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
+                                <label htmlFor="info">Extra info (optional)</label>
+                                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="info" placeholder="Any extra information" />
                             </Form.Group>
                             <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                         </form>
