@@ -1,4 +1,3 @@
-import SHA256 from "crypto-js/sha256";
 /**
  *
  * @param eggs
@@ -20,16 +19,9 @@ export const inputTray = (eggs) => {
         values.date = newDate;
         delete values.date_;
 
-        let hash = `${values.parent}4${values.subgroups}${parseInt(values.date.getTime()/1000)}`;
-        hash = hash.toUpperCase();
-        console.log("hash", hash);
-        hash = SHA256(hash).toString();
-        console.log("hash to use", hash);
-
         firestore.collection('farms').doc('0').collection('pending')
         .add({
-            values,
-            hash
+            values
         });
         firestore.collection('farms').doc('0').update({
             waiting: true

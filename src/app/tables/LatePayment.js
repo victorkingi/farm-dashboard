@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -10,37 +10,7 @@ import {sanitize_string} from "../../services/actions/utilAction";
 import {Redirect} from "react-router-dom";
 import {Offline, Online} from "react-detect-offline";
 import {hasPaidLate} from "../../services/actions/moneyAction";
-import {Form} from "react-bootstrap";
-import DropdownButton from "react-bootstrap/DropdownButton";
-import Dropdown from "react-bootstrap/Dropdown";
 
-const getAmountLeft = (values) => {
-    let amountPaid = 0;
-    let total = 0;
-
-    if (values.hasOwnProperty('receiver')) {
-        total = parseInt(values.units) * parseInt(values.price);
-
-        if (values.receiver !== '') {
-            let paid = values.receiver.slice(0, -1).split(',');
-            for (let x of paid) {
-                amountPaid += parseInt(x.split(':')[1]);
-            }
-        }
-    }
-
-    if (values.hasOwnProperty('paid_by')) {
-        total = parseInt(values.units) * parseInt(values.price);
-
-        if (values.paid_by !== '') {
-            let paid = values.paid_by.slice(0, -1).split(',');
-            for (let x of paid) {
-                amountPaid += parseInt(x.split(':')[1]);
-            }
-        }
-    }
-    return [total, total - amountPaid];
-}
 
 function LatePayment(props) {
     const { late } = props;

@@ -11,7 +11,6 @@ import Snackbar from '@material-ui/core/Snackbar';
 import { Alert } from './InputEggs';
 import { inputSell } from '../../services/actions/salesAction';
 import { Offline, Online } from 'react-detect-offline';
-import { auth } from '../../services/api/firebaseConfig';
 import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
@@ -32,10 +31,6 @@ function InputSell(props) {
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [buyer_names, setBuyerNames] = useState([]);
-
-  let name = auth.currentUser?.displayName;
-  name = name ? name.substring(0, name.lastIndexOf(' '))
-      .toUpperCase() : '';
 
   useEffect(() => {
     if (extraData) {

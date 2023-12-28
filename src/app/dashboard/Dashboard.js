@@ -175,15 +175,6 @@ function Dashboard(props) {
       setPendChecked(allPend);
    }
 
-   const cleanAddress = (str) => {
-       if (typeof str !== 'string') return '';
-       str = str.toLowerCase();
-       str = str.split('_');
-       if (str.length === 1) return str[0].charAt(0).toUpperCase()+str[0].slice(1);
-       str = str.join(' ');
-       return str.charAt(0).toUpperCase()+str.slice(1);
-   }
-
   const addAllEntriesEggs = (all) => {
       if (!pend) return 0;
       const pendEggs = pend.filter(

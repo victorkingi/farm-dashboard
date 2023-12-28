@@ -122,6 +122,7 @@ function InputDeadSick(props) {
         }
         state.extra_data.info = state.info;
         delete state.info;
+        delete state.photo;
         state.number = parseInt(state.number);
         props.inputDeadSick(state, image);
        

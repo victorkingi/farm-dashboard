@@ -22,14 +22,14 @@ export function Alert(props) {
 const getEggsDiff = (temp) => {
     let total = temp.eggs.slice(0, -1).split(',');
     total = total.reduce((prev, cur) => parseInt(prev) + parseInt(cur));
-    let expectedTotal = temp.trays_store.split(',');
+    let expectedTotal = temp.trays_collected.split(',');
     expectedTotal = (parseInt(expectedTotal[0])*30)+parseInt(expectedTotal[1]);
     return total-expectedTotal;
 }
 
 //
 function InputEggs(props) {
-    const { extraData, dash } = props;
+    const { extraData } = props;
 
     const [state, setState] = useState({
         date_: new Date(),
@@ -64,7 +64,7 @@ function InputEggs(props) {
         if (state.flock === 'flock 2') 
             eggsRegex = /^([0-9]+,){5}[0-9]+$/;
 
-        const bagsRegex = /^[0-9]+$/.test(state.bags_store);
+        const bagsRegex = /^[0-9]+$/.test(state.bags);
         const brokenRegex = /^[0-9]+$/.test(state.broken);
         const alphaNumRegex = /^([A-Z]|[a-z]| |\/|\(|\)|-|\+|=|[0-9])*$/;
         const temp = {
@@ -131,10 +131,11 @@ function InputEggs(props) {
             setOpenError(true);
             return;
         }
-        temp.extra_data.info = temp.info;
+        if (temp.info) temp.extra_data.info = temp.info;
         delete temp.info;
         delete temp.flock;
         temp.broken = parseInt(temp.broken);
+        temp.bags = parseInt(temp.bags);
 
         if (!temp.subgroups) {
             setError('Flock not selected');
@@ -329,8 +330,7 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = function(state) {
     return {
-      extraData: state.firestore.ordered.extra_data,
-      dash: state.firestore.ordered.dash
+      extraData: state.firestore.ordered.extra_data
     }
 }
 
@@ -344,14 +344,6 @@ export default compose(
                 {collection: 'extra_data', doc: 'extra_data'}
             ],
             storeAs: 'extra_data'
-        },
-        {
-            collection: 'farms',
-            doc: '0',
-            subcollections: [
-                {collection: 'dashboard', doc: 'dashboard'}
-            ],
-            storeAs: 'dash'
         }
     ])
 )(InputEggs);

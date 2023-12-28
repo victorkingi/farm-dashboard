@@ -1,4 +1,3 @@
-import SHA256 from "crypto-js/sha256";
 
 export const getSectionAddr = (section) => {
   if (section === 'Cakes') return 'CAKES';

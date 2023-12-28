@@ -12,12 +12,11 @@ import {Alert} from "./InputEggs";
 import {inputExpense} from "../../services/actions/buyAction";
 import {Offline, Online} from "react-detect-offline";
 import {getSectionAddr} from "../../services/actions/salesAction";
-import {auth} from '../../services/api/firebaseConfig';
 import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
 function InputExpense(props) {
-    const { extraData, dash } = props;
+    const { extraData } = props;
 
     const [state, setState] = useState({
         date: new Date(),
@@ -38,9 +37,6 @@ function InputExpense(props) {
     const [feedsVendors, setFeedsVendors] = useState([]);
     const [feedsType, setFeedsType] = useState([]);
     const [groups, setGroups] = useState([]);
-
-    let name = auth.currentUser?.displayName || '';
-    name = name.substring(0, name.lastIndexOf(" ")).toUpperCase();
 
     useEffect(() => {
         if (extraData) {
@@ -494,14 +490,6 @@ export default compose(
                 {collection: 'extra_data', doc: 'extra_data'}
             ],
             storeAs: 'extra_data'
-        },
-        {
-            collection: 'farms',
-            doc: '0',
-            subcollections: [
-                {collection: 'dashboard', doc: 'dashboard'}
-            ],
-            storeAs: 'dash'
         }
     ])
 )(InputExpense);

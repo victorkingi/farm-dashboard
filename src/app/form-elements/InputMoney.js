@@ -12,8 +12,6 @@ import {Offline, Online} from "react-detect-offline";
 import {auth} from '../../services/api/firebaseConfig';
 import DatePicker from "react-datepicker";
 import {compose} from "redux";
-import {firestoreConnect} from "react-redux-firebase";
-
 
 const cleanSendReceive = (str, name) => {
     let str1 = str.toUpperCase();
@@ -24,26 +22,17 @@ const cleanSendReceive = (str, name) => {
 }
 
 function InputMoney(props) {
-    const { extraData, dash } = props;
-
     const [state, setState] = useState({
         from: 'From',
         to: 'To',
-        category: 'trades',
+        col_id: 5,
         date: new Date(),
-        extra_data: ''
+        extra_data: {info: ''}
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
     const [redirect, setRedirect] = useState(false);
     const [error, setError] = useState('');
-    const [parentNode, setParentNode] = useState('');
-
-    useEffect(() => {
-        if (dash) {
-            setParentNode(dash[0].raw?.parent || '');
-        }
-      }, [extraData, dash]);
 
     const parameterSendingChecks = (values) => {
         if (values.name === values.receiver) {
@@ -119,7 +108,7 @@ function InputMoney(props) {
         }
         delete values.from;
         delete values.to;
-        if (!values.flock) values.group = "0::0;0::1;0::2;0::3;0::4;0::5;0::6;0::7;0::8;0::9;0::10;0::11";
+        if (!values.flock) values.group = "0::0";
         delete values.flock;
         values.receiver = cleanSendReceive(values.receiver, name);
         values.name = cleanSendReceive(values.name, name);
@@ -127,7 +116,6 @@ function InputMoney(props) {
         let date = new Date(values.date);
         date.setHours(0,0,0,0);
         values.date = date;
-        values.parent = parentNode;
         console.log(values);
         let proceed = parameterSendingChecks(values);
         if (proceed) {
@@ -261,8 +249,8 @@ function InputMoney(props) {
                                     <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="amount" placeholder="Enter Amount" />
                                 </Form.Group>
                                 <Form.Group>
-                                    <label htmlFor="extra_data">Extra info</label>
-                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Reason for the sending" />
+                                    <label htmlFor="info">Extra info</label>
+                                    <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="info" placeholder="Reason for the sending" />
                                 </Form.Group>
                                 <button type="submit" className="btn btn-primary mr-2" onClick={handleSubmit}>Submit</button>
                             </form>
@@ -296,31 +284,5 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-const mapStateToProps = function(state) {
-    return {
-      extraData: state.firestore.ordered.extra_data,
-      dash: state.firestore.ordered.dash
-    }
-}
-
 export default compose(
-    connect(mapStateToProps, mapDispatchToProps),
-    firestoreConnect([
-        {
-            collection: 'farms',
-            doc: '0',
-            subcollections: [
-                {collection: 'extra_data', doc: 'extra_data'}
-            ],
-            storeAs: 'extra_data'
-        },
-        {
-            collection: 'farms',
-            doc: '0',
-            subcollections: [
-                {collection: 'dashboard', doc: 'dashboard'}
-            ],
-            storeAs: 'dash'
-        }
-    ])
-)(InputMoney);
+    connect(null, mapDispatchToProps))(InputMoney);
