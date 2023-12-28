@@ -370,7 +370,7 @@ function Dashboard(props) {
              <div className="card">
                <div className="card-body">
                  <h4 className="card-title">Pending Transactions</h4>
-                   { pend && pend.filter((x) => x.values.category === 'eggs_collected')?.length !== 0 &&
+                   { pend && pend.filter((x) => x.values.col_id === 4)?.length !== 0 &&
                        <div className="table-responsive">
                            <table className="table">
                            <thead>
@@ -405,7 +405,7 @@ function Dashboard(props) {
                            </tr>
                            </thead>
                            <tbody>
-                           {pend && pend.filter((x) => x.values.category === 'eggs_collected').map((item) => {
+                           {pend && pend.filter((x) => x.values.col_id === 4).map((item) => {
                                const item_vals = item.values;
                                let disCheckBox = __user__ !== item_vals.submitted_by;
                                return (
@@ -436,11 +436,11 @@ function Dashboard(props) {
                                                            : <div className="badge badge-outline-primary">Waiting</div>)}
                                        </td>
                                        <td> {moment(item_vals.date.toDate()).format("MMM Do YY")} </td>
-                                       <td> flock: {parseInt(item_vals.subgroups?.split('::')[0])+1 || parseInt(item_vals.group?.split('::')[0])+1}, trays: ({item_vals.trays_store}) </td>
-                                       <td> {item_vals.extra_data.split(';')[2]} </td>
+                                       <td> flock: {parseInt(item_vals.subgroups?.split('::')[0])+1}, trays: ({item_vals.trays_collected}) </td>
+                                       <td> {item_vals.bags} </td>
                                        <td> {item_vals.eggs.slice(0, item_vals.eggs.length-1)} </td>
                                        <td> {item_vals.broken} </td>
-                                       <td> {item_vals.submitted_by.charAt(0) + item_vals.submitted_by.slice(1).toLowerCase()} </td>
+                                       <td> {item_vals.by.charAt(0) + item_vals.by.slice(1).toLowerCase()} </td>
                                    </tr>
                                )
                            })}
@@ -475,20 +475,19 @@ function Dashboard(props) {
                          <th> Status </th>
                          <th> Date </th>
                          <th> Name </th>
-                         <th> From </th>
-                         <th> To </th>
+                         <th> By </th>
                          <th> Amount </th>
                      </tr>
                      </thead>
                      <tbody>
-                     {pend && pend.filter(x => x.values.category !== 'eggs_collected').map((item) => {
-                         let disCheckBox = __user__ !== item.values?.name;
-                         disCheckBox = disCheckBox && "ANNE" !== item.values?.name;
-                         disCheckBox = disCheckBox && "BANK" !== item.values?.name;
+                     {pend && pend.filter(x => x.values.col_id !== 4).map((item) => {
+                         let disCheckBox = __user__ !== item.values?.by;
+                         disCheckBox = disCheckBox && "ANNE" !== item.values?.by;
+                         disCheckBox = disCheckBox && "BANK" !== item.values?.by;
                          const item_vals = item.values;
 
-                         if (item_vals.category === 'dead_sick') {
-                             disCheckBox = __user__ !== item_vals.submitted_by;
+                         if (item_vals.col_id === 3) {
+                             disCheckBox = __user__ !== item_vals.by;
                              return (
                                  <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
                                      <td>
@@ -518,12 +517,11 @@ function Dashboard(props) {
                                      <td>{item_vals.section} Chicken(s)</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
-                                     <td>N/A</td>
                                  </tr>
                              )
                          }
 
-                         if (!item_vals.category) {
+                         if (!item_vals.col_id) {
                             // A delete
                             disCheckBox = __user__ !== item_vals.submitted_by;
                             return (
@@ -553,7 +551,6 @@ function Dashboard(props) {
                                      </td>
                                      <td> ---- </td>
                                      <td>Delete {item.hash.slice(0, 4)} from {col_mapping[item_vals.col_id]}</td>
-                                     <td>N/A</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
                                  </tr>
@@ -591,13 +588,7 @@ function Dashboard(props) {
                                                                                .format('0,0')}@${numeral(item.values?.tray_price 
                                                                                || item.values?.item_price)
                                                                                .format('0,0')}`} </td>
-                               <td>{['expenses', 'sales'].includes(item_vals?.category) ? 'N/A' : (item_vals?.name !== 'BLACK_HOLE' ? cleanAddress(item_vals?.name) : 'N/A')}</td>
-                               <td>{(item_vals?.receiver === 'BLACK_HOLE' ? 'N/A' : (item_vals?.receiver
-                               && item_vals?.reason !== "WITHDRAW" ? (item_vals?.receiver
-                                   && item_vals?.receiver.charAt(0)+item_vals?.receiver.slice(1).toLowerCase())
-                                   : item_vals?.reason === "WITHDRAW" ? (item_vals?.initiator
-                                       && item_vals?.initiator.charAt(0)+item_vals?.initiator.slice(1).toLowerCase())
-                                       : (item_vals?.name && item_vals?.name.charAt(0)+item_vals?.name.slice(1).toLowerCase())))}</td>
+                               <td>{item_vals?.by}</td>
                                <td> {numeral(parseInt(getAmount(item_vals))).format("0,0")} </td>
                            </tr>
                          )

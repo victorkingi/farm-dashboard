@@ -404,7 +404,7 @@ function InputExpense(props) {
                             </Form.Group>
                             {isFeeds &&
                                 <Form.Group>
-                                    <label htmlFor="vendor_name">Vendor Name</label>
+                                    <label htmlFor="vendor">Vendor Name</label>
                                     <DropdownButton
                                         alignRight
                                         title={state.vendor_name || 'Choose Feeds vendor'}

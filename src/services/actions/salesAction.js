@@ -17,7 +17,7 @@ export const getSectionAddr = (section) => {
  * @returns {function(*, *, {getFirebase: *, getFirestore: *}): void}
  * @param values
  */
-export const inputSell = (values) => {
+export const inputSell = (values, isPending) => {
   return (dispatch, getState, {
     getFirebase,
     getFirestore
@@ -26,18 +26,12 @@ export const inputSell = (values) => {
     let newDate = values.date;
     newDate.setHours(0, 0, 0, 0);
     values.date = newDate;
-
-    let hash = `${values.parent}1${values.subgroups}${parseInt(values.date.getTime()/1000)}${values.buyer_name}`;
-    hash = hash.toUpperCase();
-    console.log("hash", hash);
-    hash = SHA256(hash).toString();
     values.submitted_on = new Date();
 
-    if (JSON.parse(values.status)) {
+    if (isPending) {
         firestore.collection("farms").doc("0").collection("pending")
         .add({
-          values,
-          hash
+          values
         });
 
         firestore.collection('farms').doc('0').update({
@@ -52,8 +46,7 @@ export const inputSell = (values) => {
       } else {
         firestore.collection('farms').doc('0').collection('ppending')
         .add({
-          values,
-          hash
+          values
         });
 
         firestore.collection('farms').doc('0').update({

@@ -19,7 +19,7 @@ const getAmountLeft = (values) => {
     let total = 0;
 
     if (values.hasOwnProperty('receiver')) {
-        total = parseInt(values.tray_no) * parseInt(values.tray_price);
+        total = parseInt(values.units) * parseInt(values.price);
 
         if (values.receiver !== '') {
             let paid = values.receiver.slice(0, -1).split(',');
@@ -30,7 +30,7 @@ const getAmountLeft = (values) => {
     }
 
     if (values.hasOwnProperty('paid_by')) {
-        total = parseInt(values.item_no) * parseInt(values.item_price);
+        total = parseInt(values.units) * parseInt(values.price);
 
         if (values.paid_by !== '') {
             let paid = values.paid_by.slice(0, -1).split(',');
@@ -43,41 +43,27 @@ const getAmountLeft = (values) => {
 }
 
 function LatePayment(props) {
-    const { late, extra } = props;
+    const { late } = props;
 
     const [open, setOpen] = useState(false);
     const [error, setError] = useState(false);
     const [errM, setErrM] = useState('');
     const [allChecked, setAllChecked] = useState(false);
     const [pendChecked, setPendChecked] = useState({});
-    const [payers, setPayers] = useState('');
-    const [clearWay, setClearWay] = useState('');
-    const [bpresets, setBpresets] = useState({});
-    const [chosenPreset, setChosenPreset] = useState('Pairing options');
-    const [users, setUsers] = useState([]);
-
-    useEffect(() => {
-        if (extra) {
-            setBpresets(extra.balance_out);
-            let employees = extra.pay_employees.map(x => x.slice(4));
-            employees.push(...extra.sholders);
-            employees.push('BANK');
-            employees = employees.map(x => x.toUpperCase());
-            setUsers(employees);
-        }
-    }, [extra]);
 
     // undo write events to database
-    const latePaid = async (isOne, isDebt, buyers, items, _payers) => {
+    const latePaid = async () => {
         const allKeys = [];
 
         for (const [key, val] of Object.entries(pendChecked)) {
             const value = val[0];
             if (value) allKeys.push(key);
         }
-        const res = await props.hasPaidLate(allKeys, isOne, isDebt, buyers, items, _payers);
+        const res = await props.hasPaidLate(allKeys);
+        console.log("RESS", res);
+
         const errors = res.filter(x => x !== 'ok');
-        if (errors.length !== 0) {
+        if (errors.length !== 0 || allKeys.length !== res.length) {
             console.log(res);
             setOpen(false);
             setErrM(errors[0]);
@@ -95,43 +81,6 @@ function LatePayment(props) {
 
         return {__user};
     }, []);
-
-    useEffect(() => {
-        const submit = document.getElementById(`latereceived`);
-
-        if (clearWay === 'Available Balance') {
-            let foundSale = false;
-            let foundBuy = false;
-            let totalSections = new Set();
-            console.log("AVAIL", pendChecked)
-            for (const x of Object.values(pendChecked)) {
-                if (x[0] === false) continue;
-                if (x[1] === 'sales') foundSale = true;
-                else if (x[1] === 'purchases') foundBuy = true;
-                totalSections.add(x[2]);
-                if (foundSale && foundBuy) break;
-            }
-
-            if (foundBuy && foundSale) {
-                setErrM("Untick all purchases or all sales. Cannot mix sales and purchases if clearing by available balance");
-                setClearWay('');
-                setError(true);
-                submit.disabled = true;
-                return;
-            }
-
-            if (totalSections.size > 1) {
-                setErrM("Selected entries should be of the same buyer or purchased item");
-                setClearWay('');
-                setError(true);
-                submit.disabled = true;
-                return;
-            }
-            setError(false);
-            submit.disabled = false;
-        }
-        // eslint-disable-next-line
-    }, [clearWay]);
 
     if (!user.__user) {
         return (
@@ -158,108 +107,7 @@ function LatePayment(props) {
             return 0;
         }
 
-        if (clearWay === '') {
-            setOpen(false);
-            setErrM("Choose clear method");
-            setError(true);
-            return 0;
-        } else if (clearWay === 'Available Balance') {
-            const regexCheck = /^(([a-z]|[A-Z])+:[0-9]+,)*$/;
-            const _payers = payers+',';
-
-            if (!regexCheck.test(_payers)) {
-                setOpen(false);
-                setErrM("Payee should be in this format [name:amount,name:amount]");
-                setError(true);
-                return 0;
-            }
-            let x_ = _payers.slice(0, -1);
-            let payerNames_ = x_.split(',');
-            let payerNames = [];
-            for (const n of payerNames_) {
-                payerNames.push(n.split(':')[0]);
-            }
-
-            for (const name_ of payerNames) {
-                if (!users.includes(name_.toUpperCase())) {
-                    setOpen(false);
-                    setErrM("Invalid payer provided");
-                    setError(true);
-                    return 0;
-                }
-            }
-
-            let totalAmount = 0;
-            for (const amt of payerNames_) {
-                totalAmount += parseInt(amt.split(':')[1]);
-            }
-            if (!late) {
-                setOpen(false);
-                setErrM("late entries not loaded");
-                setError(true);
-                return 0;
-            }
-
-            let expectedTotal = 0;
-            let i = 0;
-            for (const entry of Object.values(pendChecked)) {
-                if (entry[0] === false) continue;
-                expectedTotal += entry[4];
-                i++;
-            }
-
-            const submit = document.getElementById(`latereceived`);
-            submit.disabled = true;
-
-            // if only one entry selected, it can be half paid
-            if (i === 1) {
-                if (expectedTotal < totalAmount) {
-                    setOpen(false);
-                    setErrM(`Expected a total payment or less of Ksh.${numeral(expectedTotal).format('0,0')} but got Ksh.${numeral(totalAmount).format('0,0')}`);
-                    setError(true);
-                    return 0;
-                }
-                latePaid(true, false, [], [], _payers);
-            } else {
-                if (expectedTotal !== totalAmount) {
-                    setOpen(false);
-                    setErrM(`Expected a total payment of Ksh.${numeral(expectedTotal).format('0,0')} but got Ksh.${numeral(totalAmount).format('0,0')}`);
-                    setError(true);
-                    return 0;
-                }
-                latePaid(false, false, [], [], _payers);
-            }
-
-        } else if (clearWay === 'Debt Balance') {
-            for (const x of Object.values(bpresets)) {
-                const preset = `${x.buyers.join(',')} -> ${x.items.join(',')}`;
-
-                if (preset === chosenPreset) {
-                    for (const entry of Object.values(pendChecked)) {
-                        if (!entry[0]) continue;
-
-                        const tempBuyers = x.buyers.map(k => k.toUpperCase());
-                        const tempItems = x.items.map(k => k.toUpperCase());
-
-                        if (!tempBuyers.concat(tempItems).includes(entry[2].toUpperCase())) {
-                            setOpen(false);
-                            setErrM(`Got ${entry[2].toLowerCase()} but expected one of ${preset}`);
-                            setError(true);
-                            return 0;
-                        }
-                    }
-
-                    const submit = document.getElementById(`latereceived`);
-                    submit.disabled = true;
-                    latePaid(true, true, x.buyers, x.items);
-                    return 0;
-                }
-            }
-            setOpen(false);
-            setErrM(`Choose a pairing from the options`);
-            setError(true);
-            return 0;
-        }
+        latePaid();
     }
 
     const addAllEntries = (all) => {
@@ -267,31 +115,19 @@ function LatePayment(props) {
         const allPend = {};
         for (let i = 0; i < late.length; i++) {
             const description = sanitize_string(late[i].values)
-                +` ${numeral(late[i].values?.tray_no || late[i].values?.item_no)
-                    .format('0,0')}@${numeral(late[i].values?.tray_price || late[i].values?.item_price)
+                +` ${numeral(late[i].values?.units || late[i].values?.units)
+                    .format('0,0')}@${numeral(late[i].values?.price || late[i].values?.price)
                     .format('0,0')} on ${moment(late[i].values.date.toDate()).format("MMM Do YY")}`;
 
             allPend[late[i].id] = [
                 all,
                 late[i].values.category,
-                late[i].values?.vendor_name ? `${late[i].values?.item_name}(${late[i].values?.vendor_name})` : (late[i].values?.item_name || late[i].values?.buyer_name),
+                late[i].values?.extra_data?.vendor ? `${late[i].values?.item_name}(${late[i].values?.extra_data?.vendor})` : (late[i].values?.item_name || late[i].values?.buyer),
                 description,
-                late[i].values?.item_price ? (parseInt(late[i].values.item_price) * parseInt(late[i].values.item_no)) : (parseInt(late[i].values.tray_price) * parseInt(late[i].values.tray_no))
+                late[i].values?.price ? (parseInt(late[i].values.price) * parseInt(late[i].values.units)) : (parseInt(late[i].values.price) * parseInt(late[i].values.units))
             ];
         }
         setPendChecked(allPend);
-    }
-
-    const handleChange = (e) => {
-        setPayers(e.target.value);
-    }
-
-    const handleClearWay = (e) => {
-        setClearWay(e);
-    }
-
-    const handlePreset = (e) => {
-        setChosenPreset(e);
     }
 
     return (
@@ -327,9 +163,7 @@ function LatePayment(props) {
                                         <th>Type</th>
                                         <th>Name</th>
                                         <th>Status</th>
-                                        <th>Amount left</th>
                                         <th>Total</th>
-                                        <th>Payees/Receivers</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -345,15 +179,13 @@ function LatePayment(props) {
                                                                    onClick={() => setPendChecked({...pendChecked,
                                                                        [item.id]: [
                                                                            !(pendChecked[item.id] ? pendChecked[item.id][0] : false),
-                                                                           item.values.category,
-                                                                           item.values?.vendor_name ? `${item.values?.item_name}(${item.values?.vendor_name})` : (item.values?.item_name || item.values?.buyer_name),
+                                                                           item.values.col_id,
+                                                                           item.values?.extra_data?.vendor ? `${item.values?.item_name}(${item.values?.extra_data?.vendor})` : (item.values?.item_name || item.values?.buyer),
                                                                            sanitize_string(item.values)
-                                                                           +` ${numeral(item.values?.tray_no 
-                                                                               || item.values?.item_no)
-                                                                               .format('0,0')}@${numeral(item.values?.tray_price 
-                                                                               || item.values?.item_price)
+                                                                           +` ${numeral(item.values?.units)
+                                                                               .format('0,0')}@${numeral(item.values?.price)
                                                                                .format('0,0')} on ${moment(item.values.date.toDate()).format("MMM Do YY")}`,
-                                                                           item.values?.item_price ? (parseInt(item.values.item_price) * parseInt(item.values.item_no)) : (parseInt(item.values?.tray_no) * parseInt(item.values?.tray_price))
+                                                                           parseInt(item.values.price) * parseInt(item.values.units)
                                                                        ]})}
                                                                    id={item.id} name={item.id}
                                                             />
@@ -361,8 +193,8 @@ function LatePayment(props) {
                                                         </label>
                                                     </div>
                                                 </td>
-                                                <td className="text-success">{item.values?.category === 'purchases' ? 'P' : 'S'}</td>
-                                                <td>({moment(item.values?.date?.toDate()).format("MMM Do YY")})<br/>{sanitize_string(item.values)} {`${numeral(item.values?.tray_no || item.values?.item_no).format('0,0')}@${numeral(item.values?.tray_price || item.values?.item_price).format('0,0')}`}</td>
+                                                <td className="text-success">{item.values?.col_id === 2 ? 'P' : 'S'}</td>
+                                                <td>({moment(item.values?.date?.toDate()).format("MMM Do YY")})<br/>{sanitize_string(item.values)} {`${numeral(item.values?.units).format('0,0')}@${numeral(item.values?.price).format('0,0')}`}</td>
                                                 <td>
                                                     {(item?.rejected === true && item?.signal === 1)
                                                         ? <div className="badge badge-outline-danger">Rejected</div>
@@ -372,9 +204,7 @@ function LatePayment(props) {
                                                                 : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
                                                                 : <div className="badge badge-outline-primary">Waiting</div>)}
                                                 </td>
-                                                <td>{numeral(getAmountLeft(item.values)[1]).format('0,0')}</td>
-                                                <td>{numeral(getAmountLeft(item.values)[0]).format('0,0')}</td>
-                                                <td>{(item.values.receiver?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || (item.values.paid_by?.toLowerCase().slice(0, -1).split(',').map(x => x.split(':')[0]).join(',')) || 'N/A'}</td>
+                                                <td>{numeral(parseInt(item.values.price) * parseInt(item.values.units)).format('0,0')}</td>
                                             </tr>
                                         )
                                     })}
@@ -384,64 +214,14 @@ function LatePayment(props) {
                         </div>
                     </div>
                 </div>
-                {JSON.stringify(pendChecked) !== '{}' &&
-                        <div className='col-xl grid-margin stretch-card'>
-                            <div className='card'>
-                                <div className='card-body'>
-                                    <h4 className='card-title'>Clear Options</h4>
-                                    <form className='forms-sample'>
-                                        <Form.Group>
-                                            <label htmlFor='section'>Clear By</label>
-                                            <DropdownButton
-                                                alignRight
-                                                title={clearWay}
-                                                onSelect={handleClearWay}
-                                            >
-                                                <Dropdown.Item eventKey="">Choose clearing method</Dropdown.Item>
-                                                <Dropdown.Item eventKey="Available Balance">Available Balance</Dropdown.Item>
-                                                <Dropdown.Item eventKey="Debt Balance">Debt Balance</Dropdown.Item>
-                                            </DropdownButton>
-                                        </Form.Group>
-                                        {clearWay === 'Available Balance' &&
-                                            <Form.Group>
-                                                <label htmlFor='payers'>Input the user who will receive the funds or who will pay for the purchase</label>
-                                                <Form.Control
-                                                    type='text'
-                                                    onChange={handleChange}
-                                                    className='form-control text-white'
-                                                    id='payers'
-                                                    placeholder='Input format is [name:amount,]'
-                                                />
-                                            </Form.Group>
-                                        }
-                                        {clearWay === 'Debt Balance' &&
-                                            <Form.Group>
-                                                <label htmlFor='section'>Choose pairing</label>
-                                                <DropdownButton
-                                                    alignRight
-                                                    title={chosenPreset}
-                                                    onSelect={handlePreset}
-                                                >
-                                                    {Object.values(bpresets).map((item) => {
-                                                        const preset = `${item.buyers?.join(',')} -> ${item.items?.join(',')}`;
-                                                        return <div key={preset}><Dropdown.Item eventKey={preset}>{preset}</Dropdown.Item></div>
-                                                    })}
-                                                </DropdownButton>
-                                            </Form.Group>
-                                        }
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                }
             </div>
             <button type="button" disabled={false} className="btn btn-primary ro" onClick={display} id='latereceived'>
-                Submit
+                Cleared
             </button>
             <Online>
                 <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
                     <Alert onClose={handleClose} severity="success">
-                        Entries updated. Will be moved if full payment was made
+                        Entries updated
                     </Alert>
                 </Snackbar>
             </Online>
@@ -451,7 +231,7 @@ function LatePayment(props) {
                     onClose={handleClose}
                     key={'topcenter'}>
                     <Alert onClose={handleClose} severity="warning">
-                        Entries updated. Will be moved when back online if full payment was made
+                        Entries updated. Will be moved when back online
                     </Alert>
                 </Snackbar>
             </Offline>
@@ -466,13 +246,12 @@ function LatePayment(props) {
 
 const mapStateToProps = function(state) {
     return {
-        late: state.firestore.ordered.ppending,
-        extra: state.firestore.data.extra_data
+        late: state.firestore.ordered.ppending
     }
 }
 const mapDispatchToProps = (dispatch) => {
     return {
-        hasPaidLate: (allKeys, isOne, isDebt, buyers, items, payers) => dispatch(hasPaidLate(allKeys, isOne, isDebt, buyers, items, payers))
+        hasPaidLate: (allKeys) => dispatch(hasPaidLate(allKeys))
     }
 }
 
@@ -487,14 +266,6 @@ export default compose(
                 {collection: 'ppending'}
             ],
             storeAs: 'ppending'
-        },
-        {
-            collection: 'farms',
-            doc: '0',
-            subcollections: [
-                {collection: 'extra_data', doc: 'extra_data'}
-            ],
-            storeAs: 'extra_data'
         }
     ])
 )(LatePayment);

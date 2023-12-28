@@ -16,23 +16,22 @@ import {compose} from "redux";
 import {firestoreConnect} from "react-redux-firebase";
 
 function InputSell(props) {
-  const { extraData, dash } = props;
+  const { extraData } = props;
 
   const [state, setState] = useState({
-    category: 'sales',
+    col_id: 1,
     date: new Date(),
-    buyer_name: '',
-    tray_price: '350',
-    tray_no: '1',
-    receiver: localStorage.getItem('name'),
-    extra_data: ''
+    buyer: '',
+    price: '350',
+    units: '1',
+    by: localStorage.getItem('name'),
+    extra_data: {info: ''}
   });
   const [open, setOpen] = useState(false);
   const [openError, setOpenError] = useState(false);
   const [redirect, setRedirect] = useState(false);
   const [error, setError] = useState('');
   const [buyer_names, setBuyerNames] = useState([]);
-  const [parentNode, setParentNode] = useState('');
 
   let name = auth.currentUser?.displayName;
   name = name ? name.substring(0, name.lastIndexOf(' '))
@@ -42,10 +41,7 @@ function InputSell(props) {
     if (extraData) {
       setBuyerNames(extraData[0].buyer_names || []);
     }
-    if (dash) {
-      setParentNode(dash[0].raw?.parent || '');
-  }
-  }, [extraData, dash]);
+  }, [extraData]);
 
   const checkDate = (date) => {
     if (date.getTime() > new Date().getTime()) {
@@ -58,12 +54,7 @@ function InputSell(props) {
   };
 
   const parameterChecks = (values) => {
-    if (!values.name) {
-      setError('User undefined');
-      setOpenError(true);
-      return false;
-    }
-    const stripBuyer = values.buyer_name.trim().toUpperCase();
+    const stripBuyer = values.buyer.trim().toUpperCase();
     const validNames = buyer_names.map(x => x.toUpperCase());
 
     if (!validNames.includes(stripBuyer)) {
@@ -71,7 +62,7 @@ function InputSell(props) {
       setOpenError(true);
       return false;
     }
-    values.buyer_name = stripBuyer;
+    values.buyer = stripBuyer;
 
     return checkDate(values.date);
   };
@@ -107,49 +98,40 @@ function InputSell(props) {
           return;
         }
       }
-      if (arr[i][0] === 'extra_data' && !alphaNumRegex.test(arr[i][1])) {
+      if (arr[i][0] === 'info' && !alphaNumRegex.test(arr[i][1])) {
         setError('Extra info should only be letters/numbers or left empty');
         setOpenError(true);
         return;
       }
     }
     let status = true;
-    let parent = parentNode;
     if (state.not_paid) {
       status = false;
-      parent = '-1';
     }
     const values = {
-      ...state,
-      name,
-      status,
-      parent
+      ...state
     };
-    values.tray_no = parseInt(values.tray_no);
-    values.tray_price = parseInt(values.tray_price);
-  
+    values.units = parseInt(values.units);
+    values.price = parseInt(values.price);
+    if (state.info) values.extra_data.info = state.info;
+
+    delete values.info;
     delete values.not_paid;
     delete values.paid;
     if (!values.flock) values.subgroups = "0::0;1::0";
     delete values.flock;
-    if (!values.status && localStorage.getItem('name') !== values.receiver) {
-      setError('Sale should be paid if money was transferred');
-      setOpenError(true);
-      return -1;
-    }
-    if (!values.status) values.receiver = '';
-    else values.receiver = `${values.receiver.toUpperCase()}:${parseInt(values.tray_no)*parseInt(values.tray_price)},`;
+
     let date = new Date(values.date);
     date.setHours(0, 0, 0, 0);
     values.date = date;
     let proceed = parameterChecks(values);
     if (proceed) {
-        props.inputSell(values);
+        props.inputSell(values, status);
         setOpenError(false);
         setOpen(true);
         setState({
           ...state,
-          extra_data: ''
+          extra_data: {info: ''}
         });
     }
   };
@@ -195,22 +177,15 @@ function InputSell(props) {
     } else {
       setState({
         ...state,
-        buyer_name: e
+        buyer: e
       });
     }
   };
 
-  const handleTransfer = (e) => {
-    setState({
-      ...state,
-      receiver: e.trim()
-    });
-  }
-
   const handleBuyer = (e) => {
     setState({
       ...state,
-      buyer_name: e
+      buyer: e
     });
   }
 
@@ -265,11 +240,11 @@ function InputSell(props) {
                 />
               </Form.Group>
               <Form.Group>
-                <label htmlFor='buyer_name'>Buyer Name</label>
+                <label htmlFor='buyer'>Buyer Name</label>
                 <DropdownButton
                     alignRight
-                    title={state.buyer_name || 'Choose Buyer Name'}
-                    id='buyer_name'
+                    title={state.buyer || 'Choose Buyer Name'}
+                    id='buyer'
                     onSelect={handleBuyer}
                 >
                   {Array(...buyer_names).sort().map(x => {
@@ -278,25 +253,25 @@ function InputSell(props) {
                 </DropdownButton>
               </Form.Group>
               <Form.Group>
-                <label htmlFor='tray_no'>Number of Trays</label>
+                <label htmlFor='units'>Number of Trays</label>
                 <Form.Control
                   type='text'
                   onChange={handleSelect}
-                  value={state.tray_no}
+                  value={state.units}
                   className="form-control text-white"
-                  id='tray_no'
+                  id='units'
                   placeholder='Number of Trays'
                 />
               </Form.Group>
               <Form.Group>
-                <label htmlFor='tray_price'>Price per Tray</label>
+                <label htmlFor='price'>Price per Tray</label>
                 <Form.Control
                   type='text'
                   onChange={handleSelect}
                   className="form-control text-white"
-                  id='tray_price'
+                  id='price'
                   placeholder='Price per Tray'
-                  value={state.tray_price}
+                  value={state.price}
                 />
               </Form.Group>
               <Form.Group>
@@ -331,25 +306,8 @@ function InputSell(props) {
                 </div>
               </Form.Group>
               <Form.Group>
-                <label htmlFor='receiver'>Money transferred to</label>
-                <DropdownButton
-                    alignRight
-                    title={state.receiver}
-                    id='receiver'
-                    onSelect={handleTransfer}
-                >
-                  <Dropdown.Item eventKey="Victor">Victor</Dropdown.Item>
-                  <Dropdown.Item eventKey="Anne">Anne</Dropdown.Item>
-                  <Dropdown.Item eventKey="Jeff">Jeff</Dropdown.Item>
-                  <Dropdown.Item eventKey="Babra">Babra</Dropdown.Item>
-                  <Dropdown.Item eventKey="Purity">Purity</Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item eventKey="Bank">Bank</Dropdown.Item>
-                </DropdownButton>
-              </Form.Group>
-              <Form.Group>
-                <label htmlFor="extra_data">Extra info (optional)</label>
-                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="extra_data" placeholder="Any extra information" />
+                <label htmlFor="info">Extra info (optional)</label>
+                <Form.Control type="text" onChange={handleSelect} className="form-control text-white" id="info" placeholder="Any extra information" />
               </Form.Group>
               <button
                 type='submit'
@@ -385,14 +343,13 @@ function InputSell(props) {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    inputSell: sale => dispatch(inputSell(sale))
+    inputSell: (sale, status) => dispatch(inputSell(sale, status))
   };
 };
 
 const mapStateToProps = function(state) {
   return {
-    extraData: state.firestore.ordered.extra_data,
-    dash: state.firestore.ordered.dash
+    extraData: state.firestore.ordered.extra_data
   }
 }
 
@@ -406,14 +363,6 @@ export default compose(
             {collection: 'extra_data', doc: 'extra_data'}
         ],
         storeAs: 'extra_data'
-      },
-      {
-        collection: 'farms',
-        doc: '0',
-        subcollections: [
-            {collection: 'dashboard', doc: 'dashboard'}
-        ],
-        storeAs: 'dash'
-    }
+      }
     ])
 )(InputSell);
