@@ -23,6 +23,7 @@ function InputSell(props) {
     buyer: '',
     price: '350',
     units: '1',
+    item_name: 'Eggs in Tray',
     by: localStorage.getItem('name'),
     extra_data: {info: ''}
   });

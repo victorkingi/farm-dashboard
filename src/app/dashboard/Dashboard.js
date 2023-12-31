@@ -36,8 +36,7 @@ function Dashboard(props) {
   const [pendCheckedEggs, setPendCheckedEggs] = useState({});
   const [disableEggs, setDisableEggs] = useState(false);
 
-  let __user__ = localStorage.getItem('name');
-  __user__ = __user__ !== null ? __user__.toUpperCase() : '';
+  const __user__ = localStorage.getItem('name') || '';
 
   useEffect(() => {
     if (dashboard) {
@@ -57,7 +56,7 @@ function Dashboard(props) {
   useEffect(() => {
     if (!pend) return 0;
     const pendEggs = pend.filter(
-        x => x.values.category === 'eggs_collected');
+        x => x.values.col_id === 4);
         let total = 0;
         for (const [, value] of Object.entries(pendCheckedEggs)) {
             if (value) total += 1;
@@ -69,12 +68,12 @@ function Dashboard(props) {
   useEffect(() => {
         if (!pend) return 0;
         const pendEggs = pend.filter(
-            x => x.values.category === 'eggs_collected');
+            x => x.values.col_id === 4);
 
         if (pendEggs.length > 0) {
             let allDisable  = false;
             for (let k = 0; k < pendEggs.length; k++) {
-                if (pendEggs[k].values.submitted_by !== __user__) {
+                if (pendEggs[k].values.by !== __user__) {
                     allDisable = true;
                     break;
                 }
@@ -88,7 +87,7 @@ function Dashboard(props) {
       if (pend?.length > 0) {
         let allDisable  = false;
         for (let k = 0; k < pend.length; k++) {
-            if (!(pend[k].values?.name === __user__ || pend[k].values?.submitted_by === __user__)) {
+            if (!(pend[k].values?.by === __user__)) {
                 allDisable = true;
                 break;
             }
@@ -168,7 +167,7 @@ function Dashboard(props) {
   const addAllEntriesEggs = (all) => {
       if (!pend) return 0;
       const pendEggs = pend.filter(
-        x => x.values.category === 'eggs_collected');
+        x => x.values.col_id === 4);
       const allPend = {};
       for (let i = 0; i < pendEggs.length; i++) {
           allPend[pendEggs[i].id] = all;
