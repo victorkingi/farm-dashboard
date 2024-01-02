@@ -8,7 +8,7 @@ export const inputDeadSick = (deadSick, image) => {
         let values = {
             ...deadSick,
             image_url: '',
-            image_id: `${deadSick.section.toUpperCase()}_${image.name}`,
+            image_id: `${deadSick.state.toUpperCase()}_${image.name}`,
             submitted_on: new Date()
         }
         let newDate = values.date;

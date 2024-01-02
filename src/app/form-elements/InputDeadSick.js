@@ -76,7 +76,7 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        if (!state.section) {
+        if (!state.state) {
             setError(`Section should be provided. Was it dead or sick?`);
             setOpenError(true);
             return;
