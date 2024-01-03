@@ -387,7 +387,7 @@ function Dashboard(props) {
                            <tbody>
                            {pend && pend.filter((x) => x.values.col_id === 4).map((item) => {
                                const item_vals = item.values;
-                               let disCheckBox = __user__ !== item_vals.submitted_by;
+                               let disCheckBox = __user__ !== item_vals.by;
                                return (
                                    <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
                                        <td>
@@ -503,7 +503,7 @@ function Dashboard(props) {
 
                          if (!item_vals.col_id) {
                             // A delete
-                            disCheckBox = __user__ !== item_vals.submitted_by;
+                            disCheckBox = __user__ !== item_vals.by;
                             return (
                                  <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
                                      <td>

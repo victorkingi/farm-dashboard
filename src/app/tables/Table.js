@@ -189,7 +189,7 @@ const EnhancedTableToolbar = (props) => {
                                     hash: x_split[1],
                                     values: {
                                         date: new Date(0),
-                                        submitted_by: __user__,
+                                        by: __user__,
                                         col_id: parseInt(x_split[0])
                                     }
                                 });
