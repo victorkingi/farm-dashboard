@@ -12,7 +12,7 @@ export const inputDeadSick = (deadSick, image) => {
             submitted_on: new Date()
         }
         let newDate = values.date;
-        newDate.setHours(7, 0, 0, 0);
+        newDate.setHours(0, 0, 0, 0);
         values.date = newDate;
 
         const reader = new FileReader();
