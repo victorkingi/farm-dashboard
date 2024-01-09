@@ -186,16 +186,18 @@ const EnhancedTableToolbar = (props) => {
                             for (const x of idsSelected) {
                                 const x_split = x.split('::');
                                 await firestore.collection('farms').doc('0').collection('pending').add({
-                                    hash: x_split[1],
+                                    create: false,
                                     values: {
                                         date: new Date(0),
                                         by: __user__,
+                                        entry_hash: x_split[1],
                                         col_id: parseInt(x_split[0])
                                     }
                                 });
                                 await firestore.collection('farms').doc('0').update({
                                     waiting: true
                                 });
+
                             }
                             window.alert(`Selected entr${idsSelected.length === 1 ? 'y' : 'ies'} will be deleted`);
                             setDisable(false);

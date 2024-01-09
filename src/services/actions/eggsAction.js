@@ -17,6 +17,7 @@ export const inputTray = (eggs) => {
 
         firestore.collection('farms').doc('0').collection('pending')
         .add({
+            create: true,
             values
         });
         firestore.collection('farms').doc('0').update({

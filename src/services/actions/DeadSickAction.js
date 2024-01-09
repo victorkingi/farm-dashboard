@@ -25,7 +25,7 @@ export const inputDeadSick = (deadSick, image) => {
                 time: new Date().getTime()
             }).then(() => {
                 console.log("doc added to local");
-                firestore.collection('farms').doc('0').collection('pending_upload').add({ values });
+                firestore.collection('farms').doc('0').collection('pending_upload').add({ create: true, values });
             });
         });
         reader.readAsArrayBuffer(image);

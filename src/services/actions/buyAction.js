@@ -15,6 +15,7 @@ export const inputExpense = (values, isPending) => {
         if (isPending) {
             firestore.collection('farms').doc('0').collection('pending')
                 .add({
+                create: true,
                 values
             });
             firestore.collection('farms').doc('0').update({
@@ -24,6 +25,7 @@ export const inputExpense = (values, isPending) => {
         } else {
             firestore.collection('farms').doc('0').collection('ppending')
                 .add({
+                create: true,
                 values
             });
             firestore.collection('farms').doc('0').update({

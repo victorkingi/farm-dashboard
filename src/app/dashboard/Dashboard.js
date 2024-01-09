@@ -501,7 +501,7 @@ function Dashboard(props) {
                              )
                          }
 
-                         if (!item_vals.col_id) {
+                         if (item.create === false) {
                             // A delete
                             disCheckBox = __user__ !== item_vals.by;
                             return (
@@ -530,7 +530,7 @@ function Dashboard(props) {
                                                          : <div className="badge badge-outline-primary">Waiting</div>)}
                                      </td>
                                      <td> ---- </td>
-                                     <td>Delete {item.hash.slice(0, 4)} from {col_mapping[item_vals.col_id]}</td>
+                                     <td>Delete {item_vals.entry_hash?.slice(0, 4)} from {col_mapping[item_vals.col_id]}</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
                                  </tr>
