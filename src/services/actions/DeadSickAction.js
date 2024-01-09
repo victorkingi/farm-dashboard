@@ -12,7 +12,7 @@ export const inputDeadSick = (deadSick, image) => {
             submitted_on: new Date()
         }
         let newDate = values.date;
-        newDate.setHours(0, 0, 0, 0);
+        newDate.setHours(7, 0, 0, 0);
         values.date = newDate;
 
         const reader = new FileReader();
@@ -21,7 +21,7 @@ export const inputDeadSick = (deadSick, image) => {
             let view = new Uint8Array(reader.result);
             return db.collection('dead_sick').add({
                 image: view,
-                file_name: `${deadSick.section.toUpperCase()}_${image.name}`,
+                file_name: `${deadSick.state.toUpperCase()}_${image.name}`,
                 time: new Date().getTime()
             }).then(() => {
                 console.log("doc added to local");

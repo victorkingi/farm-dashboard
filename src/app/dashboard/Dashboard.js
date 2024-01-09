@@ -494,7 +494,7 @@ function Dashboard(props) {
                                                          : <div className="badge badge-outline-primary">Waiting</div>)}
                                      </td>
                                      <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
-                                     <td>{item_vals.section} Chicken(s)</td>
+                                     <td>{item_vals.number} {item_vals.state} Chicken(s)</td>
                                      <td>N/A</td>
                                      <td>N/A</td>
                                  </tr>
