@@ -137,7 +137,7 @@ function LatePayment(props) {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {late && Array(...late).filter(x => x.values.check_group === '1').sort((a, b) => b.values.date.toDate() - a.values.date.toDate()).map((item) => {
+                                    {late && Array(...late).sort((a, b) => b.values.date.toDate() - a.values.date.toDate()).map((item) => {
                                         return (
                                             <tr key={item.id.slice(0,5)} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
                                                 <td>
@@ -233,7 +233,7 @@ export default compose(
             collection: 'farms',
             doc: '0',
             subcollections: [
-                {collection: 'pending'}
+                {collection: 'pending', where: ['values.check_group', '==', '1']}
             ],
             storeAs: 'ppending'
         }

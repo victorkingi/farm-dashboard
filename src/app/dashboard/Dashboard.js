@@ -638,7 +638,7 @@ export default compose(
             collection: 'farms',
             doc: '0',
             subcollections: [
-                {collection: 'pending', orderBy: ['values.date', 'asc']}
+                {collection: 'pending', where: ['values.check_group', '==', '0'], orderBy: ['values.date', 'asc']}
             ],
             storeAs: 'my_pend'
         }
