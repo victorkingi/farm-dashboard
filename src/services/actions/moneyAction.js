@@ -59,6 +59,7 @@ export const sendMoney = (values) => {
 export const hasPaidLate = (allKeys) => {
     return (dispatch, getState, {getFirebase, getFirestore}) => {
         const firestore = getFirestore();
+        const firebase = getFirebase();
         let allRes = [];
 
         for (const key of allKeys) {
@@ -77,20 +78,18 @@ export const hasPaidLate = (allKeys) => {
                         return 'Invalid check_group';
                     }
 
-                    delete val.rejected;
-                    delete val.ready;
-                    delete val.signal;
-
-                    firestore.collection('farms').doc('0').collection('pending')
-                    .add({ ...val });
+                    doc.ref.update({
+                        'rejected': firebase.firestore.FieldValue.delete(),
+                        'ready': firebase.firestore.FieldValue.delete(),
+                        'signal': firebase.firestore.FieldValue.delete(),
+                        'values.check_group': '0'
+                    });
 
                     firestore.collection('farms').doc('0').update({
                         waiting: true
                     });
 
                     dispatch({type: 'LATE_REPAID'});
-                    doc.ref.delete();
-
                     return 'ok';
                 });
             allRes.push(res);
