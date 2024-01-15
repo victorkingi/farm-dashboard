@@ -256,12 +256,12 @@ function InputExpense(props) {
     }
 
     useMemo(() => {
-        if (/^(([A-Z]|[a-z]){3},)+$/.test(state.item_name) && state.section === 'Pay Purity') {
+        if (/^(([A-Z]|[a-z]){3},)+$/.test(state.item_name) && (state.section === 'Pay Titus' || state.section === 'Pay Ezekiel')) {
             setState({
                 ...state,
                 item_no: (state.item_name.slice(0, -1).split(',').length).toString()
             });
-        } else if (state.section === 'Pay Purity') {
+        } else if (state.section === 'Pay Titus' || state.section === 'Pay Ezekiel') {
             setState({
                 ...state,
                 item_no: '0'

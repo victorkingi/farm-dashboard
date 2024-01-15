@@ -91,10 +91,10 @@ function LatePayment(props) {
 
             allPend[late[i].id] = [
                 all,
-                late[i].values.category,
+                late[i].values.col_id,
                 late[i].values?.extra_data?.vendor ? `${late[i].values?.item_name}(${late[i].values?.extra_data?.vendor})` : (late[i].values?.item_name || late[i].values?.buyer),
                 description,
-                late[i].values?.price ? (parseInt(late[i].values.price) * parseInt(late[i].values.units)) : (parseInt(late[i].values.price) * parseInt(late[i].values.units))
+                parseInt(late[i].values.price) * parseInt(late[i].values.units)
             ];
         }
         setPendChecked(allPend);
