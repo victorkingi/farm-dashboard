@@ -47,7 +47,7 @@ function InputEggs(props) {
 
     useEffect(() => {
         if (extraData) {
-            let groups = extraData[0].subgroups || {};
+            let groups = extraData[0].all_subgroups || {};
             groups = Object.keys(groups).filter(
                 key => key.split('::')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
@@ -194,7 +194,7 @@ function InputEggs(props) {
 
     const handleFlock = (e) => {
         if (extraData) {
-          const object = extraData[0].subgroups;
+          const object = extraData[0].all_subgroups;
           let g = Object.keys(object).find(key => object[key] === e);
           setState({
             ...state,

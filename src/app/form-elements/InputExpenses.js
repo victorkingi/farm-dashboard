@@ -44,7 +44,7 @@ function InputExpense(props) {
             setFeedsVendors(extraData[0].feeds_vendors || []);
             setFeedsType(extraData[0].feeds_type || []);
             
-            let groups = extraData[0].subgroups || {};
+            let groups = extraData[0].all_subgroups || {};
             groups = Object.keys(groups).filter(
                 key => key.split('::')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
@@ -272,7 +272,7 @@ function InputExpense(props) {
 
     const handleFlock = (e) => {
         if (extraData) {
-          const object = extraData[0].subgroups;
+          const object = extraData[0].all_subgroups;
           let g = Object.keys(object).find(key => object[key] === e);
           if (e === 'all') {
             const all_groups = ['flock 1', 'flock 2'];
