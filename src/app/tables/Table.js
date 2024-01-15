@@ -191,7 +191,7 @@ const EnhancedTableToolbar = (props) => {
                                         date: new Date(0),
                                         by: __user__,
                                         entry_hash: x_split[1],
-                                        col_id: parseInt(x_split[0])
+                                        col_id: x_split[0]
                                     }
                                 });
                                 await firestore.collection('farms').doc('0').update({

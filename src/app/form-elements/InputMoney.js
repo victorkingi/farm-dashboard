@@ -25,7 +25,7 @@ function InputMoney(props) {
     const [state, setState] = useState({
         from: 'From',
         to: 'To',
-        col_id: 5,
+        col_id: '5',
         date: new Date(),
         extra_data: {info: ''}
     });

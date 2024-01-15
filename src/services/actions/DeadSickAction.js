@@ -9,7 +9,8 @@ export const inputDeadSick = (deadSick, image) => {
             ...deadSick,
             image_url: '',
             image_id: `${deadSick.state.toUpperCase()}_${image.name}`,
-            submitted_on: new Date()
+            submitted_on: new Date(),
+            check_group: '0'
         }
         let newDate = values.date;
         newDate.setHours(0, 0, 0, 0);

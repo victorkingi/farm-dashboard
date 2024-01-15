@@ -33,7 +33,7 @@ function InputEggs(props) {
 
     const [state, setState] = useState({
         date_: new Date(),
-        col_id: 4,
+        col_id: '4',
         extra_data: {info: ''},
         by: localStorage.getItem('name')
     });

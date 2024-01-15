@@ -137,7 +137,7 @@ function LatePayment(props) {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {late && Array(...late).sort((a, b) => b.values.date.toDate() - a.values.date.toDate()).map((item) => {
+                                    {late && Array(...late).filter(x => x.values.check_group === '1').sort((a, b) => b.values.date.toDate() - a.values.date.toDate()).map((item) => {
                                         return (
                                             <tr key={item.id.slice(0,5)} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
                                                 <td>
@@ -163,7 +163,7 @@ function LatePayment(props) {
                                                         </label>
                                                     </div>
                                                 </td>
-                                                <td className="text-success">{item.values?.col_id === 2 ? 'P' : 'S'}</td>
+                                                <td className="text-success">{item.values?.col_id === '2' ? 'P' : 'S'}</td>
                                                 <td>({moment(item.values?.date?.toDate()).format("MMM Do YY")})<br/>{sanitize_string(item.values)} {`${numeral(item.values?.units).format('0,0')}@${numeral(item.values?.price).format('0,0')}`}</td>
                                                 <td>
                                                     {(item?.rejected === true && item?.signal === 1)
@@ -233,7 +233,7 @@ export default compose(
             collection: 'farms',
             doc: '0',
             subcollections: [
-                {collection: 'ppending'}
+                {collection: 'pending'}
             ],
             storeAs: 'ppending'
         }

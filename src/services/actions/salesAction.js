@@ -28,6 +28,7 @@ export const inputSell = (values, isPending) => {
     values.submitted_on = new Date();
 
     if (isPending) {
+        values.check_group = '0';
         firestore.collection("farms").doc("0").collection("pending")
         .add({
           create: true,
@@ -44,7 +45,8 @@ export const inputSell = (values, isPending) => {
         });
 
       } else {
-        firestore.collection('farms').doc('0').collection('ppending')
+        values.check_group = '1';
+        firestore.collection('farms').doc('0').collection('pending')
         .add({
           create: true,
           values

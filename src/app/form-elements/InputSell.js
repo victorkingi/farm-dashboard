@@ -18,7 +18,7 @@ function InputSell(props) {
   const { extraData } = props;
 
   const [state, setState] = useState({
-    col_id: 1,
+    col_id: '1',
     date: new Date(),
     buyer: '',
     price: '350',

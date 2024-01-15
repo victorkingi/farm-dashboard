@@ -12,7 +12,8 @@ export const sendMoney = (values) => {
         values.date = newDate;
 
         values.submitted_on = new Date();
-        values.subgroups = '0::0;1::0'
+        values.subgroups = '0::0;1::0';
+        values.check_group = '0';
 
         if (values.receiver.startsWith("WITHDRAW")) {
             firebase.auth().onAuthStateChanged(user => {
@@ -61,7 +62,7 @@ export const hasPaidLate = (allKeys) => {
         let allRes = [];
 
         for (const key of allKeys) {
-            const res = firestore.collection('farms').doc('0').collection("ppending").doc(key)
+            const res = firestore.collection('farms').doc('0').collection("pending").doc(key)
                 .get().then((doc) => {
                     if (!doc.exists) {
                         console.log('late doc does not exist')
@@ -70,6 +71,12 @@ export const hasPaidLate = (allKeys) => {
                     let val = {
                         ...doc.data()
                     }
+
+                    if (val.values?.check_group !== '1') {
+                        console.log('Invalid check_group');
+                        return 'Invalid check_group';
+                    }
+
                     delete val.rejected;
                     delete val.ready;
                     delete val.signal;

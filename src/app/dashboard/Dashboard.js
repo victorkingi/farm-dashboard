@@ -18,7 +18,7 @@ export function getRanColor() {
   const ranB = Math.floor((Math.random()*255)+1).toString(16);
   return ("#"+ranR+ranG+ranB).length === 6 ? "#0"+ranR+ranG+ranB : "#"+ranR+ranG+ranB;
 }
-const col_mapping = {1: 'Sales', 2: 'Expenses', 3: 'Dead/Sick', 4: 'Eggs Collected', 5: 'Trades'};
+const col_mapping = {'1': 'Sales', '2': 'Expenses', '3': 'Dead/Sick', '4': 'Eggs Collected', '5': 'Trades'};
 
 function Dashboard(props) {
   const { dashboard, pend, firestore } = props;
@@ -56,7 +56,7 @@ function Dashboard(props) {
   useEffect(() => {
     if (!pend) return 0;
     const pendEggs = pend.filter(
-        x => x.values.col_id === 4);
+        x => x.values.col_id === '4');
         let total = 0;
         for (const [, value] of Object.entries(pendCheckedEggs)) {
             if (value) total += 1;
@@ -68,7 +68,7 @@ function Dashboard(props) {
   useEffect(() => {
         if (!pend) return 0;
         const pendEggs = pend.filter(
-            x => x.values.col_id === 4);
+            x => x.values.col_id === '4');
 
         if (pendEggs.length > 0) {
             let allDisable  = false;
@@ -167,7 +167,7 @@ function Dashboard(props) {
   const addAllEntriesEggs = (all) => {
       if (!pend) return 0;
       const pendEggs = pend.filter(
-        x => x.values.col_id === 4);
+        x => x.values.col_id === '4');
       const allPend = {};
       for (let i = 0; i < pendEggs.length; i++) {
           allPend[pendEggs[i].id] = all;
@@ -350,7 +350,7 @@ function Dashboard(props) {
              <div className="card">
                <div className="card-body">
                  <h4 className="card-title">Pending Transactions</h4>
-                   { pend && pend.filter((x) => x.values.col_id === 4)?.length !== 0 &&
+                   { pend && pend.filter((x) => x.values.col_id === '4')?.length !== 0 &&
                        <div className="table-responsive">
                            <table className="table">
                            <thead>
@@ -385,7 +385,7 @@ function Dashboard(props) {
                            </tr>
                            </thead>
                            <tbody>
-                           {pend && pend.filter((x) => x.values.col_id === 4).map((item) => {
+                           {pend && pend.filter((x) => x.values.col_id === '4').map((item) => {
                                const item_vals = item.values;
                                let disCheckBox = __user__ !== item_vals.by;
                                return (
@@ -460,13 +460,13 @@ function Dashboard(props) {
                      </tr>
                      </thead>
                      <tbody>
-                     {pend && pend.filter(x => x.values.col_id !== 4).map((item) => {
+                     {pend && pend.filter(x => x.values.col_id !== '4').map((item) => {
                          let disCheckBox = __user__ !== item.values?.by;
                          disCheckBox = disCheckBox && "ANNE" !== item.values?.by;
                          disCheckBox = disCheckBox && "BANK" !== item.values?.by;
                          const item_vals = item.values;
 
-                         if (item_vals.col_id === 3) {
+                         if (item_vals.col_id === '3') {
                              disCheckBox = __user__ !== item_vals.by;
                              return (
                                  <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>

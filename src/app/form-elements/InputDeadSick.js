@@ -19,7 +19,7 @@ function InputDeadSick(props) {
 
     const [state, setState] = useState({
         date: new Date(),
-        col_id: 3,
+        col_id: '3',
         extra_data: {info: ''},
         by: localStorage.getItem('name')
     });

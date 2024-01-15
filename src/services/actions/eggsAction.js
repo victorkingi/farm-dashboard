@@ -8,7 +8,8 @@ export const inputTray = (eggs) => {
         const firestore = getFirestore();
         let values = {
             ...eggs,
-            submitted_on: new Date()
+            submitted_on: new Date(),
+            check_group: '0'
         }
         let newDate = values.date_;
         newDate.setHours(0, 0, 0, 0);

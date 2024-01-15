@@ -13,6 +13,7 @@ export const inputExpense = (values, isPending) => {
         values.submitted_on = new Date();
 
         if (isPending) {
+            values.check_group = '0';
             firestore.collection('farms').doc('0').collection('pending')
                 .add({
                 create: true,
@@ -23,7 +24,8 @@ export const inputExpense = (values, isPending) => {
             });
             dispatch({type: 'INPUT_BUYING', values});
         } else {
-            firestore.collection('farms').doc('0').collection('ppending')
+            values.check_group = '1';
+            firestore.collection('farms').doc('0').collection('pending')
                 .add({
                 create: true,
                 values

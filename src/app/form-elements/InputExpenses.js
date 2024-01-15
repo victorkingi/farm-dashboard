@@ -24,7 +24,7 @@ function InputExpense(props) {
         units: '',
         price: '',
         item_name: '',
-        col_id: 2,
+        col_id: '2',
         extra_data: {info: ''},
         by: localStorage.getItem('name')
     });
