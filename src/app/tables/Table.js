@@ -36,13 +36,14 @@ import {firestore} from '../../services/api/firebaseConfig';
 let __user__ = localStorage.getItem('name');
 __user__ = __user__ !== null ? __user__.toUpperCase() : '';
 
-function createData(col_id, name, date, subm, hash) {
+function createData(col_id, name, date, subm, hash, subg) {
     return {
         col_id,
         name,
         date,
         subm,
         hash,
+        subg
     };
 }
 
@@ -184,17 +185,20 @@ const EnhancedTableToolbar = (props) => {
                         const pushDelete = async () => {
                             console.log("NUM:", idsSelected.length);
                             for (const x of idsSelected) {
-                                const x_split = x.split('::');
+                                const x_split = x.split('!!');
                                 await firestore.collection('farms').doc('0').collection('pending').add({
                                     create: false,
                                     values: {
                                         date: new Date(0),
+                                        check_group: '0',
                                         by: __user__,
                                         entry_hash: x_split[1],
-                                        col_id: x_split[0]
+                                        col_id: x_split[0],
+                                        subgroups: x_split[2],
+                                        submitted_on: new Date()
                                     }
                                 });
-                                await firestore.collection('farms').doc('0').update({
+                                firestore.collection('farms').doc('0').update({
                                     waiting: true
                                 });
 
@@ -263,10 +267,10 @@ function EnhancedTable(props) {
                 [tx.data.entry_hash]: tx
             };
             if (tx.col !== 'trades') {
-                temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash, tx.data.subgroups));
             }
             else if (tx.col === 'trades') {
-                if (JSON.stringify(tx.data.links) === '{}') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash));
+                if (JSON.stringify(tx.data.links) === '{}') temp.push(createData(tx.data.col_id, tx.col, tx.data.date.unix, tx.data.submitted_on.unix, tx.data.entry_hash, tx.data.subgroups));
             }
         }
         setTxs(local_txs);
@@ -287,7 +291,7 @@ function EnhancedTable(props) {
     };
 
     const handleClick = (event, row_) => {
-        const name = `${row_.col_id}::${row_.hash}`;
+        const name = `${row_.col_id}!!${row_.hash}!!${row_.subg}`;
 
         const selectedIndex = selected.indexOf(name);
         let newSelected = [];
@@ -329,7 +333,6 @@ function EnhancedTable(props) {
     };
 
     const isSelected = (name) => selected.indexOf(name) !== -1;
-
     // Avoid a layout jump when reaching the last page with empty rows.
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
@@ -359,7 +362,7 @@ function EnhancedTable(props) {
                             {stableSort(rows, getComparator(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {
-                                    const isItemSelected = isSelected(`${row.col_id}::${row.hash}`);
+                                    const isItemSelected = isSelected(`${row.col_id}!!${row.hash}!!${row.subg}`);
                                     const labelId = `enhanced-table-checkbox-${index}`;
                                     const data = txs[row.hash]?.data;
 
@@ -460,7 +463,7 @@ function EnhancedTable(props) {
                 label="Dense padding"
             />
             {selected.map((item_, index) => {
-                const item = item_.split('::')[1]
+                const item = item_.split('!!')[1]
                 const type = txs[item].col;
 
                 if (type === 'eggs_collected') {
