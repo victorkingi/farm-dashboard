@@ -592,7 +592,7 @@ function EnhancedTable(props) {
                     )
                 }
                 else if (type === 'dead_sick') {
-                    let val = extra_data.subgroups[txs[item].data.subgroups];
+                    let val = extra_data.all_subgroups[txs[item].data.subgroups];
 
                     return (
                         <div key={index}>
