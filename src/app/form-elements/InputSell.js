@@ -113,7 +113,7 @@ function InputSell(props) {
     delete values.info;
     delete values.not_paid;
     delete values.paid;
-    if (!values.flock) values.subgroups = "0::0;1::0";
+    if (!values.flock) values.subgroups = "0.0;1.0";
     delete values.flock;
 
     let date = new Date(values.date);

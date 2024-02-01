@@ -416,7 +416,7 @@ function Dashboard(props) {
                                                            : <div className="badge badge-outline-primary">Waiting</div>)}
                                        </td>
                                        <td> {moment(item_vals.date.toDate()).format("MMM Do YY")} </td>
-                                       <td> flock: {parseInt(item_vals.subgroups?.split('::')[0])+1}, trays: ({item_vals.trays_collected}) </td>
+                                       <td> flock: {parseInt(item_vals.subgroups?.split('.')[0])+1}, trays: ({item_vals.trays_collected}) </td>
                                        <td> {item_vals.bags} </td>
                                        <td> {item_vals.eggs.slice(0, item_vals.eggs.length-1)} </td>
                                        <td> {item_vals.broken} </td>

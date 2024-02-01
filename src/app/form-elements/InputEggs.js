@@ -49,7 +49,7 @@ function InputEggs(props) {
         if (extraData) {
             let groups = extraData[0].all_subgroups || {};
             groups = Object.keys(groups).filter(
-                key => key.split('::')[1] === '0').reduce(
+                key => key.split('.')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
 
             setGroups(Object.values(groups) || []);

@@ -380,7 +380,7 @@ function EnhancedTable(props) {
                                     }
 
                                     const by = data.by.toLowerCase();
-                                    const toPrint = row.name === 'eggs_collected' ? `flock: ${parseInt(data.subgroups.split('::')[0])+1} (${by}) trays ${data.trays_collected} [${row.hash.slice(0, 4)}]`
+                                    const toPrint = row.name === 'eggs_collected' ? `flock: ${parseInt(data.subgroups.split('.')[0])+1} (${by}) trays ${data.trays_collected} [${row.hash.slice(0, 4)}]`
                                         : row.name === 'dead_sick'
                                             ? `(${by}) ${numeral(data.number).format(',')} ${data.state.toLowerCase()} [${row.hash.slice(0, 4)}]`
                                             : row.name === 'sales' ? `(${by}) to ${data.buyer.toLowerCase()} ${numeral(data.units).format(',')}@${numeral(data.price).format(',')} [${row.hash.slice(0, 4)}]`

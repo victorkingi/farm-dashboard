@@ -34,7 +34,7 @@ function InputDeadSick(props) {
         if (extraData) {
             let groups = extraData[0].all_subgroups || {};
             groups = Object.keys(groups).filter(
-                key => key.split('::')[1] === '0').reduce(
+                key => key.split('.')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
 
             setGroups(Object.values(groups) || []);
@@ -111,7 +111,7 @@ function InputDeadSick(props) {
         exactSubgrp = Object.keys(exactSubgrp)
             .find(key => exactSubgrp[key] === state.level);
 
-        if (exactSubgrp?.split('::')[0] === state.subgroups.split('::')[0]) {
+        if (exactSubgrp?.split('.')[0] === state.subgroups.split('.')[0]) {
             state.subgroups = exactSubgrp;
             delete state.level;
         }

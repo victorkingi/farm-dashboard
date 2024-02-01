@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { Form } from 'react-bootstrap';
 import {connect} from 'react-redux';
 import DatePicker from "react-datepicker";
@@ -46,7 +46,7 @@ function InputExpense(props) {
             
             let groups = extraData[0].all_subgroups || {};
             groups = Object.keys(groups).filter(
-                key => key.split('::')[1] === '0').reduce(
+                key => key.split('.')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
             
             const val_groups = Object.values(groups);
@@ -254,21 +254,6 @@ function InputExpense(props) {
             });
         }
     }
-
-    useMemo(() => {
-        if (/^(([A-Z]|[a-z]){3},)+$/.test(state.item_name) && (state.section === 'Pay Titus' || state.section === 'Pay Ezekiel')) {
-            setState({
-                ...state,
-                item_no: (state.item_name.slice(0, -1).split(',').length).toString()
-            });
-        } else if (state.section === 'Pay Titus' || state.section === 'Pay Ezekiel') {
-            setState({
-                ...state,
-                item_no: '0'
-            });
-        }
-        // eslint-disable-next-line
-    }, [state.item_name]);
 
     const handleFlock = (e) => {
         if (extraData) {

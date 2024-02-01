@@ -12,7 +12,7 @@ export const sendMoney = (values) => {
         values.date = newDate;
 
         values.submitted_on = new Date();
-        values.subgroups = '0::0;1::0';
+        values.subgroups = '0.0;1.0';
         values.check_group = '0';
 
         if (values.receiver.startsWith("WITHDRAW")) {
