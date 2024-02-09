@@ -61,7 +61,7 @@ function InputEggs(props) {
         const trayStoreRegex = /^[0-9]+,([0-9]|1[0-9]|2[0-9])$/;
         let eggsRegex = /^([0-9]+,){11}[0-9]+$/;
 
-        if (state.flock === 'flock 2') 
+        if (state.flock === 'flock 2' || state.flock === 'flock 3')
             eggsRegex = /^([0-9]+,){5}[0-9]+$/;
 
         const bagsRegex = /^[0-9]+$/.test(state.bags);

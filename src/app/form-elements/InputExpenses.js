@@ -171,7 +171,6 @@ function InputExpense(props) {
             delete values.vendor;
             delete values.bag_weight;
         }
-
         values.section = getSectionAddr(values.section);
         values.units = parseInt(values.units);
         values.price = parseInt(values.price);
@@ -260,11 +259,9 @@ function InputExpense(props) {
           const object = extraData[0].all_subgroups;
           let g = Object.keys(object).find(key => object[key] === e);
           if (e === 'all') {
-            const all_groups = ['flock 1', 'flock 2'];
-            g = [];
-            for (const elem of all_groups) {
-                g.push(Object.keys(object).find(key => object[key] === elem));
-            }
+            const all_groups = Object.keys(object).filter(
+                key => key.split('.')[1] === '0');
+            g = all_groups;
             g = g.join(';');
           }
           setState({
