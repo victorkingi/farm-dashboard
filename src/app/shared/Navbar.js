@@ -60,9 +60,9 @@ function Navbar(props) {
 
         for (let tx of pending_upload) {
           tx = tx.values;
-          if (!(docs.map(x => x.file_name).includes(tx.file_name)) && p === tx.by) {
+          if (!(docs.map(x => x.file_name).includes(tx.image_id)) && p === tx.by) {
             setOpen(false);
-            setError("Cloud document "+tx.file_name.slice(0, 10)+" does not exist locally");
+            setError("Cloud document "+tx.image_id.slice(0, 10)+" does not exist locally");
             setOpenError(true);
             return;
           }
