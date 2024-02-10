@@ -35,7 +35,7 @@ function InputEggs(props) {
         date_: new Date(),
         col_id: '4',
         extra_data: {info: ''},
-        by: localStorage.getItem('name')
+        by: localStorage.getItem('name')?.toUpperCase() || ''
     });
     const [open, setOpen] = useState(false);
     const [openM, setOpenM] = useState('Data Submitted');

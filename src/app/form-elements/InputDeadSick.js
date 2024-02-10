@@ -21,7 +21,7 @@ function InputDeadSick(props) {
         date: new Date(),
         col_id: '3',
         extra_data: {info: ''},
-        by: localStorage.getItem('name')
+        by: localStorage.getItem('name')?.toUpperCase() || ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);

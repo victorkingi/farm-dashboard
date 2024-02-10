@@ -27,7 +27,8 @@ function InputMoney(props) {
         to: 'To',
         col_id: '5',
         date: new Date(),
-        extra_data: {info: ''}
+        extra_data: {info: ''},
+        by: localStorage.getItem('name')?.toUpperCase() || ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);

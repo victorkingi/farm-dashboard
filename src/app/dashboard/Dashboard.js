@@ -36,7 +36,7 @@ function Dashboard(props) {
   const [pendCheckedEggs, setPendCheckedEggs] = useState({});
   const [disableEggs, setDisableEggs] = useState(false);
 
-  const __user__ = localStorage.getItem('name') || '';
+  const __user__ = localStorage.getItem('name')?.toUpperCase() || '';
 
   useEffect(() => {
     if (dashboard) {
@@ -56,7 +56,7 @@ function Dashboard(props) {
   useEffect(() => {
     if (!pend) return 0;
     const pendEggs = pend.filter(
-        x => x.values.col_id === '4');
+        x => x.values.col_id === '4' && x.create === true);
         let total = 0;
         for (const [, value] of Object.entries(pendCheckedEggs)) {
             if (value) total += 1;
@@ -68,7 +68,7 @@ function Dashboard(props) {
   useEffect(() => {
         if (!pend) return 0;
         const pendEggs = pend.filter(
-            x => x.values.col_id === '4');
+            x => x.values.col_id === '4' && x.create === true);
 
         if (pendEggs.length > 0) {
             let allDisable  = false;
@@ -83,43 +83,43 @@ function Dashboard(props) {
 
     }, [pend, __user__]);
 
-  useEffect(() => {
-      if (pend?.length > 0) {
-        let allDisable  = false;
-        for (let k = 0; k < pend.length; k++) {
-            if (!(pend[k].values?.by === __user__)) {
-                allDisable = true;
-                break;
+    useEffect(() => {
+        if (pend?.length > 0) {
+            let allDisable  = false;
+            for (let k = 0; k < pend.length; k++) {
+                if (pend[k].values?.by !== __user__) {
+                    allDisable = true;
+                    break;
+                }
+            }
+            setDisable(allDisable);
+        }
+
+    }, [pend, __user__]);
+
+    // undo write events to database
+    const rollBack = () => {
+        for (const [key, value] of Object.entries(pendCheckedEggs)) {
+            if (value) {
+                firestore.collection("farms/0/pending").doc(key).delete();
+                firestore.collection('farms').doc('0').update({
+                    waiting: true
+                });
+                setError(false);
+                setOpen(true);
+                setAllCheckedEggs(false);
             }
         }
-        setDisable(allDisable);
-      }
-
-  }, [pend, __user__]);
-
-  // undo write events to database
-  const rollBack = () => {
-      for (const [key, value] of Object.entries(pendCheckedEggs)) {
-          if (value) {
-              firestore.collection("farms/0/pending").doc(key).delete();
-              firestore.collection('farms').doc('0').update({
-                waiting: true
-              });
-              setError(false);
-              setOpen(true);
-              setAllCheckedEggs(false);
-          }
-      }
-      for (const [key, value] of Object.entries(pendChecked)) {
-          if (value) {
-              firestore.collection("farms/0/pending").doc(key).delete();
-              firestore.collection('farms').doc('0').update({
-                waiting: true
-              });
-              setError(false);
-              setOpen(true);
-              setAllChecked(false);
-          }
+        for (const [key, value] of Object.entries(pendChecked)) {
+            if (value) {
+                firestore.collection("farms/0/pending").doc(key).delete();
+                firestore.collection('farms').doc('0').update({
+                    waiting: true
+                });
+                setError(false);
+                setOpen(true);
+                setAllChecked(false);
+            }
       }
 
   }
@@ -155,10 +155,9 @@ function Dashboard(props) {
   if (JSON.stringify(dash) !== JSON.stringify({})) {
 
    const addAllEntries = (all) => {
-      if (!pend) return 0;
+      if (!pend) return;
       const allPend = {};
       for (let i = 0; i < pend.length; i++) {
-        if (pend[i].id === 'cleared') continue;
         allPend[pend[i].id] = all;
       }
       setPendChecked(allPend);
@@ -167,7 +166,7 @@ function Dashboard(props) {
   const addAllEntriesEggs = (all) => {
       if (!pend) return 0;
       const pendEggs = pend.filter(
-        x => x.values.col_id === '4');
+        x => x.values.col_id === '4' && x.create === true);
       const allPend = {};
       for (let i = 0; i < pendEggs.length; i++) {
           allPend[pendEggs[i].id] = all;
@@ -349,8 +348,8 @@ function Dashboard(props) {
              <div className="col-12 grid-margin">
              <div className="card">
                <div className="card-body">
-                 <h4 className="card-title">Pending Transactions</h4>
-                   { pend && pend.filter((x) => x.values.col_id === '4')?.length !== 0 &&
+                 <h4 className="card-title">Pending Entries</h4>
+                   { pend && pend.filter((x) => x.values.col_id === '4' && x.create === true)?.length !== 0 &&
                        <div className="table-responsive">
                            <table className="table">
                            <thead>
@@ -385,9 +384,10 @@ function Dashboard(props) {
                            </tr>
                            </thead>
                            <tbody>
-                           {pend && pend.filter((x) => x.values.col_id === '4').map((item) => {
+                           {pend && pend.filter((x) => x.values.col_id === '4' && x.create === true).map((item) => {
                                const item_vals = item.values;
                                let disCheckBox = __user__ !== item_vals.by;
+    
                                return (
                                    <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
                                        <td>
@@ -460,50 +460,14 @@ function Dashboard(props) {
                      </tr>
                      </thead>
                      <tbody>
-                     {pend && pend.filter(x => x.values.col_id !== '4').map((item) => {
-                         let disCheckBox = __user__ !== item.values?.by;
-                         disCheckBox = disCheckBox && "ANNE" !== item.values?.by;
-                         disCheckBox = disCheckBox && "BANK" !== item.values?.by;
-                         const item_vals = item.values;
+                     {pend && pend.filter(x => x.values.col_id !== '4' || x.create === false).map((item) => {
+                        let disCheckBox = __user__ !== item.values?.by;
+                        const item_vals = item.values;
 
-                         if (item_vals.col_id === '3') {
-                             disCheckBox = __user__ !== item_vals.by;
-                             return (
-                                 <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
-                                     <td>
-                                         <div className="form-check form-check-muted m-0">
-                                             <label className="form-check-label">
-                                                 <input disabled={disCheckBox} type="checkbox"
-                                                        className="form-check-input" defaultValue={0}
-                                                        checked={pendChecked[item.id]}
-                                                        onChange={() => setPendChecked({...pendChecked,
-                                                            [item.id]: !pendChecked[item.id]})}
-                                                        id={item.id} name={item.id}
-                                                 />
-                                                 <i className="input-helper"/>
-                                             </label>
-                                         </div>
-                                     </td>
-                                     <td>
-                                         {(item?.rejected === true && item?.signal === 1)
-                                             ? <div className="badge badge-outline-danger">Rejected</div>
-                                             : (item?.rejected === true && item?.signal === 2)
-                                                 ? <div className="badge badge-outline-light">Rejected</div>
-                                                 : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
-                                                     : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
-                                                         : <div className="badge badge-outline-primary">Waiting</div>)}
-                                     </td>
-                                     <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
-                                     <td>{item_vals.number} {item_vals.state} Chicken(s)</td>
-                                     <td>N/A</td>
-                                     <td>N/A</td>
-                                 </tr>
-                             )
-                         }
-
-                         if (item.create === false) {
+                        if (item.create === false) {
                             // A delete
                             disCheckBox = __user__ !== item_vals.by;
+
                             return (
                                  <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
                                      <td>
@@ -535,41 +499,76 @@ function Dashboard(props) {
                                      <td>N/A</td>
                                  </tr>
                              )
-                         }
+                        }
 
-                         return (
-                           <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
-                               <td>
-                               <div className={`form-check form-check-muted m-0`}>
-                                 <label className="form-check-label">
-                                   <input disabled={disCheckBox} type="checkbox"
-                                          className="form-check-input" defaultValue={0}
-                                          checked={pendChecked[item.id]}
-                                          onChange={() => setPendChecked({...pendChecked,
+                        if (item_vals.col_id === '3') {
+                            disCheckBox = __user__ !== item_vals.by;
+                            return (
+                                <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
+                                    <td>
+                                        <div className="form-check form-check-muted m-0">
+                                            <label className="form-check-label">
+                                                <input disabled={disCheckBox} type="checkbox"
+                                                    className="form-check-input" defaultValue={0}
+                                                    checked={pendChecked[item.id]}
+                                                    onChange={() => setPendChecked({...pendChecked,
+                                                        [item.id]: !pendChecked[item.id]})}
+                                                    id={item.id} name={item.id}
+                                                />
+                                                <i className="input-helper"/>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {(item?.rejected === true && item?.signal === 1)
+                                            ? <div className="badge badge-outline-danger">Rejected</div>
+                                            : (item?.rejected === true && item?.signal === 2)
+                                                ? <div className="badge badge-outline-light">Rejected</div>
+                                                : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
+                                                    : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
+                                                        : <div className="badge badge-outline-primary">Waiting</div>)}
+                                    </td>
+                                    <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
+                                    <td>{item_vals.number} {item_vals.state} Chicken(s)</td>
+                                    <td>N/A</td>
+                                    <td>N/A</td>
+                                </tr>
+                            )
+                        }
+
+                        return (
+                            <tr key={item.id} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
+                                <td>
+                                <div className={`form-check form-check-muted m-0`}>
+                                    <label className="form-check-label">
+                                    <input disabled={disCheckBox} type="checkbox"
+                                            className="form-check-input" defaultValue={0}
+                                            checked={pendChecked[item.id]}
+                                            onChange={() => setPendChecked({...pendChecked,
                                             [item.id]: !pendChecked[item.id]})}
-                                          id={item.id} name={item.id}
-                                   />
-                                   <i className="input-helper"/>
-                                 </label>
-                               </div>
-                             </td>
-                               <td>
-                                   {(item?.rejected === true && item?.signal === 1)
-                                       ? <div className="badge badge-outline-danger">Rejected</div>
-                                       : (item?.rejected === true && item?.signal === 2)
-                                           ? <div className="badge badge-outline-light">Rejected</div>
-                                           : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
-                                               : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
-                                                   : <div className="badge badge-outline-primary">Waiting</div>)}
-                               </td>
-                               <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
-                               <td> {item_vals?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item_vals) +` ${numeral(item.values?.units)
-                                                                               .format('0,0')}@${numeral(item.values?.price)
-                                                                               .format('0,0')}`} </td>
-                               <td>{item_vals?.by}</td>
-                               <td> {numeral(parseInt(item_vals.price) * parseInt(item_vals.units)).format("0,0")} </td>
-                           </tr>
-                         )
+                                            id={item.id} name={item.id}
+                                    />
+                                    <i className="input-helper"/>
+                                    </label>
+                                </div>
+                                </td>
+                                <td>
+                                    {(item?.rejected === true && item?.signal === 1)
+                                        ? <div className="badge badge-outline-danger">Rejected</div>
+                                        : (item?.rejected === true && item?.signal === 2)
+                                            ? <div className="badge badge-outline-light">Rejected</div>
+                                            : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
+                                                : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
+                                                    : <div className="badge badge-outline-primary">Waiting</div>)}
+                                </td>
+                                <td> {moment(item_vals?.date?.toDate() || item_vals?.submitted_on?.toDate()).format("MMM Do YY")} </td>
+                                <td> {item_vals?.reason === "WITHDRAW" ? "Withdrawal" : sanitize_string(item_vals) +` ${numeral(item.values?.units)
+                                                                                .format('0,0')}@${numeral(item.values?.price)
+                                                                                .format('0,0')}`} </td>
+                                <td>{item_vals?.by}</td>
+                                <td> {numeral(parseInt(item_vals.price) * parseInt(item_vals.units)).format("0,0")} </td>
+                            </tr>
+                        )
                      })}
                      </tbody>
                    </table>

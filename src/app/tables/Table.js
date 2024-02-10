@@ -33,8 +33,7 @@ import { BrowserView, MobileView } from 'react-device-detect';
 import {firestore} from '../../services/api/firebaseConfig';
 
 
-let __user__ = localStorage.getItem('name');
-__user__ = __user__ !== null ? __user__.toUpperCase() : '';
+const __user__ = localStorage.getItem('name')?.toUpperCase() || '';
 
 function createData(col_id, name, date, subm, hash, subg) {
     return {

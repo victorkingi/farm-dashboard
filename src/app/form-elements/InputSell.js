@@ -23,7 +23,7 @@ function InputSell(props) {
     buyer: '',
     price: '350',
     units: '1',
-    by: localStorage.getItem('name'),
+    by: localStorage.getItem('name')?.toUpperCase() || '',
     extra_data: {info: ''}
   });
   const [open, setOpen] = useState(false);

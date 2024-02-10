@@ -13,7 +13,7 @@ import strftime from 'strftime';
 let today = new Date();
 today.setHours(0, 0, 0, 0);
 today = Math.floor(today.getTime() / 1000);
-const name = localStorage.getItem('name') || '';
+const name = localStorage.getItem('name')?.toUpperCase() || '';
 
 function InputTrays() {
     const [open, setOpen] = useState(false);

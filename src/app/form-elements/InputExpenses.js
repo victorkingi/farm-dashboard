@@ -26,7 +26,7 @@ function InputExpense(props) {
         item_name: '',
         col_id: '2',
         extra_data: {info: ''},
-        by: localStorage.getItem('name')
+        by: localStorage.getItem('name')?.toUpperCase() || ''
     });
     const [open, setOpen] = useState(false);
     const [openError, setOpenError] = useState(false);
