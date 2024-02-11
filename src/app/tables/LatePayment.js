@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {connect} from 'react-redux';
 import {compose} from 'redux';
 import {firestoreConnect} from 'react-redux-firebase';
@@ -20,6 +20,8 @@ function LatePayment(props) {
     const [errM, setErrM] = useState('');
     const [allChecked, setAllChecked] = useState(false);
     const [pendChecked, setPendChecked] = useState({});
+    const [total, setTotal] = useState(0);
+    const [fullAmount, setFullAmount] = useState(0);
 
     // undo write events to database
     const latePaid = async () => {
@@ -45,6 +47,22 @@ function LatePayment(props) {
         setAllChecked(false);
         setPendChecked({});
     }
+
+    useEffect(() => {
+        let resPend = Object.values(pendChecked).filter(x => x[0] === true && x[1] === "1");
+        resPend = resPend.reduce((acc, cur) => acc + cur[4], 0);
+        setTotal(resPend);
+    }, [pendChecked]);
+
+    useEffect(() => {
+        if (!late) return 0;
+        let amount = 0;
+        for (let i = 0; i < late.length; i++) {
+            if (late[i].values.col_id === "1")
+                amount += parseInt(late[i].values.price) * parseInt(late[i].values.units);
+        }
+        setFullAmount(amount);
+    }, [late]);
 
     const user = useMemo(() => {
         const __user = localStorage.getItem('user') || false;
@@ -107,6 +125,9 @@ function LatePayment(props) {
                     <div className="card">
                         <div className="card-body">
                             <h4 className="card-title">Late Payments</h4>
+                            <div className="col-xl-3 col-sm-6 grid-margin stretch-card">
+                                <h6>Total owed from sales Ksh. {numeral(fullAmount).format("0,0")}</h6>
+                            </div>
                             <div className="table-responsive">
                                 <table className="table text-white">
                                     <thead>
@@ -181,6 +202,9 @@ function LatePayment(props) {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                        <div className="col">
+                            <p>*About to clear sales of <b>Ksh. {numeral(total).format("0,0")}</b></p>
                         </div>
                     </div>
                 </div>
