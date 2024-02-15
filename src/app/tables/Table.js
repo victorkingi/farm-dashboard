@@ -188,7 +188,6 @@ const EnhancedTableToolbar = (props) => {
                                 await firestore.collection('farms').doc('0').collection('pending').add({
                                     create: false,
                                     values: {
-                                        date: new Date(0),
                                         check_group: '0',
                                         by: __user__,
                                         entry_hash: x_split[1],
