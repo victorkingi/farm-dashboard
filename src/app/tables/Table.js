@@ -185,7 +185,7 @@ const EnhancedTableToolbar = (props) => {
                             console.log("NUM:", idsSelected.length);
                             for (const x of idsSelected) {
                                 const x_split = x.split('!!');
-                                await firestore.collection('farms').doc('0').collection('pending').add({
+                                await firestore.collection('0').doc('misc').collection('pending').add({
                                     create: false,
                                     values: {
                                         check_group: '0',
@@ -196,7 +196,7 @@ const EnhancedTableToolbar = (props) => {
                                         submitted_on: new Date()
                                     }
                                 });
-                                firestore.collection('farms').doc('0').update({
+                                firestore.collection('0').doc('config').update({
                                     waiting: true
                                 });
 
@@ -643,16 +643,16 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect([
         {
-            collection: 'farms',
-            doc: '0',
+            collection: '0',
+            doc: 'misc',
             subcollections: [
                 { collection: 'txs', orderBy: ['data.date.unix', 'desc'] }
             ],
             storeAs: 'txs'
         },
         {
-            collection: 'farms',
-            doc: '0',
+            collection: '0',
+            doc: 'misc',
             subcollections: [
                 {collection: 'extra_data', doc: 'extra_data'}
             ],

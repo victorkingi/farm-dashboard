@@ -22,7 +22,6 @@ const col_mapping = {'1': 'Sales', '2': 'Expenses', '3': 'Dead/Sick', '4': 'Eggs
 
 function Dashboard(props) {
   const { dashboard, pend, firestore } = props;
-  
 
   const [dash, setDash] = useState({});
   const [open, setOpen] = useState(false);
@@ -101,8 +100,8 @@ function Dashboard(props) {
     const rollBack = () => {
         for (const [key, value] of Object.entries(pendCheckedEggs)) {
             if (value) {
-                firestore.collection("farms/0/pending").doc(key).delete();
-                firestore.collection('farms').doc('0').update({
+                firestore.collection("0/misc/pending").doc(key).delete();
+                firestore.collection('0').doc('config').update({
                     waiting: true
                 });
                 setError(false);
@@ -112,8 +111,8 @@ function Dashboard(props) {
         }
         for (const [key, value] of Object.entries(pendChecked)) {
             if (value) {
-                firestore.collection("farms/0/pending").doc(key).delete();
-                firestore.collection('farms').doc('0').update({
+                firestore.collection("0/misc/pending").doc(key).delete();
+                firestore.collection('0').doc('config').update({
                     waiting: true
                 });
                 setError(false);
@@ -626,16 +625,16 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect(() => [
         {
-            collection: 'farms',
-            doc: '0',
+            collection: '0',
+            doc: 'misc',
             subcollections: [
                 {collection: 'dashboard', doc: 'dashboard'}
             ],
             storeAs: 'my_dash'
         },
         {
-            collection: 'farms',
-            doc: '0',
+            collection: '0',
+            doc: 'misc',
             subcollections: [
                 {collection: 'pending', where: ['values.check_group', '==', '0'], orderBy: ['values.date', 'asc']}
             ],

@@ -23,12 +23,12 @@ export const sendMoney = (values) => {
                             window.alert("You are not an admin");
                             return -1;
                         } else {
-                            firestore.collection('farms').doc('0').collection('pending')
+                            firestore.collection('0').doc('misc').collection('pending')
                             .add({
                                 create: true,
                                 values
                             });
-                            firestore.collection('farms').doc('0').update({
+                            firestore.collection('0').doc('config').update({
                                 waiting: true
                             });
                             dispatch({type: 'MONEY_SENT', values});
@@ -37,12 +37,12 @@ export const sendMoney = (values) => {
                 }
             });
         } else {
-            firestore.collection('farms').doc('0').collection('pending')
+            firestore.collection('0').doc('misc').collection('pending')
             .add({
                 create: true,
                 values
             });
-            firestore.collection('farms').doc('0').update({
+            firestore.collection('0').doc('config').update({
                 waiting: true
             });
             dispatch({type: 'MONEY_SENT', values});
@@ -63,7 +63,7 @@ export const hasPaidLate = (allKeys) => {
         let allRes = [];
 
         for (const key of allKeys) {
-            const res = firestore.collection('farms').doc('0').collection("pending").doc(key)
+            const res = firestore.collection('0').doc('misc').collection("pending").doc(key)
                 .get().then((doc) => {
                     if (!doc.exists) {
                         console.log('late doc does not exist')
@@ -85,7 +85,7 @@ export const hasPaidLate = (allKeys) => {
                         'values.check_group': '0'
                     });
 
-                    firestore.collection('farms').doc('0').update({
+                    firestore.collection('0').doc('config').update({
                         waiting: true
                     });
 

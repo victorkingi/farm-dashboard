@@ -168,8 +168,8 @@ function Navbar(props) {
                   const url = await uploadTask.snapshot.ref.getDownloadURL();
                   console.log('done', url);
                   const query = await firestore.get({
-                      collection: 'farms',
-                      doc: '0',
+                      collection: '0',
+                      doc: 'misc',
                       subcollections: [
                         {collection: 'pending_upload', where: ['values.image_id', '==', key]}
                       ]
@@ -209,16 +209,16 @@ function Navbar(props) {
                     // delete local doc
                     db.collection('dead_sick').doc({file_name: key}).delete();
                     firestore.set({
-                      collection: 'farms',
-                      doc: '0',
+                      collection: '0',
+                      doc: 'misc',
                       subcollections: [{collection: 'pending', doc: to_del_id}]
                     }, to_add);
-                    firestore.collection('farms').doc('0').update({
+                    firestore.collection('0').doc('config').update({
                       waiting: true
                     });
                     firestore.delete({
-                      collection: 'farms',
-                      doc: '0',
+                      collection: '0',
+                      doc: 'misc',
                       subcollections: [{collection: 'pending_upload', doc: to_del_id}] 
                     });
 
@@ -404,8 +404,8 @@ export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
       {
-        collection: 'farms',
-        doc: '0',
+        collection: '0',
+        doc: 'misc',
         subcollections: [
           {
             collection: 'pending_upload',

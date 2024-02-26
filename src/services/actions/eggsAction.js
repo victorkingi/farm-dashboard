@@ -16,12 +16,12 @@ export const inputTray = (eggs) => {
         values.date = newDate;
         delete values.date_;
 
-        firestore.collection('farms').doc('0').collection('pending')
+        firestore.collection('0').doc('misc').collection('pending')
         .add({
             create: true,
             values
         });
-        firestore.collection('farms').doc('0').update({
+        firestore.collection('0').doc('config').update({
             waiting: true
         });
         console.log('done');

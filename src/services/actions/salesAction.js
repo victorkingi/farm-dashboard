@@ -29,13 +29,13 @@ export const inputSell = (values, isPending) => {
 
     if (isPending) {
         values.check_group = '0';
-        firestore.collection("farms").doc("0").collection("pending")
+        firestore.collection("0").doc("misc").collection("pending")
         .add({
           create: true,
           values
         });
 
-        firestore.collection('farms').doc('0').update({
+        firestore.collection('0').doc('config').update({
             waiting: true
         });
 
@@ -46,13 +46,13 @@ export const inputSell = (values, isPending) => {
 
       } else {
         values.check_group = '1';
-        firestore.collection('farms').doc('0').collection('pending')
+        firestore.collection('0').doc('misc').collection('pending')
         .add({
           create: true,
           values
         });
 
-        firestore.collection('farms').doc('0').update({
+        firestore.collection('0').doc('config').update({
             waiting: true
         });
 

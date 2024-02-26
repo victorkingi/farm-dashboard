@@ -352,8 +352,8 @@ export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect(() => [
       {
-        collection: 'farms',
-        doc: '0',
+        collection: '0',
+        doc: 'misc',
         subcollections: [
             {collection: 'extra_data', doc: 'extra_data'}
         ],

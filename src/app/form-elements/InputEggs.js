@@ -329,6 +329,7 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 const mapStateToProps = function(state) {
+    console.log(state.firestore)
     return {
       extraData: state.firestore.ordered.extra_data
     }
@@ -338,8 +339,8 @@ export default compose(
     connect(mapStateToProps, mapDispatchToProps),
     firestoreConnect([
         {
-            collection: 'farms',
-            doc: '0',
+            collection: '0',
+            doc: 'misc',
             subcollections: [
                 {collection: 'extra_data', doc: 'extra_data'}
             ],

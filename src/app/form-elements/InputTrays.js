@@ -35,7 +35,7 @@ function InputTrays() {
                 setOpenError(true);
                 return -1;
             }
-            firestore.doc(`farms/0/checkpoints/${today}`)
+            firestore.doc(`0/misc/checkpoints/${today}`)
                 .set({
                     by: name,
                     trays_collected: state,
@@ -45,7 +45,7 @@ function InputTrays() {
                             "%m/%d/%Y, %H:%M:%S", new Date(today*1000)) + ', Africa/Nairobi'
                     }
                 }, {merge: true});
-            firestore.collection('farms').doc('0').update({
+            firestore.collection('0').doc('config').update({
                 waiting: true
             });
             setOpenError(false);

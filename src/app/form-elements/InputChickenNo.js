@@ -33,11 +33,11 @@ function InputChknNo() {
                 setOpenError(true);
                 return -1;
             }
-            firestore.doc(`farms/0/chicken_no/exact`)
+            firestore.doc(`0/chicken_no/exact`)
                 .update({
                     [today]: -1
                 });
-            firestore.doc(`farms/0/chicken_no/by`)
+            firestore.doc(`0/chicken_no/by`)
                 .update({
                     [today]: name
                 });

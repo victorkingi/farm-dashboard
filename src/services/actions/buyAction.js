@@ -14,23 +14,23 @@ export const inputExpense = (values, isPending) => {
 
         if (isPending) {
             values.check_group = '0';
-            firestore.collection('farms').doc('0').collection('pending')
+            firestore.collection('0').doc('misc').collection('pending')
                 .add({
                 create: true,
                 values
             });
-            firestore.collection('farms').doc('0').update({
+            firestore.collection('0').doc('config').update({
                 waiting: true
             });
             dispatch({type: 'INPUT_BUYING', values});
         } else {
             values.check_group = '1';
-            firestore.collection('farms').doc('0').collection('pending')
+            firestore.collection('0').doc('misc').collection('pending')
                 .add({
                 create: true,
                 values
             });
-            firestore.collection('farms').doc('0').update({
+            firestore.collection('0').doc('config').update({
                 waiting: true
             });
             dispatch({
