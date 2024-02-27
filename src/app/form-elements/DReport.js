@@ -157,7 +157,7 @@ function DInvoice() {
                 </div>
             </div>
             <Online>
-                <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
+                <Snackbar open={open} autoHideDuration={8000} onClose={handleClose}>
                     <Alert onClose={handleClose} severity="success">
                         {openM}
                     </Alert>
