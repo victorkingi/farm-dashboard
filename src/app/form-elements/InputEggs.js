@@ -47,7 +47,8 @@ function InputEggs(props) {
 
     useEffect(() => {
         if (extraData) {
-            let groups = extraData[0].all_subgroups || {};
+            const econs = extraData.filter(x => x.id === 'constants');
+            let groups = econs[0].all_subgroups || {};
             groups = Object.keys(groups).filter(
                 key => key.split('.')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
@@ -194,13 +195,14 @@ function InputEggs(props) {
 
     const handleFlock = (e) => {
         if (extraData) {
-          const object = extraData[0].all_subgroups;
-          let g = Object.keys(object).find(key => object[key] === e);
-          setState({
-            ...state,
-            subgroups: g,
-            flock: e
-          });
+            const econs = extraData.filter(x => x.id === 'constants');
+            const object = econs[0].all_subgroups;
+            let g = Object.keys(object).find(key => object[key] === e);
+            setState({
+                ...state,
+                subgroups: g,
+                flock: e
+            });
         }
     }
 
@@ -329,7 +331,6 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 const mapStateToProps = function(state) {
-    console.log(state.firestore)
     return {
       extraData: state.firestore.ordered.extra_data
     }
@@ -342,7 +343,7 @@ export default compose(
             collection: '0',
             doc: 'misc',
             subcollections: [
-                {collection: 'extra_data', doc: 'extra_data'}
+                {collection: 'extra_data'}
             ],
             storeAs: 'extra_data'
         }

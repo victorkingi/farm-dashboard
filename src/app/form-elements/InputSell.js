@@ -34,7 +34,8 @@ function InputSell(props) {
 
   useEffect(() => {
     if (extraData) {
-      setBuyerNames(extraData[0].buyer_names || []);
+      const econs = extraData.filter(x => x.id === 'other');
+      setBuyerNames(econs[0].buyer_names || []);
     }
   }, [extraData]);
 
@@ -355,7 +356,7 @@ export default compose(
         collection: '0',
         doc: 'misc',
         subcollections: [
-            {collection: 'extra_data', doc: 'extra_data'}
+            {collection: 'extra_data'}
         ],
         storeAs: 'extra_data'
       }

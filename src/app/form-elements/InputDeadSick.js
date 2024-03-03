@@ -32,7 +32,8 @@ function InputDeadSick(props) {
 
     useEffect(() => {
         if (extraData) {
-            let groups = extraData[0].all_subgroups || {};
+            const econs = extraData.filter(x => x.id === 'constants');
+            let groups = econs[0].all_subgroups || {};
             groups = Object.keys(groups).filter(
                 key => key.split('.')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
@@ -107,7 +108,8 @@ function InputDeadSick(props) {
             setOpenError(true);
             return;
         }
-        let exactSubgrp = Object(extraData[0].all_subgroups);
+        const econs = extraData.filter(x => x.id === 'constants');
+        let exactSubgrp = Object(econs[0].all_subgroups);
         exactSubgrp = Object.keys(exactSubgrp)
             .find(key => exactSubgrp[key] === state.level);
 
@@ -151,13 +153,14 @@ function InputDeadSick(props) {
 
     const handleFlock = (e) => {
         if (extraData) {
-          const object = extraData[0].all_subgroups;
-          let g = Object.keys(object).find(key => object[key] === e);
-          setState({
-            ...state,
-            subgroups: g,
-            flock: e
-          });
+            const econs = extraData.filter(x => x.id === 'constants');
+            const object = econs[0].all_subgroups;
+            let g = Object.keys(object).find(key => object[key] === e);
+            setState({
+                ...state,
+                subgroups: g,
+                flock: e
+            });
         }
       }
 
@@ -323,7 +326,7 @@ export default compose(
             collection: '0',
             doc: 'misc',
             subcollections: [
-                {collection: 'extra_data', doc: 'extra_data'}
+                {collection: 'extra_data'}
             ],
             storeAs: 'extra_data'
         },

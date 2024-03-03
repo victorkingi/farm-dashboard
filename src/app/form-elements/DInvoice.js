@@ -241,7 +241,7 @@ function DInvoice({ invoices, extraData }) {
 const mapStateToProps = function(state) {
     return {
         invoices: state.firestore.ordered.invoices,
-        extraData: state.firestore.ordered.extra_data
+        extraData: state.firestore.ordered.extra_data.constants
     }
 }
 
@@ -249,6 +249,6 @@ export default compose(
     connect(mapStateToProps),
     firestoreConnect([
         {collection: 'invoices', doc: 'count'},
-        {collection: 'extra_data', doc: 'extra_data'}
+        {collection: 'extra_data'}
     ])
 )(DInvoice);

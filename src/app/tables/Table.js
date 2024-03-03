@@ -635,7 +635,8 @@ function EnhancedTable(props) {
 const mapStateToProps = (state) => {
     return {
         tx_ui: state.firestore.ordered.txs,
-        extra_data: state.firestore.data.extra_data
+        extra_data: state.firestore.data.extra_data.constants
+
     }
 }
 
@@ -646,7 +647,7 @@ export default compose(
             collection: '0',
             doc: 'misc',
             subcollections: [
-                { collection: 'txs', orderBy: ['data.date.unix', 'desc'] }
+                { collection: 'txs', orderBy: ['data.date.unix', 'desc']}
             ],
             storeAs: 'txs'
         },
@@ -654,7 +655,7 @@ export default compose(
             collection: '0',
             doc: 'misc',
             subcollections: [
-                {collection: 'extra_data', doc: 'extra_data'}
+                {collection: 'extra_data'}
             ],
             storeAs: 'extra_data'
         }

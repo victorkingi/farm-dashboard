@@ -40,11 +40,13 @@ function InputExpense(props) {
 
     useEffect(() => {
         if (extraData) {
-            setEmployeeNames(extraData[0].pay_employees || []);
-            setFeedsVendors(extraData[0].feeds_vendors || []);
-            setFeedsType(extraData[0].feeds_type || []);
+            let econs = extraData.filter(x => x.id === 'other');
+            setEmployeeNames(econs[0].pay_employees || []);
+            setFeedsVendors(econs[0].feeds_vendors || []);
+            setFeedsType(econs[0].feeds_type || []);
             
-            let groups = extraData[0].all_subgroups || {};
+            econs = extraData.filter(x => x.id === 'constants');
+            let groups = econs[0].all_subgroups || {};
             groups = Object.keys(groups).filter(
                 key => key.split('.')[1] === '0').reduce(
                     (cur, key) => { return Object.assign(cur, { [key]: groups[key] })}, {});
@@ -256,19 +258,20 @@ function InputExpense(props) {
 
     const handleFlock = (e) => {
         if (extraData) {
-          const object = extraData[0].all_subgroups;
-          let g = Object.keys(object).find(key => object[key] === e);
-          if (e === 'all') {
-            const all_groups = Object.keys(object).filter(
-                key => key.split('.')[1] === '0');
-            g = all_groups;
-            g = g.join(';');
-          }
-          setState({
-            ...state,
-            subgroups: g,
-            flock: e
-          });
+            const econs = extraData.filter(x => x.id === 'constants');
+            const object = econs[0].all_subgroups;
+            let g = Object.keys(object).find(key => object[key] === e);
+            if (e === 'all') {
+                const all_groups = Object.keys(object).filter(
+                    key => key.split('.')[1] === '0');
+                g = all_groups;
+                g = g.join(';');
+            }
+            setState({
+                ...state,
+                subgroups: g,
+                flock: e
+            });
         }
       }
 
@@ -469,7 +472,7 @@ export default compose(
             collection: '0',
             doc: 'misc',
             subcollections: [
-                {collection: 'extra_data', doc: 'extra_data'}
+                {collection: 'extra_data'}
             ],
             storeAs: 'extra_data'
         }
