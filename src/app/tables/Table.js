@@ -590,7 +590,8 @@ function EnhancedTable(props) {
                     )
                 }
                 else if (type === 'dead_sick') {
-                    let val = extra_data.all_subgroups[txs[item].data.subgroups];
+                    const econs = extra_data.constants;
+                    let val = econs.all_subgroups[txs[item].data.subgroups];
 
                     return (
                         <div key={index}>
@@ -635,7 +636,7 @@ function EnhancedTable(props) {
 const mapStateToProps = (state) => {
     return {
         tx_ui: state.firestore.ordered.txs,
-        extra_data: state.firestore.data.extra_data.constants
+        extra_data: state.firestore.data.extra_data
 
     }
 }
