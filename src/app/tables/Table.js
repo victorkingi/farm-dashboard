@@ -193,7 +193,8 @@ const EnhancedTableToolbar = (props) => {
                                         entry_hash: x_split[1],
                                         col_id: x_split[0],
                                         subgroups: x_split[2],
-                                        submitted_on: new Date()
+                                        submitted_on: new Date(),
+                                        date: new Date(0)
                                     }
                                 });
                                 firestore.collection('0').doc('config').update({
