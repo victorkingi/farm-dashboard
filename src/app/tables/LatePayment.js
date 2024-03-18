@@ -160,7 +160,7 @@ function LatePayment(props) {
                                     <tbody>
                                     {late && Array(...late).map((item) => {
                                         return (
-                                            <tr key={item.id.slice(0,5)} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready') && item.rejected !== item.ready) ? 'white' : 'muted'}`}>
+                                            <tr key={item.id.slice(0,5)} className={`text-${(item.hasOwnProperty('rejected') && item.hasOwnProperty('ready')) ? 'white' : 'muted'}`}>
                                                 <td>
                                                     <div className="form-check form-check-muted m-0">
                                                         <label className="form-check-label">
@@ -187,12 +187,12 @@ function LatePayment(props) {
                                                 <td className="text-success">{item.values?.col_id === '2' ? 'P' : 'S'}</td>
                                                 <td>({moment(item.values?.date?.toDate()).format("MMM Do YY")})<br/>{sanitize_string(item.values)} {`${numeral(item.values?.units).format('0,0')}@${numeral(item.values?.price).format('0,0')}`}</td>
                                                 <td>
-                                                    {(item?.rejected === true && item?.signal === 1)
+                                                    {(item?.rejected > 0 && item?.signal === 1)
                                                         ? <div className="badge badge-outline-danger">Rejected</div>
-                                                        : (item?.rejected === true && item?.signal === 2)
+                                                        : (item?.rejected > 0 && item?.signal === 2)
                                                             ? <div className="badge badge-outline-light">Rejected</div>
                                                             : item?.ready === true ? <div className="badge badge-outline-success">Ready</div>
-                                                                : ((item?.ready === item?.rejected) && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
+                                                                : (item?.rejected === 0 && item?.ready === false ? <div className="badge badge-outline-info">Skipped</div>
                                                                 : <div className="badge badge-outline-primary">Waiting</div>)}
                                                 </td>
                                                 <td>{numeral(parseInt(item.values.price) * parseInt(item.values.units)).format('0,0')}</td>
