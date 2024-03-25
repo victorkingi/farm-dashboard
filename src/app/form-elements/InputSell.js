@@ -243,7 +243,7 @@ function InputSell(props) {
                     id='buyer'
                     onSelect={handleBuyer}
                 >
-                  {Array(...buyer_names).sort().map(x => {
+                  {Array(...buyer_names).map(x => {
                     return <Dropdown.Item eventKey={x}>{x}</Dropdown.Item>
                   })}
                 </DropdownButton>
